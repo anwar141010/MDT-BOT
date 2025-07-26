@@ -1,5 +1,5 @@
 // MDT Discord Bot - متعدد السيرفرات
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Events, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, AttachmentBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Events, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, AttachmentBuilder, InteractionResponseType } = require('discord.js');
 const config = require('./config');
 const fs = require('fs');
 const path = require('path');
@@ -617,12 +617,12 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand() && interaction.commandName === 'بطاقة') {
       // تحقق من الإعدادات
       if (!checkGuildSettings(interaction.guildId)) {
-        await interaction.reply({ content: '❌ يجب تعيين جميع الإعدادات أولاً من خلال /الادارة.', ephemeral: true });
+        await interaction.reply({ content: '❌ يجب تعيين جميع الإعدادات أولاً من خلال /الادارة.', flags: [4096] });
         return;
       }
       // تحقق من روم الإنشاء
       if (!isInCreateRoom(interaction)) {
-        await interaction.reply({ content: '❌ لا يمكن إنشاء الهوية إلا في روم الإنشاء المخصص.', ephemeral: true });
+        await interaction.reply({ content: '❌ لا يمكن إنشاء الهوية إلا في روم الإنشاء المخصص.', flags: [4096] });
         return;
       }
       // Embed مع الصورة المطلوبة
@@ -685,7 +685,7 @@ client.on('interactionCreate', async interaction => {
         ].includes(interaction.customId))
       ) {
         if (!isInCreateRoom(interaction)) {
-          await interaction.reply({ content: '❌ لا يمكن إكمال خطوات الهوية إلا في روم الإنشاء المخصص.', ephemeral: true });
+          await interaction.reply({ content: '❌ لا يمكن إكمال خطوات الهوية إلا في روم الإنشاء المخصص.', flags: [4096] });
           return;
         }
       }
@@ -700,7 +700,7 @@ client.on('interactionCreate', async interaction => {
           // طلب كود عسكري - يحتاج رتبة مسؤول الشرطة
           const policeAdminRoleId = guildSettings[interaction.guildId]?.policeAdminRoleId;
           if (!policeAdminRoleId || !member.roles.cache.has(policeAdminRoleId)) {
-            await interaction.reply({ content: '❌ ليس لديك صلاحية القبول أو الرفض. يجب أن تحمل رتبة مسؤول الشرطة.', ephemeral: true });
+            await interaction.reply({ content: '❌ ليس لديك صلاحية القبول أو الرفض. يجب أن تحمل رتبة مسؤول الشرطة.', flags: [4096] });
             return;
           }
         } else {
@@ -729,7 +729,7 @@ client.on('interactionCreate', async interaction => {
         const nameRow = new ActionRowBuilder().addComponents(nameButton);
         // حفظ guildId في userSteps (احتياط)
         userSteps[interaction.user.id].guildId = guildId;
-        await interaction.reply({ content: 'اضغط على الزر لإدخال اسمك الكامل:', components: [nameRow], ephemeral: true });
+        await interaction.reply({ content: 'اضغط على الزر لإدخال اسمك الكامل:', components: [nameRow], flags: [4096] });
       }
       
       // معالجة أزرار القبول والرفض
