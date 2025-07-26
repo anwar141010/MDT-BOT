@@ -962,15 +962,36 @@ console.log('🔑 Token length:', config.DISCORD_TOKEN ? config.DISCORD_TOKEN.le
 // اختبار الاتصال بالإنترنت
 console.log('🌐 اختبار الاتصال بالإنترنت...');
 const https = require('https');
-const testConnection = https.get('https://discord.com', (res) => {
-  console.log('✅ الاتصال بـ Discord.com ناجح:', res.statusCode);
-}).on('error', (err) => {
-  console.error('❌ لا يمكن الاتصال بـ Discord.com:', err.message);
+
+// اختبار متعدد للمواقع
+const testSites = [
+  'https://discord.com',
+  'https://gateway.discord.gg',
+  'https://api.discord.com'
+];
+
+let connectionSuccess = false;
+
+testSites.forEach((site, index) => {
+  const testConnection = https.get(site, (res) => {
+    console.log(`✅ الاتصال بـ ${site} ناجح:`, res.statusCode);
+    connectionSuccess = true;
+  }).on('error', (err) => {
+    console.error(`❌ لا يمكن الاتصال بـ ${site}:`, err.message);
+  });
+  
+  testConnection.setTimeout(3000, () => {
+    console.error(`❌ انتهت مهلة الاتصال بـ ${site}`);
+    testConnection.destroy();
+  });
 });
-testConnection.setTimeout(5000, () => {
-  console.error('❌ انتهت مهلة الاتصال بـ Discord.com');
-  testConnection.destroy();
-});
+
+// انتظار قليل قبل محاولة تسجيل الدخول
+setTimeout(() => {
+  if (!connectionSuccess) {
+    console.warn('⚠️ تحذير: قد تكون هناك مشكلة في الاتصال بالإنترنت');
+  }
+}, 4000);
 
 // إضافة timeout للاتصال
 const loginTimeout = setTimeout(() => {
@@ -985,41 +1006,116 @@ const loginTimeout = setTimeout(() => {
   process.exit(1);
 }, 30000);
 
-client.login(config.DISCORD_TOKEN).then(() => {
-  clearTimeout(loginTimeout);
-  console.log('✅ تم تسجيل الدخول بنجاح!');
-}).catch(error => {
-  console.error('❌ خطأ في تسجيل الدخول:', error.message);
-  console.error('🔍 تفاصيل الخطأ:', error);
-  
-  if (error.message.includes('An invalid token was provided')) {
-    console.error('🔍 المشكلة: التوكن غير صحيح');
-    console.error('💡 الحل: أعد إنشاء التوكن من Discord Developer Portal');
-  } else if (error.message.includes('Missing Permissions')) {
-    console.error('🔍 المشكلة: البوت لا يملك الصلاحيات المطلوبة');
-    console.error('💡 الحل: تأكد من تفعيل Gateway Intents');
-  } else if (error.message.includes('Cannot send messages to this user')) {
-    console.error('🔍 المشكلة: البوت غير موجود في أي سيرفر');
-    console.error('💡 الحل: أضف البوت إلى سيرفر أولاً');
-  } else {
-    console.error('🔍 خطأ غير معروف:', error.message);
-  }
-  
-  process.exit(1);
-});
+// محاولة تسجيل الدخول مع إعادة المحاولة
+let loginAttempts = 0;
+const maxLoginAttempts = 3;
 
-// إضافة منفذ للويب (مطلوب لـ Render Web Service)
-const port = process.env.PORT || 3000;
+function attemptLogin() {
+  loginAttempts++;
+  console.log(`🔄 محاولة تسجيل الدخول رقم ${loginAttempts}/${maxLoginAttempts}...`);
+  
+  client.login(config.DISCORD_TOKEN).then(() => {
+    clearTimeout(loginTimeout);
+    console.log('✅ تم تسجيل الدخول بنجاح!');
+  }).catch(error => {
+    console.error(`❌ خطأ في محاولة تسجيل الدخول ${loginAttempts}:`, error.message);
+    console.error('🔍 تفاصيل الخطأ:', error);
+    
+    if (error.message.includes('An invalid token was provided')) {
+      console.error('🔍 المشكلة: التوكن غير صحيح');
+      console.error('💡 الحل: أعد إنشاء التوكن من Discord Developer Portal');
+      process.exit(1);
+    } else if (error.message.includes('Missing Permissions')) {
+      console.error('🔍 المشكلة: البوت لا يملك الصلاحيات المطلوبة');
+      console.error('💡 الحل: تأكد من تفعيل Gateway Intents');
+      process.exit(1);
+    } else if (error.message.includes('Cannot send messages to this user')) {
+      console.error('🔍 المشكلة: البوت غير موجود في أي سيرفر');
+      console.error('💡 الحل: أضف البوت إلى سيرفر أولاً');
+      process.exit(1);
+    } else if (loginAttempts < maxLoginAttempts) {
+      console.log(`⏳ انتظار 5 ثوانٍ قبل المحاولة التالية...`);
+      setTimeout(attemptLogin, 5000);
+    } else {
+      console.error('🔍 خطأ غير معروف بعد جميع المحاولات:', error.message);
+      console.error('💡 الحلول المحتملة:');
+      console.error('   1. تحقق من إعدادات Discord Developer Portal');
+      console.error('   2. تأكد من أن البوت موجود في سيرفر');
+      console.error('   3. جرب استخدام خادم مختلف (Railway, Heroku)');
+      console.error('   4. تحقق من حظر Render من Discord');
+      process.exit(1);
+    }
+  });
+}
+
+// بدء محاولة تسجيل الدخول بعد 5 ثوانٍ
+setTimeout(attemptLogin, 5000);
+
+// إعداد خادم الويب لـ Render
 const http = require('http');
 
+// إنشاء خادم ويب بسيط للـ health check
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('MDT Discord Bot is running!');
+  // إضافة CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+  
+  if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MDT Discord Bot</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+          .container { max-width: 600px; margin: 0 auto; }
+          .status { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0; }
+          .emoji { font-size: 2em; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="emoji">🤖</div>
+          <h1>MDT Discord Bot</h1>
+          <div class="status">
+            <h2>✅ البوت يعمل بنجاح!</h2>
+            <p>البوت متصل بـ Discord ويعمل بشكل طبيعي</p>
+            <p>الوقت: ${new Date().toLocaleString('ar-SA')}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  } else if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage()
+    }));
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
 });
 
-server.listen(port, () => {
-  console.log(`🌐 Server listening on port ${port}`);
-  console.log(`🔗 يمكن الوصول للبوت على: http://localhost:${port}`);
+// تشغيل الخادم على المنفذ المحدد من Render
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🌐 خادم الويب يعمل على المنفذ ${PORT}`);
+  console.log(`🔗 رابط الخادم: http://localhost:${PORT}`);
+  console.log(`🏥 رابط فحص الصحة: http://localhost:${PORT}/health`);
 });
 
 // معالجة الأخطاء غير المتوقعة
