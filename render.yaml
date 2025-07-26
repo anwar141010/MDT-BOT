@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: mdt-discord-bot
+    env: node
+    buildCommand: npm install
+    startCommand: node start.js
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: BOT_ID
+        sync: false 
