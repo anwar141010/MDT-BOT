@@ -959,10 +959,29 @@ console.log('🔄 محاولة تسجيل الدخول إلى Discord...');
 console.log('🔑 Token موجود:', !!config.DISCORD_TOKEN);
 console.log('🔑 Token length:', config.DISCORD_TOKEN ? config.DISCORD_TOKEN.length : 0);
 
+// اختبار الاتصال بالإنترنت
+console.log('🌐 اختبار الاتصال بالإنترنت...');
+const https = require('https');
+const testConnection = https.get('https://discord.com', (res) => {
+  console.log('✅ الاتصال بـ Discord.com ناجح:', res.statusCode);
+}).on('error', (err) => {
+  console.error('❌ لا يمكن الاتصال بـ Discord.com:', err.message);
+});
+testConnection.setTimeout(5000, () => {
+  console.error('❌ انتهت مهلة الاتصال بـ Discord.com');
+  testConnection.destroy();
+});
+
 // إضافة timeout للاتصال
 const loginTimeout = setTimeout(() => {
   console.error('❌ انتهت مهلة الاتصال بـ Discord (30 ثانية)');
-  console.error('🔍 تأكد من أن التوكن صحيح وأن البوت موجود في سيرفر');
+  console.error('🔍 المشكلة: لا يمكن الاتصال بـ Discord');
+  console.error('💡 الحلول المحتملة:');
+  console.error('   1. تأكد من أن البوت موجود في سيرفر');
+  console.error('   2. تحقق من إعدادات Gateway Intents');
+  console.error('   3. أعد إنشاء التوكن');
+  console.error('   4. تحقق من حظر Render من Discord');
+  console.error('   5. جرب استخدام VPN أو خادم مختلف');
   process.exit(1);
 }, 30000);
 
