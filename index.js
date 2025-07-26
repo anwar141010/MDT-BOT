@@ -1726,10 +1726,233 @@ client.on('interactionCreate', async interaction => {
       }
       return;
     }
+    // معالجة قائمة إدارة النظام
+    if (interaction.isStringSelectMenu() && interaction.customId === 'admin_settings_menu') {
+      const selected = interaction.values[0];
+      
+      if (selected === 'reset') {
+        // إعادة تعيين القائمة
+        const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
+        const embed = new EmbedBuilder()
+          .setTitle('إدارة الهوية')
+          .setDescription('يمكنك من هنا إدارة إعدادات الهوية. اختر من القائمة أدناه الإجراء المطلوب.')
+          .setImage(customImage)
+          .setColor('#00ff00');
+        const menuOptions = [
+          { label: 'تعيين روم اللوق', value: 'set_log_channel' },
+          { label: 'تعيين روم المراجعة', value: 'set_review_channel' },
+          { label: 'تعيين رتبة القبول والرفض', value: 'set_approval_role' },
+          { label: 'تعيين الرتبة العسكرية/الشرطية', value: 'set_police_role' },
+          { label: 'إضافة رتبة مسؤول الشرطة', value: 'set_police_admin_role' },
+          { label: 'تعيين روم إنشاء الهوية', value: 'set_create_room_channel' },
+          { label: 'تعيين روم مباشرة العسكر', value: 'set_direct_military_room' },
+          { label: 'تعيين روم قبول الاكواد العسكرية', value: 'set_military_code_review_room' },
+          { label: 'أكواد العساكر قيد المراجعة', value: 'check_military_codes' },
+          { label: 'تعديل | حذف الهوية', value: 'edit_delete_identity' }
+        ];
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId('admin_settings_menu')
+          .setPlaceholder('اختر إجراء...')
+          .addOptions(addResetOption(menuOptions));
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+        await interaction.reply({ embeds: [embed], components: [row], flags: [4096] });
+        return;
+      }
+      
+      // معالجة الخيارات الأخرى
+      if (selected === 'set_log_channel') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_log_channel')
+          .setTitle('تعيين روم اللوق');
+        const input = new TextInputBuilder()
+          .setCustomId('input_log_channel')
+          .setLabel('أدخل آيدي روم اللوق')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_review_channel') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_review_channel')
+          .setTitle('تعيين روم المراجعة');
+        const input = new TextInputBuilder()
+          .setCustomId('input_review_channel')
+          .setLabel('أدخل آيدي روم المراجعة')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_approval_role') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_approval_role')
+          .setTitle('تعيين رتبة القبول والرفض');
+        const input = new TextInputBuilder()
+          .setCustomId('input_approval_role')
+          .setLabel('أدخل آيدي رتبة القبول والرفض')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_police_role') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_police_role')
+          .setTitle('تعيين رتبة الشرطة');
+        const input = new TextInputBuilder()
+          .setCustomId('input_police_role')
+          .setLabel('أدخل آيدي رتبة الشرطة')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_police_admin_role') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_police_admin_role')
+          .setTitle('تعيين رتبة مسؤول الشرطة');
+        const input = new TextInputBuilder()
+          .setCustomId('input_police_admin_role')
+          .setLabel('أدخل آيدي رتبة مسؤول الشرطة')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_create_room_channel') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_create_room_channel')
+          .setTitle('تعيين روم إنشاء الهوية');
+        const input = new TextInputBuilder()
+          .setCustomId('input_create_room_channel')
+          .setLabel('أدخل آيدي روم إنشاء الهوية')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_direct_military_room') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_direct_military_room')
+          .setTitle('تعيين روم مباشرة العسكر');
+        const input = new TextInputBuilder()
+          .setCustomId('input_direct_military_room')
+          .setLabel('أدخل آيدي روم مباشرة العسكر')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'set_military_code_review_room') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_set_military_code_review_room')
+          .setTitle('تعيين روم قبول الاكواد العسكرية');
+        const input = new TextInputBuilder()
+          .setCustomId('input_military_code_review_room')
+          .setLabel('أدخل آيدي روم قبول الاكواد العسكرية')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('مثال: 123456789012345678')
+          .setRequired(true);
+        const row = new ActionRowBuilder().addComponents(input);
+        modal.addComponents(row);
+        await interaction.showModal(modal);
+        return;
+      }
+      
+      if (selected === 'check_military_codes') {
+        const guildId = interaction.guildId;
+        const pendingCodes = pendingMilitaryCodeRequests.filter(req => req.guildId === guildId);
+        
+        if (pendingCodes.length === 0) {
+          await interaction.reply({ content: '❌ لا توجد أكواد عسكرية قيد المراجعة.', flags: [4096] });
+          return;
+        }
+        
+        const embed = new EmbedBuilder()
+          .setTitle('📋 الأكواد العسكرية قيد المراجعة')
+          .setDescription(`**عدد الأكواد المعلقة:** ${pendingCodes.length}`)
+          .setColor('#fbbf24')
+          .setTimestamp();
+        
+        pendingCodes.forEach((code, index) => {
+          const identity = identities.find(id => id.userId === code.userId && id.guildId === guildId);
+          embed.addFields({
+            name: `🔐 الكود رقم ${index + 1}`,
+            value: `**المستخدم:** <@${code.userId}>\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الكود المطلوب:** \`${code.code}\`\n**تاريخ الطلب:** <t:${Math.floor(new Date(code.requestedAt).getTime() / 1000)}:F>\n**معرف الطلب:** \`${code.requestId}\``,
+            inline: false
+          });
+        });
+        
+        await interaction.reply({ embeds: [embed], flags: [4096] });
+        return;
+      }
+      
+      if (selected === 'edit_delete_identity') {
+        const guildIdentities = identities.filter(i => i.guildId === interaction.guildId);
+        
+        if (guildIdentities.length === 0) {
+          await interaction.reply({ content: '❌ لا توجد هويات في هذا السيرفر.', flags: [4096] });
+          return;
+        }
+        
+        const embed = new EmbedBuilder()
+          .setTitle('إدارة الهويات')
+          .setDescription('اختر هوية من القائمة أدناه لعرضها أو تعديلها أو حذفها.')
+          .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
+          .setColor('#00ff00');
+        
+        const pageSize = 22;
+        const pageIdentities = guildIdentities.slice(0, pageSize);
+        const options = pageIdentities.map(i => ({ label: i.fullName, value: `identity_${i.userId}` }));
+        
+        if (guildIdentities.length > pageSize) {
+          options.push({ label: 'رؤية المزيد', value: 'see_more_identities' });
+        }
+        
+        const menu = new StringSelectMenuBuilder()
+          .setCustomId('identity_select_menu_page_1')
+          .setPlaceholder('اختر هوية...')
+          .addOptions(options);
+        
+        const row = new ActionRowBuilder().addComponents(menu);
+        await interaction.reply({ embeds: [embed], components: [row], flags: [4096] });
+        return;
+      }
+    }
+    
     // منطق إعادة تعيين الإعدادات
     if (
       interaction.isStringSelectMenu() &&
-      (interaction.customId === 'admin_settings_menu' || interaction.customId === 'identity_select_menu_page_1') &&
+      interaction.customId === 'identity_select_menu_page_1' &&
       (interaction.values[0] === 'reset' || interaction.values[0] === 'reset_identities')
     ) {
       // إعادة إرسال نفس الإيمبيد بدون أي تغيير في البيانات
