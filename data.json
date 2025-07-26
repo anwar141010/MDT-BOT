@@ -1,0 +1,252 @@
+{
+  "identities": [
+    {
+      "guildId": "1368922074936115280",
+      "userId": "1040569141762986014",
+      "fullName": "انور عمي",
+      "gender": "male",
+      "city": "los_santos",
+      "year": "1990",
+      "month": "1",
+      "day": "1",
+      "nationalId": "2761",
+      "approvedBy": "1337512375355707412",
+      "approvedAt": "2025-07-22T00:52:01.384Z",
+      "approvalReason": "لانه انور عمك"
+    },
+    {
+      "guildId": "1368922074936115280",
+      "userId": "1315383019653304350",
+      "fullName": "احمد",
+      "gender": "male",
+      "city": "los_santos",
+      "year": "1992",
+      "month": "3",
+      "day": "2",
+      "nationalId": "6156",
+      "approvedBy": "1315383019653304350",
+      "approvedAt": "2025-07-22T15:35:01.055Z",
+      "approvalReason": "مقبول"
+    },
+    {
+      "guildId": "1368922074936115280",
+      "userId": "1225909842619662336",
+      "fullName": "صالح",
+      "gender": "male",
+      "city": "los_santos",
+      "year": "2006",
+      "month": "8",
+      "day": "24",
+      "nationalId": "5355",
+      "approvedBy": "1225909842619662336",
+      "approvedAt": "2025-07-22T16:08:40.742Z",
+      "approvalReason": "واسطة",
+      "crimes": [
+        {
+          "id": "1753284368938377107",
+          "title": "الخطف",
+          "desc": "قام بخطف عامل بقاله ههه",
+          "done": false
+        }
+      ]
+    },
+    {
+      "guildId": "1368922074936115280",
+      "userId": "1337512375355707412",
+      "fullName": "عبد الصمد القرشي",
+      "gender": "male",
+      "city": "los_santos",
+      "year": "1992",
+      "month": "4",
+      "day": "5",
+      "nationalId": "7173",
+      "approvedBy": "1337512375355707412",
+      "approvedAt": "2025-07-22T17:31:59.947Z",
+      "approvalReason": "مقبول",
+      "violations": [
+        {
+          "name": "قطع إشارة المرور",
+          "desc": "كاد ان يصبح حادث سير",
+          "status": "مسددة",
+          "id": "1753282097531757089"
+        },
+        {
+          "id": "1753282425477805348",
+          "name": "قيادة بدون رخصة",
+          "desc": "تست",
+          "status": "غير مسددة"
+        },
+        {
+          "id": "1753282438934146530",
+          "name": "التفحيط",
+          "desc": "تست",
+          "status": "غير مسددة"
+        }
+      ],
+      "crimes": [
+        {
+          "id": "1753286747724466418",
+          "title": "القتل العمد",
+          "desc": "قتل عسكري متعمدا",
+          "done": false,
+          "evidence": [
+            "https://i.postimg.cc/J0yy1Pj9/image.webp"
+          ]
+        },
+        {
+          "id": "1753517170027885295",
+          "title": "التحرش الجنسي",
+          "desc": "اغتصاب",
+          "done": false,
+          "evidence": [
+            "https://i.postimg.cc/j27ZXDNb/Screenshot-2025-07-24-16-30-31-919-com-discord-edit.jpg"
+          ]
+        }
+      ]
+    },
+    {
+      "guildId": "1368922074936115280",
+      "userId": "1360353433969889570",
+      "fullName": "عمك و عم عيالك",
+      "gender": "male",
+      "city": "sandy_shore",
+      "year": "1996",
+      "month": "2",
+      "day": "6",
+      "nationalId": "7399",
+      "approvedBy": "1337512375355707412",
+      "approvedAt": "2025-07-23T17:02:31.829Z",
+      "approvalReason": "مقبول لانه انور عمك"
+    },
+    {
+      "guildId": "1368922074936115280",
+      "userId": "1348729989897388082",
+      "fullName": "اييييي يرجاللللل حيد العين بسسس🥱🥱🥱🥱😏😏😏😏😏😍😍😍🥰🥰🥰🥰🤝🤝🤝🤝",
+      "gender": "male",
+      "city": "los_santos",
+      "year": "1990",
+      "month": "1",
+      "day": "1",
+      "nationalId": "6663",
+      "approvedBy": "1337512375355707412",
+      "approvedAt": "2025-07-26T08:03:38.608Z",
+      "approvalReason": "مقبول"
+    }
+  ],
+  "pendingRequests": [
+    {
+      "requestId": "1753067267443",
+      "guildId": null,
+      "userId": "1337512375355707412",
+      "username": "alagrb1",
+      "fullName": "عبد الصمد القرشي",
+      "gender": "male",
+      "city": "los_santos",
+      "year": "1990",
+      "month": "1",
+      "day": "1",
+      "nationalId": "6722",
+      "createdAt": "2025-07-21T03:07:47.443Z",
+      "status": "pending"
+    },
+    {
+      "requestId": "1753290071841",
+      "guildId": "1368922074936115280",
+      "userId": "1360353433969889570",
+      "username": ".5j7",
+      "fullName": "عمك و عم عيالك",
+      "gender": "male",
+      "city": "sandy_shore",
+      "year": "1996",
+      "month": "2",
+      "day": "1",
+      "nationalId": "1192",
+      "createdAt": "2025-07-23T17:01:11.841Z",
+      "status": "pending"
+    }
+  ],
+  "guildSettings": {
+    "1368922074936115280": {
+      "logChannelId": "1388450243795882034",
+      "reviewChannelId": "1394227197618684056",
+      "createRoomChannelId": "1393448027523649696",
+      "approvalRoleId": "1396689878430908416",
+      "policeRoleId": "1392689089240895568",
+      "policeAdminRoleId": "1392708995801939988",
+      "militaryCodeReviewRoomId": "1394227197618684056",
+      "directMilitaryRoomId": "1398573065150922753"
+    }
+  },
+  "botStatus": "online",
+  "originalBotName": "Wonder MDT",
+  "militaryData": {
+    "users": {},
+    "codes": {
+      "1368922074936115280": {
+        "1337512375355707412": "F - 0"
+      }
+    },
+    "points": {
+      "1368922074936115280": {
+        "1337512375355707412": 18
+      }
+    }
+  },
+  "pendingMilitaryCodeRequests": [],
+  "militaryActivePages": [
+    {
+      "guildId": "1368922074936115280",
+      "pageIndex": 0,
+      "messageId": "1398573619306696776",
+      "users": [
+        null
+      ]
+    }
+  ],
+  "militaryUsers": {
+    "1337512375355707412": {
+      "fullName": "عبد الصمد القرشي",
+      "code": "F - 0",
+      "rank": "قائد الشرطة",
+      "status": "out",
+      "lastUpdate": "2025-07-26T08:37:17.595Z",
+      "guildId": "1368922074936115280"
+    }
+  },
+  "militaryWarnings": {
+    "1368922074936115280": {
+      "1337512375355707412": [
+        {
+          "id": "6660",
+          "warningNumber": "2",
+          "reason": "تست",
+          "adminId": "1337512375355707412",
+          "adminName": "عبد الصمد القرشي",
+          "adminRank": "قائد الشرطة",
+          "date": "2025-07-26T10:08:50.905Z",
+          "evidence": "https://i.postimg.cc/J0yy1Pj9/image.webp",
+          "removed": false,
+          "removalReason": null,
+          "removalDate": null,
+          "removalAdminId": null,
+          "removalAdminName": null
+        },
+        {
+          "id": "1753520093004865004",
+          "warningNumber": "1",
+          "reason": "تست لانك نوب و غبي و مخطوف",
+          "adminId": "1337512375355707412",
+          "adminName": "عبد الصمد القرشي",
+          "adminRank": "قائد الشرطة",
+          "date": "2025-07-26T08:54:53.004Z",
+          "evidence": null,
+          "removed": false,
+          "removalReason": null,
+          "removalDate": null,
+          "removalAdminId": null,
+          "removalAdminName": null
+        }
+      ]
+    }
+  }
+}
