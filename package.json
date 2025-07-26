@@ -1,15 +1,17 @@
 {
-  "name": "MDT",
+  "name": "mdt-discord-bot",
   "version": "1.0.0",
-  "description": "Discord bot with image generation ready for Render hosting.",
+  "description": "MDT Discord Bot for military management",
   "main": "index.js",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js",
-    "debug": "node debug.js"
+    "start": "node start.js",
+    "dev": "nodemon start.js",
+    "pm2": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop mdt-discord-bot",
+    "pm2:restart": "pm2 restart mdt-discord-bot"
   },
   "dependencies": {
     "canvas": "^3.1.2",
