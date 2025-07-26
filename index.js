@@ -4,6 +4,19 @@ const path = require('path');
 const config = require('./config');
 const { generateMilitaryPageImage } = require('./militaryImage');
 
+// التحقق من التوكن
+if (!config.DISCORD_TOKEN) {
+  console.error('❌ خطأ: DISCORD_TOKEN غير موجود في متغيرات البيئة');
+  console.error('🔍 تأكد من إضافة DISCORD_TOKEN في إعدادات Render');
+  process.exit(1);
+}
+
+console.log('🚀 بدء تشغيل MDT Discord Bot...');
+console.log('📋 معلومات النظام:');
+console.log(`  - Node.js: ${process.version}`);
+console.log(`  - Platform: ${process.platform}`);
+console.log(`  - Architecture: ${process.arch}`);
+
 // إنشاء عميل Discord
 const client = new Client({
   intents: [
@@ -834,17 +847,30 @@ async function registerCommands() {
 
 // معالجة الأحداث
 client.on('ready', async () => {
+  console.log('🎉 البوت جاهز للعمل!');
   console.log(`✅ تم تسجيل الدخول باسم: ${client.user.tag}`);
+  console.log(`🆔 معرف البوت: ${client.user.id}`);
   console.log(`🏢 عدد السيرفرات: ${client.guilds.cache.size}`);
   
   // عرض حالة البوت لكل سيرفر
-  client.guilds.cache.forEach(guild => {
-    const isStopped = isBotStopped(guild.id);
-    console.log(`📊 ${guild.name}: ${isStopped ? '🔴 متوقف' : '🟢 يعمل'}`);
-  });
+  if (client.guilds.cache.size > 0) {
+    console.log('📋 قائمة السيرفرات:');
+    client.guilds.cache.forEach(guild => {
+      const isStopped = isBotStopped(guild.id);
+      console.log(`  📊 ${guild.name} (${guild.id}): ${isStopped ? '🔴 متوقف' : '🟢 يعمل'}`);
+    });
+  } else {
+    console.log('⚠️ البوت غير موجود في أي سيرفر');
+  }
   
   // تسجيل الأوامر
-  await registerCommands();
+  console.log('📝 تسجيل الأوامر...');
+  try {
+    await registerCommands();
+    console.log('✅ تم تسجيل الأوامر بنجاح');
+  } catch (error) {
+    console.error('❌ خطأ في تسجيل الأوامر:', error);
+  }
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -901,8 +927,14 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 // تسجيل الدخول
-client.login(config.DISCORD_TOKEN).catch(error => {
-  console.error('خطأ في تسجيل الدخول:', error);
+console.log('🔄 محاولة تسجيل الدخول إلى Discord...');
+console.log('🔑 Token موجود:', !!config.DISCORD_TOKEN);
+
+client.login(config.DISCORD_TOKEN).then(() => {
+  console.log('✅ تم تسجيل الدخول بنجاح!');
+}).catch(error => {
+  console.error('❌ خطأ في تسجيل الدخول:', error);
+  console.error('🔍 تأكد من أن DISCORD_TOKEN صحيح في متغيرات البيئة');
   process.exit(1);
 });
 
@@ -917,14 +949,28 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, () => {
   console.log(`🌐 Server listening on port ${port}`);
+  console.log(`🔗 يمكن الوصول للبوت على: http://localhost:${port}`);
 });
 
 // معالجة الأخطاء غير المتوقعة
 process.on('unhandledRejection', (error) => {
-  console.error('خطأ غير معالج:', error);
+  console.error('❌ خطأ غير معالج (Promise):', error);
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('استثناء غير معالج:', error);
+  console.error('❌ استثناء غير معالج:', error);
   process.exit(1);
+});
+
+// معالجة انقطاع الاتصال
+client.on('disconnect', () => {
+  console.log('🔌 تم قطع الاتصال من Discord');
+});
+
+client.on('reconnecting', () => {
+  console.log('🔄 إعادة الاتصال بـ Discord...');
+});
+
+client.on('error', (error) => {
+  console.error('❌ خطأ في اتصال Discord:', error);
 }); 
