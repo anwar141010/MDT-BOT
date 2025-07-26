@@ -959,13 +959,33 @@ console.log('🔄 محاولة تسجيل الدخول إلى Discord...');
 console.log('🔑 Token موجود:', !!config.DISCORD_TOKEN);
 console.log('🔑 Token length:', config.DISCORD_TOKEN ? config.DISCORD_TOKEN.length : 0);
 
+// إضافة timeout للاتصال
+const loginTimeout = setTimeout(() => {
+  console.error('❌ انتهت مهلة الاتصال بـ Discord (30 ثانية)');
+  console.error('🔍 تأكد من أن التوكن صحيح وأن البوت موجود في سيرفر');
+  process.exit(1);
+}, 30000);
+
 client.login(config.DISCORD_TOKEN).then(() => {
+  clearTimeout(loginTimeout);
   console.log('✅ تم تسجيل الدخول بنجاح!');
 }).catch(error => {
-  console.error('❌ خطأ في تسجيل الدخول:', error);
-  console.error('🔍 تأكد من أن DISCORD_TOKEN صحيح في متغيرات البيئة');
-  console.error('🔍 تأكد من أن التوكن محدث في Discord Developer Portal');
-  console.error('🔍 تأكد من أن البوت لديه الصلاحيات المطلوبة');
+  console.error('❌ خطأ في تسجيل الدخول:', error.message);
+  console.error('🔍 تفاصيل الخطأ:', error);
+  
+  if (error.message.includes('An invalid token was provided')) {
+    console.error('🔍 المشكلة: التوكن غير صحيح');
+    console.error('💡 الحل: أعد إنشاء التوكن من Discord Developer Portal');
+  } else if (error.message.includes('Missing Permissions')) {
+    console.error('🔍 المشكلة: البوت لا يملك الصلاحيات المطلوبة');
+    console.error('💡 الحل: تأكد من تفعيل Gateway Intents');
+  } else if (error.message.includes('Cannot send messages to this user')) {
+    console.error('🔍 المشكلة: البوت غير موجود في أي سيرفر');
+    console.error('💡 الحل: أضف البوت إلى سيرفر أولاً');
+  } else {
+    console.error('🔍 خطأ غير معروف:', error.message);
+  }
+  
   process.exit(1);
 });
 
