@@ -1,6905 +1,7731 @@
-// MDT Discord Bot - متعدد السيرفرات
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Events, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, AttachmentBuilder, InteractionResponseType } = require('discord.js');
-const config = require('./config');
-const fs = require('fs');
-const path = require('path');
-const DATA_FILE = path.join(__dirname, 'data.json');
-const { createCanvas, loadImage } = require('canvas');
-const { generateMilitaryPageImage } = require('./militaryImage');
+import {
+  ActionRowBuilder as BuilderActionRow,
+  MessageActionRowComponentBuilder,
+  ButtonBuilder as BuilderButtonComponent,
+  EmbedBuilder as BuildersEmbed,
+  ChannelSelectMenuBuilder as BuilderChannelSelectMenuComponent,
+  MentionableSelectMenuBuilder as BuilderMentionableSelectMenuComponent,
+  RoleSelectMenuBuilder as BuilderRoleSelectMenuComponent,
+  StringSelectMenuBuilder as BuilderStringSelectMenuComponent,
+  UserSelectMenuBuilder as BuilderUserSelectMenuComponent,
+  TextInputBuilder as BuilderTextInputComponent,
+  SelectMenuOptionBuilder as BuildersSelectMenuOption,
+  ModalActionRowComponentBuilder,
+  ModalBuilder as BuildersModal,
+  AnyComponentBuilder,
+  type RestOrArray,
+  ApplicationCommandOptionAllowedChannelTypes,
+} from '@discordjs/builders';
+import {
+  blockQuote,
+  bold,
+  channelMention,
+  codeBlock,
+  formatEmoji,
+  hideLinkEmbed,
+  hyperlink,
+  inlineCode,
+  italic,
+  quote,
+  roleMention,
+  spoiler,
+  strikethrough,
+  time,
+  TimestampStyles,
+  underscore,
+  userMention,
+} from '@discordjs/formatters';
+import { Awaitable, JSONEncodable } from '@discordjs/util';
+import { Collection, ReadonlyCollection } from '@discordjs/collection';
+import { BaseImageURLOptions, ImageURLOptions, RawFile, REST, RESTOptions } from '@discordjs/rest';
+import {
+  WebSocketManager as WSWebSocketManager,
+  IShardingStrategy,
+  IIdentifyThrottler,
+  SessionInfo,
+} from '@discordjs/ws';
+import {
+  APIActionRowComponent,
+  APIApplicationCommandInteractionData,
+  APIApplicationCommandOption,
+  APIAuditLogChange,
+  APIButtonComponent,
+  APIEmbed,
+  APIEmoji,
+  APIInteractionDataResolvedChannel,
+  APIInteractionDataResolvedGuildMember,
+  APIInteractionGuildMember,
+  APIMessage,
+  APIMessageComponent,
+  APIOverwrite,
+  APIPartialChannel,
+  APIPartialEmoji,
+  APIPartialGuild,
+  APIRole,
+  APISelectMenuComponent,
+  APITemplateSerializedSourceGuild,
+  APIUser,
+  ButtonStyle,
+  ChannelType,
+  ComponentType,
+  GatewayDispatchEvents,
+  GatewayVoiceServerUpdateDispatchData,
+  GatewayVoiceStateUpdateDispatchData,
+  GuildFeature,
+  GuildMFALevel,
+  GuildNSFWLevel,
+  GuildPremiumTier,
+  GuildVerificationLevel,
+  Locale,
+  InteractionType,
+  InviteTargetType,
+  MessageType,
+  OAuth2Scopes,
+  RESTPostAPIApplicationCommandsJSONBody,
+  Snowflake,
+  StageInstancePrivacyLevel,
+  StickerFormatType,
+  StickerType,
+  TeamMemberMembershipState,
+  WebhookType,
+  OverwriteType,
+  GuildExplicitContentFilter,
+  GuildDefaultMessageNotifications,
+  ApplicationCommandPermissionType,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ActivityType,
+  GuildScheduledEventEntityType,
+  GuildScheduledEventPrivacyLevel,
+  GuildScheduledEventStatus,
+  IntegrationExpireBehavior,
+  ApplicationFlags,
+  PermissionFlagsBits,
+  ThreadMemberFlags,
+  UserFlags,
+  MessageFlags,
+  GuildSystemChannelFlags,
+  GatewayIntentBits,
+  ActivityFlags,
+  AuditLogEvent,
+  APIMessageComponentEmoji,
+  EmbedType,
+  APIComponentInActionRow,
+  APIModalInteractionResponseCallbackData,
+  APIModalSubmitInteraction,
+  APIComponentInMessageActionRow,
+  TextInputStyle,
+  APITextInputComponent,
+  APIComponentInModalActionRow,
+  APIModalComponent,
+  APISelectMenuOption,
+  APIEmbedField,
+  APIEmbedAuthor,
+  APIEmbedFooter,
+  APIEmbedImage,
+  VideoQualityMode,
+  LocalizationMap,
+  MessageActivityType,
+  APIAttachment,
+  APIChannel,
+  ThreadAutoArchiveDuration,
+  FormattingPatterns,
+  APIEmbedProvider,
+  AuditLogOptionsType,
+  TextChannelType,
+  ChannelFlags,
+  SortOrderType,
+  APIMessageStringSelectInteractionData,
+  APIMessageUserSelectInteractionData,
+  APIStringSelectComponent,
+  APIUserSelectComponent,
+  APIRoleSelectComponent,
+  APIMentionableSelectComponent,
+  APIChannelSelectComponent,
+  APIGuildMember,
+  APIMessageRoleSelectInteractionData,
+  APIMessageMentionableSelectInteractionData,
+  APIMessageChannelSelectInteractionData,
+  AutoModerationRuleKeywordPresetType,
+  AutoModerationActionType,
+  AutoModerationRuleEventType,
+  AutoModerationRuleTriggerType,
+  AuditLogRuleTriggerType,
+  GatewayAutoModerationActionExecutionDispatchData,
+  APIAutoModerationRule,
+  ForumLayoutType,
+  ApplicationRoleConnectionMetadataType,
+  APIApplicationRoleConnectionMetadata,
+  ImageFormat,
+  GuildMemberFlags,
+  RESTGetAPIGuildThreadsResult,
+  RESTGetAPIGuildOnboardingResult,
+  APIGuildOnboardingPrompt,
+  APIGuildOnboardingPromptOption,
+  GuildOnboardingPromptType,
+  AttachmentFlags,
+  RoleFlags,
+  TeamMemberRole,
+  GuildWidgetStyle,
+  GuildOnboardingMode,
+  APISKU,
+  SKUFlags,
+  SKUType,
+  APIEntitlement,
+  EntitlementType,
+  ApplicationIntegrationType,
+  InteractionContextType,
+  APIPoll,
+  PollLayoutType,
+  APIPollAnswer,
+  APISelectMenuDefaultValue,
+  SelectMenuDefaultValueType,
+  InviteType,
+  ReactionType,
+  APIAuthorizingIntegrationOwnersMap,
+  MessageReferenceType,
+  GuildScheduledEventRecurrenceRuleWeekday,
+  GuildScheduledEventRecurrenceRuleMonth,
+  GuildScheduledEventRecurrenceRuleFrequency,
+  APISubscription,
+  SubscriptionStatus,
+  ApplicationWebhookEventStatus,
+  ApplicationWebhookEventType,
+  RESTPostAPIInteractionCallbackWithResponseResult,
+  RESTAPIInteractionCallbackObject,
+  RESTAPIInteractionCallbackResourceObject,
+  InteractionResponseType,
+  RESTAPIInteractionCallbackActivityInstanceResource,
+  VoiceChannelEffectSendAnimationType,
+  GatewayVoiceChannelEffectSendDispatchData,
+  APIChatInputApplicationCommandInteractionData,
+  APIContextMenuInteractionData,
+  APISoundboardSound,
+  APIComponentInContainer,
+  APIContainerComponent,
+  APIThumbnailComponent,
+  APISectionComponent,
+  APITextDisplayComponent,
+  APIUnfurledMediaItem,
+  APIMediaGalleryItem,
+  APIMediaGalleryComponent,
+  APISeparatorComponent,
+  SeparatorSpacingSize,
+  APIFileComponent,
+  APIMessageTopLevelComponent,
+  EntryPointCommandHandlerType,
+} from 'discord-api-types/v10';
+import { ChildProcess } from 'node:child_process';
+import { EventEmitter } from 'node:events';
+import { Stream } from 'node:stream';
+import { MessagePort, Worker } from 'node:worker_threads';
+import {
+  RawActivityData,
+  RawAnonymousGuildData,
+  RawApplicationCommandData,
+  RawApplicationData,
+  RawApplicationEmojiData,
+  RawBaseGuildData,
+  RawChannelData,
+  RawClientApplicationData,
+  RawDMChannelData,
+  RawEmojiData,
+  RawGuildAuditLogData,
+  RawGuildAuditLogEntryData,
+  RawGuildBanData,
+  RawGuildChannelData,
+  RawGuildData,
+  RawGuildEmojiData,
+  RawGuildMemberData,
+  RawGuildPreviewData,
+  RawGuildScheduledEventData,
+  RawGuildTemplateData,
+  RawIntegrationApplicationData,
+  RawIntegrationData,
+  RawInteractionData,
+  RawInviteData,
+  RawInviteGuildData,
+  RawInviteStageInstance,
+  RawMessageButtonInteractionData,
+  RawMessageComponentInteractionData,
+  RawMessageData,
+  RawMessagePayloadData,
+  RawMessageReactionData,
+  RawOAuth2GuildData,
+  RawPartialGroupDMChannelData,
+  RawPartialMessageData,
+  RawPermissionOverwriteData,
+  RawPresenceData,
+  RawReactionEmojiData,
+  RawRichPresenceAssets,
+  RawRoleData,
+  RawStageInstanceData,
+  RawStickerData,
+  RawStickerPackData,
+  RawTeamData,
+  RawTeamMemberData,
+  RawThreadChannelData,
+  RawThreadMemberData,
+  RawTypingData,
+  RawUserData,
+  RawVoiceRegionData,
+  RawVoiceStateData,
+  RawWebhookData,
+  RawWelcomeChannelData,
+  RawWelcomeScreenData,
+  RawWidgetData,
+  RawWidgetMemberData,
+} from './rawDataTypes.js';
 
-// تحميل بيانات الهويات من الملف عند بدء التشغيل
-let identities = [];
-let pendingRequests = []; // طلبات معلقة
+//#region Classes
 
-// متغير لتتبع حالة البوت (تشغيل/إيقاف)
-let botStatus = 'online'; // 'online' أو 'offline'
+export class Activity {
+  private constructor(presence: Presence, data?: RawActivityData);
+  public readonly presence: Presence;
+  public applicationId: Snowflake | null;
+  public assets: RichPresenceAssets | null;
+  public buttons: string[];
+  public get createdAt(): Date;
+  public createdTimestamp: number;
+  public details: string | null;
+  public emoji: Emoji | null;
+  public flags: Readonly<ActivityFlagsBitField>;
+  public name: string;
+  public party: {
+    id: string | null;
+    size: [number, number];
+  } | null;
+  public state: string | null;
+  public syncId: string | null;
+  public timestamps: {
+    start: Date | null;
+    end: Date | null;
+  } | null;
+  public type: ActivityType;
+  public url: string | null;
+  public equals(activity: Activity): boolean;
+  public toString(): string;
+}
 
-// متغير لتخزين اسم البوت الأصلي
-let originalBotName = '';
+export type ActivityFlagsString = keyof typeof ActivityFlags;
 
-// بيانات العسكر
-let militaryData = {
-  users: {}, // بيانات المستخدمين العسكريين
-  codes: {}, // الأكواد العسكرية
-  points: {} // نقاط العسكر
+export interface BaseComponentData {
+  id?: number;
+  type: ComponentType;
+}
+
+export type MessageActionRowComponentData =
+  | JSONEncodable<APIComponentInMessageActionRow>
+  | ButtonComponentData
+  | StringSelectMenuComponentData
+  | UserSelectMenuComponentData
+  | RoleSelectMenuComponentData
+  | MentionableSelectMenuComponentData
+  | ChannelSelectMenuComponentData;
+
+export type ModalActionRowComponentData = JSONEncodable<APIComponentInModalActionRow> | TextInputComponentData;
+
+export type ActionRowComponentData = MessageActionRowComponentData | ModalActionRowComponentData;
+
+export type ActionRowComponent = MessageActionRowComponent | ModalActionRowComponent;
+
+export interface ActionRowData<ComponentType extends JSONEncodable<APIComponentInActionRow> | ActionRowComponentData>
+  extends BaseComponentData {
+  components: readonly ComponentType[];
+}
+
+export class ActionRowBuilder<
+  ComponentType extends AnyComponentBuilder = AnyComponentBuilder,
+> extends BuilderActionRow<ComponentType> {
+  public constructor(
+    data?: Partial<
+      | ActionRowData<ActionRowComponentData | JSONEncodable<APIComponentInActionRow>>
+      | APIActionRowComponent<APIComponentInMessageActionRow | APIComponentInModalActionRow>
+    >,
+  );
+  public static from<ComponentType extends AnyComponentBuilder = AnyComponentBuilder>(
+    other:
+      | JSONEncodable<APIActionRowComponent<ReturnType<ComponentType['toJSON']>>>
+      | APIActionRowComponent<ReturnType<ComponentType['toJSON']>>,
+  ): ActionRowBuilder<ComponentType>;
+}
+
+export type MessageActionRowComponent =
+  | ButtonComponent
+  | StringSelectMenuComponent
+  | UserSelectMenuComponent
+  | RoleSelectMenuComponent
+  | MentionableSelectMenuComponent
+  | ChannelSelectMenuComponent;
+export type ModalActionRowComponent = TextInputComponent;
+
+export class ActionRow<ComponentType extends MessageActionRowComponent | ModalActionRowComponent> extends Component<
+  APIActionRowComponent<APIComponentInMessageActionRow | APIComponentInModalActionRow>
+> {
+  private constructor(data: APIActionRowComponent<APIComponentInMessageActionRow | APIComponentInModalActionRow>);
+  public readonly components: ComponentType[];
+  public toJSON(): APIActionRowComponent<ReturnType<ComponentType['toJSON']>>;
+}
+
+export class ActivityFlagsBitField extends BitField<ActivityFlagsString> {
+  public static Flags: typeof ActivityFlags;
+  public static resolve(bit?: BitFieldResolvable<ActivityFlagsString, number>): number;
+}
+
+export abstract class AnonymousGuild extends BaseGuild {
+  protected constructor(client: Client<true>, data: RawAnonymousGuildData, immediatePatch?: boolean);
+  public banner: string | null;
+  public description: string | null;
+  public nsfwLevel: GuildNSFWLevel;
+  public premiumSubscriptionCount: number | null;
+  public splash: string | null;
+  public vanityURLCode: string | null;
+  public verificationLevel: GuildVerificationLevel;
+  public bannerURL(options?: ImageURLOptions): string | null;
+  public splashURL(options?: ImageURLOptions): string | null;
+}
+
+export class AutoModerationActionExecution {
+  private constructor(data: GatewayAutoModerationActionExecutionDispatchData, guild: Guild);
+  public guild: Guild;
+  public action: AutoModerationAction;
+  public ruleId: Snowflake;
+  public ruleTriggerType: AutoModerationRuleTriggerType;
+  public get user(): User | null;
+  public userId: Snowflake;
+  public get channel(): GuildTextBasedChannel | ForumChannel | MediaChannel | null;
+  public channelId: Snowflake | null;
+  public get member(): GuildMember | null;
+  public messageId: Snowflake | null;
+  public alertSystemMessageId: Snowflake | null;
+  public content: string;
+  public matchedKeyword: string | null;
+  public matchedContent: string | null;
+  public get autoModerationRule(): AutoModerationRule | null;
+}
+
+export class AutoModerationRule extends Base {
+  private constructor(client: Client<true>, data: APIAutoModerationRule, guild: Guild);
+  public id: Snowflake;
+  public guild: Guild;
+  public name: string;
+  public creatorId: Snowflake;
+  public eventType: AutoModerationRuleEventType;
+  public triggerType: AutoModerationRuleTriggerType;
+  public triggerMetadata: AutoModerationTriggerMetadata;
+  public actions: AutoModerationAction[];
+  public enabled: boolean;
+  public exemptRoles: Collection<Snowflake, Role>;
+  public exemptChannels: Collection<Snowflake, GuildBasedChannel>;
+  public edit(options: AutoModerationRuleEditOptions): Promise<AutoModerationRule>;
+  public delete(reason?: string): Promise<void>;
+  public setName(name: string, reason?: string): Promise<AutoModerationRule>;
+  public setEventType(eventType: AutoModerationRuleEventType, reason?: string): Promise<AutoModerationRule>;
+  public setKeywordFilter(keywordFilter: readonly string[], reason?: string): Promise<AutoModerationRule>;
+  public setRegexPatterns(regexPatterns: readonly string[], reason?: string): Promise<AutoModerationRule>;
+  public setPresets(
+    presets: readonly AutoModerationRuleKeywordPresetType[],
+    reason?: string,
+  ): Promise<AutoModerationRule>;
+  public setAllowList(allowList: readonly string[], reason?: string): Promise<AutoModerationRule>;
+  public setMentionTotalLimit(mentionTotalLimit: number, reason?: string): Promise<AutoModerationRule>;
+  public setMentionRaidProtectionEnabled(
+    mentionRaidProtectionEnabled: boolean,
+    reason?: string,
+  ): Promise<AutoModerationRule>;
+  public setActions(actions: readonly AutoModerationActionOptions[], reason?: string): Promise<AutoModerationRule>;
+  public setEnabled(enabled?: boolean, reason?: string): Promise<AutoModerationRule>;
+  public setExemptRoles(
+    roles: ReadonlyCollection<Snowflake, Role> | readonly RoleResolvable[],
+    reason?: string,
+  ): Promise<AutoModerationRule>;
+  public setExemptChannels(
+    channels: ReadonlyCollection<Snowflake, GuildBasedChannel> | readonly GuildChannelResolvable[],
+    reason?: string,
+  ): Promise<AutoModerationRule>;
+}
+
+export abstract class Application extends Base {
+  protected constructor(client: Client<true>, data: RawApplicationData);
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public description: string | null;
+  public icon: string | null;
+  public id: Snowflake;
+  public name: string | null;
+  public termsOfServiceURL: string | null;
+  public privacyPolicyURL: string | null;
+  public rpcOrigins: string[];
+  public cover: string | null;
+  public verifyKey: string | null;
+  public coverURL(options?: ImageURLOptions): string | null;
+  public iconURL(options?: ImageURLOptions): string | null;
+  public toJSON(): unknown;
+  public toString(): string | null;
+}
+
+export class ApplicationCommand<PermissionsFetchType = {}> extends Base {
+  private constructor(client: Client<true>, data: RawApplicationCommandData, guild?: Guild, guildId?: Snowflake);
+  public applicationId: Snowflake;
+  public contexts: InteractionContextType[] | null;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public defaultMemberPermissions: Readonly<PermissionsBitField> | null;
+  public description: string;
+  public descriptionLocalizations: LocalizationMap | null;
+  public descriptionLocalized: string | null;
+  /** @deprecated Use {@link ApplicationCommand.contexts} instead */
+  public dmPermission: boolean | null;
+  public guild: Guild | null;
+  public guildId: Snowflake | null;
+  public get manager(): ApplicationCommandManager;
+  public id: Snowflake;
+  public integrationTypes: ApplicationIntegrationType[] | null;
+  public handler: EntryPointCommandHandlerType | null;
+  public name: string;
+  public nameLocalizations: LocalizationMap | null;
+  public nameLocalized: string | null;
+  public options: (ApplicationCommandOption & { nameLocalized?: string; descriptionLocalized?: string })[];
+  public permissions: ApplicationCommandPermissionsManager<
+    PermissionsFetchType,
+    PermissionsFetchType,
+    Guild | null,
+    Snowflake
+  >;
+  public type: ApplicationCommandType;
+  public version: Snowflake;
+  public nsfw: boolean;
+  public delete(): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public edit(data: Partial<ApplicationCommandData>): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setName(name: string): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setNameLocalizations(nameLocalizations: LocalizationMap): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setDescription(description: string): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setDescriptionLocalizations(
+    descriptionLocalizations: LocalizationMap,
+  ): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setDefaultMemberPermissions(
+    defaultMemberPermissions: PermissionResolvable | null,
+  ): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setDMPermission(dmPermission?: boolean): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public setOptions(
+    options: readonly ApplicationCommandOptionData[],
+  ): Promise<ApplicationCommand<PermissionsFetchType>>;
+  public equals(
+    command: ApplicationCommand | ApplicationCommandData | RawApplicationCommandData,
+    enforceOptionOrder?: boolean,
+  ): boolean;
+  public static optionsEqual(
+    existing: readonly ApplicationCommandOption[],
+    options:
+      | readonly ApplicationCommandOption[]
+      | readonly ApplicationCommandOptionData[]
+      | readonly APIApplicationCommandOption[],
+    enforceOptionOrder?: boolean,
+  ): boolean;
+  private static _optionEquals(
+    existing: ApplicationCommandOption,
+    options: ApplicationCommandOption | ApplicationCommandOptionData | APIApplicationCommandOption,
+    enforceOptionOrder?: boolean,
+  ): boolean;
+  private static transformOption(option: ApplicationCommandOptionData, received?: boolean): unknown;
+  private static transformCommand(command: ApplicationCommandData): RESTPostAPIApplicationCommandsJSONBody;
+  private static isAPICommandData(command: object): command is RESTPostAPIApplicationCommandsJSONBody;
+}
+
+export class ApplicationRoleConnectionMetadata {
+  private constructor(data: APIApplicationRoleConnectionMetadata);
+  public name: string;
+  public nameLocalizations: LocalizationMap | null;
+  public description: string;
+  public descriptionLocalizations: LocalizationMap | null;
+  public key: string;
+  public type: ApplicationRoleConnectionMetadataType;
+}
+
+export type ApplicationResolvable = Application | Activity | Snowflake;
+
+export class ApplicationFlagsBitField extends BitField<ApplicationFlagsString> {
+  public static Flags: typeof ApplicationFlags;
+  public static resolve(bit?: BitFieldResolvable<ApplicationFlagsString, number>): number;
+}
+
+export type ApplicationFlagsResolvable = BitFieldResolvable<ApplicationFlagsString, number>;
+
+export type AutoModerationRuleResolvable = AutoModerationRule | Snowflake;
+
+export abstract class Base {
+  public constructor(client: Client<true>);
+  public readonly client: Client<true>;
+  public toJSON(...props: Record<string, boolean | string>[]): unknown;
+  public valueOf(): string;
+}
+
+export class BaseClient extends EventEmitter implements AsyncDisposable {
+  public constructor(options?: ClientOptions | WebhookClientOptions);
+  private decrementMaxListeners(): void;
+  private incrementMaxListeners(): void;
+
+  public options: ClientOptions | WebhookClientOptions;
+  public rest: REST;
+  public destroy(): void;
+  public toJSON(...props: Record<string, boolean | string>[]): unknown;
+  public [Symbol.asyncDispose](): Promise<void>;
+}
+
+export type GuildCacheMessage<Cached extends CacheType> = CacheTypeReducer<
+  Cached,
+  Message<true>,
+  APIMessage,
+  Message | APIMessage,
+  Message | APIMessage
+>;
+
+export type BooleanCache<Cached extends CacheType> = Cached extends 'cached' ? true : false;
+
+export abstract class CommandInteraction<Cached extends CacheType = CacheType> extends BaseInteraction<Cached> {
+  public type: InteractionType.ApplicationCommand;
+  public get command(): ApplicationCommand | ApplicationCommand<{ guild: GuildResolvable }> | null;
+  public channelId: Snowflake;
+  public commandId: Snowflake;
+  public commandName: string;
+  public commandType: ApplicationCommandType;
+  public commandGuildId: Snowflake | null;
+  public deferred: boolean;
+  public ephemeral: boolean | null;
+  public replied: boolean;
+  public webhook: InteractionWebhook;
+  public inGuild(): this is CommandInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is CommandInteraction<'cached'>;
+  public inRawGuild(): this is CommandInteraction<'raw'>;
+  public deferReply(
+    options: InteractionDeferReplyOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public deferReply(
+    options: InteractionDeferReplyOptions & { fetchReply: true },
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public deferReply(options?: InteractionDeferReplyOptions): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public deleteReply(message?: MessageResolvable | '@original'): Promise<void>;
+  public editReply(
+    options: string | MessagePayload | InteractionEditReplyOptions,
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public fetchReply(message?: Snowflake | '@original'): Promise<Message<BooleanCache<Cached>>>;
+  public followUp(options: string | MessagePayload | InteractionReplyOptions): Promise<Message<BooleanCache<Cached>>>;
+  public reply(options: InteractionReplyOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public reply(options: InteractionReplyOptions & { fetchReply: true }): Promise<Message<BooleanCache<Cached>>>;
+  public reply(
+    options: string | MessagePayload | InteractionReplyOptions,
+  ): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public launchActivity(options: LaunchActivityOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  public launchActivity(options?: LaunchActivityOptions & { withResponse?: false }): Promise<undefined>;
+  public launchActivity(options?: LaunchActivityOptions): Promise<InteractionCallbackResponse | undefined>;
+  public showModal(
+    modal:
+      | JSONEncodable<APIModalInteractionResponseCallbackData>
+      | ModalComponentData
+      | APIModalInteractionResponseCallbackData,
+    options: ShowModalOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  public showModal(
+    modal:
+      | JSONEncodable<APIModalInteractionResponseCallbackData>
+      | ModalComponentData
+      | APIModalInteractionResponseCallbackData,
+    options?: ShowModalOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  public showModal(
+    modal:
+      | JSONEncodable<APIModalInteractionResponseCallbackData>
+      | ModalComponentData
+      | APIModalInteractionResponseCallbackData,
+    options?: ShowModalOptions,
+  ): Promise<undefined>;
+  /** @deprecated Sending a premium-style button is the new Discord behaviour. */
+  public sendPremiumRequired(): Promise<void>;
+  public awaitModalSubmit(
+    options: AwaitModalSubmitOptions<ModalSubmitInteraction>,
+  ): Promise<ModalSubmitInteraction<Cached>>;
+  private transformOption(
+    option: APIApplicationCommandOption,
+    resolved: Extract<
+      APIApplicationCommandInteractionData,
+      APIChatInputApplicationCommandInteractionData | APIContextMenuInteractionData
+    >['resolved'],
+  ): CommandInteractionOption<Cached>;
+}
+
+export class InteractionResponse<Cached extends boolean = boolean> {
+  private constructor(interaction: Interaction, id?: Snowflake);
+  public interaction: Interaction<WrapBooleanCache<Cached>>;
+  public client: Client;
+  public id: Snowflake;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public awaitMessageComponent<ComponentType extends MessageComponentType>(
+    options?: AwaitMessageCollectorOptionsParams<ComponentType, Cached>,
+  ): Promise<MappedInteractionTypes<Cached>[ComponentType]>;
+  public createMessageComponentCollector<ComponentType extends MessageComponentType>(
+    options?: MessageCollectorOptionsParams<ComponentType, Cached>,
+  ): InteractionCollector<MappedInteractionTypes<Cached>[ComponentType]>;
+  public delete(): Promise<void>;
+  public edit(options: string | MessagePayload | WebhookMessageEditOptions): Promise<Message>;
+  public fetch(): Promise<Message>;
+}
+
+export abstract class BaseGuild extends Base {
+  protected constructor(client: Client<true>, data: RawBaseGuildData);
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public features: `${GuildFeature}`[];
+  public icon: string | null;
+  public id: Snowflake;
+  public name: string;
+  public get nameAcronym(): string;
+  public get partnered(): boolean;
+  public get verified(): boolean;
+  public fetch(): Promise<Guild>;
+  public iconURL(options?: ImageURLOptions): string | null;
+  public toString(): string;
+}
+
+export class BaseGuildEmoji extends Emoji {
+  protected constructor(client: Client<true>, data: RawGuildEmojiData, guild: Guild | GuildPreview);
+  public imageURL(options?: BaseImageURLOptions): string;
+  public get url(): string;
+  public available: boolean | null;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public guild: Guild | GuildPreview;
+  public id: Snowflake;
+  public managed: boolean | null;
+  public requiresColons: boolean | null;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface BaseGuildTextChannel extends TextBasedChannelFields<true> {}
+export class BaseGuildTextChannel extends GuildChannel {
+  protected constructor(guild: Guild, data?: RawGuildChannelData, client?: Client<true>, immediatePatch?: boolean);
+  public defaultAutoArchiveDuration?: ThreadAutoArchiveDuration;
+  public defaultThreadRateLimitPerUser: number | null;
+  public rateLimitPerUser: number | null;
+  public nsfw: boolean;
+  public threads: GuildTextThreadManager<AllowedThreadTypeForTextChannel | AllowedThreadTypeForNewsChannel>;
+  public topic: string | null;
+  public createInvite(options?: InviteCreateOptions): Promise<Invite>;
+  public fetchInvites(cache?: boolean): Promise<Collection<string, Invite>>;
+  public setDefaultAutoArchiveDuration(
+    defaultAutoArchiveDuration: ThreadAutoArchiveDuration,
+    reason?: string,
+  ): Promise<this>;
+  public setTopic(topic: string | null, reason?: string): Promise<this>;
+  public setType(type: ChannelType.GuildText, reason?: string): Promise<TextChannel>;
+  public setType(type: ChannelType.GuildAnnouncement, reason?: string): Promise<NewsChannel>;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface BaseGuildVoiceChannel extends Omit<TextBasedChannelFields<true>, 'lastPinTimestamp' | 'lastPinAt'> {}
+export class BaseGuildVoiceChannel extends GuildChannel {
+  public constructor(guild: Guild, data?: RawGuildChannelData);
+  public bitrate: number;
+  public get full(): boolean;
+  public get joinable(): boolean;
+  public get members(): Collection<Snowflake, GuildMember>;
+  public nsfw: boolean;
+  public rateLimitPerUser: number | null;
+  public rtcRegion: string | null;
+  public userLimit: number;
+  public videoQualityMode: VideoQualityMode | null;
+  public createInvite(options?: InviteCreateOptions): Promise<Invite>;
+  public fetchInvites(cache?: boolean): Promise<Collection<string, Invite>>;
+  public setBitrate(bitrate: number, reason?: string): Promise<this>;
+  public setRTCRegion(rtcRegion: string | null, reason?: string): Promise<this>;
+  public setUserLimit(userLimit: number, reason?: string): Promise<this>;
+  public setVideoQualityMode(videoQualityMode: VideoQualityMode, reason?: string): Promise<this>;
+}
+
+export type EnumLike<Enum, Value> = Record<keyof Enum, Value>;
+
+export class BitField<Flags extends string, Type extends number | bigint = number> {
+  public constructor(bits?: BitFieldResolvable<Flags, Type>);
+  public bitfield: Type;
+  public add(...bits: BitFieldResolvable<Flags, Type>[]): BitField<Flags, Type>;
+  public any(bit: BitFieldResolvable<Flags, Type>): boolean;
+  public equals(bit: BitFieldResolvable<Flags, Type>): boolean;
+  public freeze(): Readonly<BitField<Flags, Type>>;
+  public has(bit: BitFieldResolvable<Flags, Type>): boolean;
+  public missing(bits: BitFieldResolvable<Flags, Type>, ...hasParams: readonly unknown[]): Flags[];
+  public remove(...bits: BitFieldResolvable<Flags, Type>[]): BitField<Flags, Type>;
+  public serialize(...hasParams: readonly unknown[]): Record<Flags, boolean>;
+  public toArray(...hasParams: readonly unknown[]): Flags[];
+  public toJSON(): Type extends number ? number : string;
+  public valueOf(): Type;
+  public [Symbol.iterator](): IterableIterator<Flags>;
+  public static Flags: EnumLike<unknown, number | bigint>;
+  public static resolve(bit?: BitFieldResolvable<string, number | bigint>): number | bigint;
+}
+
+export class ButtonInteraction<Cached extends CacheType = CacheType> extends MessageComponentInteraction<Cached> {
+  private constructor(client: Client<true>, data: RawMessageButtonInteractionData);
+  public componentType: ComponentType.Button;
+  public get component(): CacheTypeReducer<
+    Cached,
+    ButtonComponent,
+    APIButtonComponent,
+    ButtonComponent | APIButtonComponent,
+    ButtonComponent | APIButtonComponent
+  >;
+  public inGuild(): this is ButtonInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is ButtonInteraction<'cached'>;
+  public inRawGuild(): this is ButtonInteraction<'raw'>;
+}
+
+export type AnyComponent =
+  | APIMessageComponent
+  | APIModalComponent
+  | APIActionRowComponent<APIComponentInMessageActionRow | APIComponentInModalActionRow>
+  | AnyComponentV2;
+
+export class Component<RawComponentData extends AnyComponent = AnyComponent> {
+  public readonly data: Readonly<RawComponentData>;
+  public get id(): RawComponentData['id'];
+  public get type(): RawComponentData['type'];
+  public toJSON(): RawComponentData;
+  public equals(other: this | RawComponentData): boolean;
+}
+
+export type AnyComponentV2 = APIComponentInContainer | APIContainerComponent | APIThumbnailComponent;
+
+export type TopLevelComponent =
+  | ActionRow<MessageActionRowComponent>
+  | ContainerComponent
+  | FileComponent
+  | MediaGalleryComponent
+  | SectionComponent
+  | SeparatorComponent
+  | TextDisplayComponent;
+
+export type TopLevelComponentData =
+  | ActionRowData<MessageActionRowComponentData>
+  | ContainerComponentData
+  | FileComponentData
+  | MediaGalleryComponentData
+  | SectionComponentData
+  | SeparatorComponentData
+  | TextDisplayComponentData;
+
+export class ButtonComponent extends Component<APIButtonComponent> {
+  private constructor(data: APIButtonComponent);
+  public get style(): ButtonStyle;
+  public get label(): string | null;
+  public get emoji(): APIMessageComponentEmoji | null;
+  public get disabled(): boolean;
+  public get customId(): string | null;
+  public get url(): string | null;
+}
+
+export type ComponentEmojiResolvable = APIMessageComponentEmoji | string;
+
+export class ButtonBuilder extends BuilderButtonComponent {
+  public constructor(data?: Partial<ButtonComponentData> | Partial<APIButtonComponent>);
+  public static from(other: JSONEncodable<APIButtonComponent> | APIButtonComponent): ButtonBuilder;
+  public override setEmoji(emoji: ComponentEmojiResolvable): this;
+}
+
+export class StringSelectMenuBuilder extends BuilderStringSelectMenuComponent {
+  public constructor(data?: Partial<StringSelectMenuComponentData | APIStringSelectComponent>);
+  private static normalizeEmoji(
+    selectMenuOption: JSONEncodable<APISelectMenuOption> | SelectMenuComponentOptionData,
+  ): (APISelectMenuOption | StringSelectMenuOptionBuilder)[];
+  public override addOptions(
+    ...options: RestOrArray<BuildersSelectMenuOption | SelectMenuComponentOptionData | APISelectMenuOption>
+  ): this;
+  public override setOptions(
+    ...options: RestOrArray<BuildersSelectMenuOption | SelectMenuComponentOptionData | APISelectMenuOption>
+  ): this;
+  public static from(
+    other: JSONEncodable<APIStringSelectComponent> | APIStringSelectComponent,
+  ): StringSelectMenuBuilder;
+}
+
+export {
+  /** @deprecated Use {@link StringSelectMenuBuilder} instead */
+  StringSelectMenuBuilder as SelectMenuBuilder,
+  /** @deprecated Use {@link StringSelectMenuOptionBuilder} instead */
+  StringSelectMenuOptionBuilder as SelectMenuOptionBuilder,
 };
 
-// طلبات الأكواد العسكرية المعلقة
-let pendingMilitaryCodeRequests = [];
-
-// صفحات مباشرة العسكر (كل صفحة فيها 10 عسكري)
-let militaryActivePages = [];
-// بيانات كل عسكري (userId: { fullName, code, rank, status })
-let militaryUsers = {};
-
-// نظام التحذيرات العسكرية
-let militaryWarnings = {}; // { guildId: { userId: [{ id, warningNumber, reason, adminId, adminName, adminRank, date, evidence, removed, removalReason, removalDate, removalAdminId, removalAdminName }] } }
-
-// قائمة المطورين المصرح لهم (أيدياتهم)
-const DEVELOPER_IDS = [
-  '1337512375355707412', // المطور الأول
-  '1291805249815711826', // المطور الثاني  
-  '1355958988524622076', // المطور الثالث
-  '1319791882389164072'  // المطور الرابع
-];
-
-try {
-  if (fs.existsSync(DATA_FILE)) {
-    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    identities = data.identities || [];
-    pendingRequests = data.pendingRequests || [];
-    botStatus = data.botStatus || 'online'; // تحميل حالة البوت
-    originalBotName = data.originalBotName || ''; // تحميل اسم البوت الأصلي
-    militaryData = data.militaryData || { users: {}, codes: {}, points: {} }; // تحميل بيانات العسكر
-    pendingMilitaryCodeRequests = data.pendingMilitaryCodeRequests || []; // تحميل طلبات الأكواد العسكرية المعلقة
-    militaryActivePages = data.militaryActivePages || [];
-    militaryUsers = data.militaryUsers || {};
-    militaryWarnings = data.militaryWarnings || {};
-  }
-  } catch (e) {
-  identities = [];
-  pendingRequests = [];
-  botStatus = 'online'; // الحالة الافتراضية
-  originalBotName = '';
-  militaryData = { users: {}, codes: {}, points: {} };
-  pendingMilitaryCodeRequests = [];
-  militaryActivePages = [];
-  militaryUsers = {};
-  militaryWarnings = {};
+export class UserSelectMenuBuilder extends BuilderUserSelectMenuComponent {
+  public constructor(data?: Partial<UserSelectMenuComponentData | APIUserSelectComponent>);
+  public static from(other: JSONEncodable<APIUserSelectComponent> | APIUserSelectComponent): UserSelectMenuBuilder;
 }
 
-// --- إعدادات السيرفرات ---
-let guildSettings = {};
-try {
-  if (fs.existsSync(DATA_FILE)) {
-    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    guildSettings = data.guildSettings || {};
-  }
-} catch (e) {
-  guildSettings = {};
+export class RoleSelectMenuBuilder extends BuilderRoleSelectMenuComponent {
+  public constructor(data?: Partial<RoleSelectMenuComponentData | APIRoleSelectComponent>);
+  public static from(other: JSONEncodable<APIRoleSelectComponent> | APIRoleSelectComponent): RoleSelectMenuBuilder;
 }
 
-// دالة حفظ موحدة لكل البيانات
-function saveAllData() {
-  fs.writeFileSync(DATA_FILE, JSON.stringify({
-    identities,
-    pendingRequests,
-    guildSettings,
-    botStatus,
-    originalBotName,
-    militaryData,
-    pendingMilitaryCodeRequests,
-    militaryActivePages,
-    militaryUsers,
-    militaryWarnings
-  }, null, 2), 'utf8');
+export class MentionableSelectMenuBuilder extends BuilderMentionableSelectMenuComponent {
+  public constructor(data?: Partial<MentionableSelectMenuComponentData | APIMentionableSelectComponent>);
+  public static from(
+    other: JSONEncodable<APIMentionableSelectComponent> | APIMentionableSelectComponent,
+  ): MentionableSelectMenuBuilder;
 }
 
-// دالة إضافة خيار إعادة تعيين للقوائم المنسدلة
-function addResetOption(options) {
-  if (Array.isArray(options)) {
-    return [...options, { label: 'إعادة تعيين', value: 'reset_page', description: 'تحديث الصفحة' }];
-  } else {
-    return [options, { label: 'إعادة تعيين', value: 'reset_page', description: 'تحديث الصفحة' }];
-  }
+export class ChannelSelectMenuBuilder extends BuilderChannelSelectMenuComponent {
+  public constructor(data?: Partial<ChannelSelectMenuComponentData | APIChannelSelectComponent>);
+  public static from(
+    other: JSONEncodable<APIChannelSelectComponent> | APIChannelSelectComponent,
+  ): ChannelSelectMenuBuilder;
 }
 
-// دالة إضافة زر إعادة تعيين للمكونات
-function addResetButton(components) {
-  if (Array.isArray(components)) {
-    return components;
-  } else {
-    return [components];
-  }
+export class StringSelectMenuOptionBuilder extends BuildersSelectMenuOption {
+  public constructor(data?: SelectMenuComponentOptionData | APISelectMenuOption);
+  public override setEmoji(emoji: ComponentEmojiResolvable): this;
+  public static from(other: JSONEncodable<APISelectMenuOption> | APISelectMenuOption): StringSelectMenuOptionBuilder;
 }
 
-// ترقية المخالفات القديمة ليكون لكل مخالفة id فريد
-let updated = false;
-identities.forEach(identity => {
-  if (identity.violations && Array.isArray(identity.violations)) {
-    identity.violations.forEach(v => {
-      if (!v.id) {
-        v.id = Date.now().toString() + Math.random().toString().slice(2,8);
-        updated = true;
-      }
-    });
-  }
-});
-if (updated) saveAllData();
-
-function saveGuildSettings() {
-  // دمج مع بيانات الهويات والطلبات
-  let data = {};
-  if (fs.existsSync(DATA_FILE)) {
-    data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  }
-  data.guildSettings = guildSettings;
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+export class ModalBuilder extends BuildersModal {
+  public constructor(data?: Partial<ModalComponentData> | Partial<APIModalInteractionResponseCallbackData>);
+  public static from(
+    other: JSONEncodable<APIModalInteractionResponseCallbackData> | APIModalInteractionResponseCallbackData,
+  ): ModalBuilder;
 }
 
-// متغير لتخزين خطوات المستخدم
-let userSteps = {};
-
-// دالة للتحقق من وجود طلب معلق
-function hasPendingRequest(userId, guildId) {
-  return pendingRequests.some(req => req.userId === userId && req.guildId === guildId);
+export class TextInputBuilder extends BuilderTextInputComponent {
+  public constructor(data?: Partial<TextInputComponentData | APITextInputComponent>);
+  public static from(other: JSONEncodable<APITextInputComponent> | APITextInputComponent): TextInputBuilder;
 }
 
-// دالة للتحقق من وجود هوية مقبولة
-function hasApprovedIdentity(userId, guildId) {
-  return identities.some(id => id.userId === userId && id.guildId === guildId);
+export class TextInputComponent extends Component<APITextInputComponent> {
+  public get customId(): string;
+  public get value(): string;
 }
 
-// دالة للتحقق من أن المستخدم مطور مصرح له
-function isDeveloper(userId) {
-  return DEVELOPER_IDS.includes(userId);
+export class BaseSelectMenuComponent<Data extends APISelectMenuComponent> extends Component<Data> {
+  protected constructor(data: Data);
+  public get placeholder(): string | null;
+  public get maxValues(): number | null;
+  public get minValues(): number | null;
+  public get customId(): string;
+  public get disabled(): boolean;
 }
 
-// دالة مساعدة للتحقق من روم الإنشاء
-function isInCreateRoom(interaction) {
-  const guildId = interaction.guildId;
-  if (!guildId) return false;
-  const settings = guildSettings[guildId];
-  if (!settings || !settings.createRoomChannelId) return false;
-  return interaction.channelId === settings.createRoomChannelId;
+export class StringSelectMenuComponent extends BaseSelectMenuComponent<APIStringSelectComponent> {
+  public get options(): APISelectMenuOption[];
 }
 
-// دالة مساعدة للتحقق من رتبة الشرطة
-function hasPoliceRole(member, guildId) {
-  const policeRoleId = guildSettings[guildId]?.policeRoleId;
-  return policeRoleId && member.roles.cache.has(policeRoleId);
+export {
+  /** @deprecated Use {@link StringSelectMenuComponent} instead */
+  StringSelectMenuComponent as SelectMenuComponent,
+};
+
+export class UserSelectMenuComponent extends BaseSelectMenuComponent<APIUserSelectComponent> {}
+
+export class RoleSelectMenuComponent extends BaseSelectMenuComponent<APIRoleSelectComponent> {}
+
+export class MentionableSelectMenuComponent extends BaseSelectMenuComponent<APIMentionableSelectComponent> {}
+
+export class ChannelSelectMenuComponent extends BaseSelectMenuComponent<APIChannelSelectComponent> {
+  public getChannelTypes(): ChannelType[] | null;
 }
 
-// دالة التحقق من رتبة مسؤول الشرطة
-function hasPoliceAdminRole(member, guildId) {
-  const policeAdminRoleId = guildSettings[guildId]?.policeAdminRoleId;
-  return policeAdminRoleId && member.roles.cache.has(policeAdminRoleId);
+export interface EmbedData {
+  title?: string;
+  type?: EmbedType;
+  description?: string;
+  url?: string;
+  timestamp?: string | number | Date;
+  color?: number;
+  footer?: EmbedFooterData;
+  image?: EmbedAssetData;
+  thumbnail?: EmbedAssetData;
+  provider?: APIEmbedProvider;
+  author?: EmbedAuthorData;
+  fields?: readonly APIEmbedField[];
+  video?: EmbedAssetData;
 }
 
-// دالة تغيير حالة البوت
-async function toggleBotStatus() {
-  const newStatus = botStatus === 'online' ? 'offline' : 'online';
-  
-  // حفظ اسم البوت الأصلي إذا كان هذا أول تشغيل
-  if (!originalBotName) {
-    originalBotName = client.user.username;
-  }
-  
-  // تغيير اسم البوت حسب الحالة
-  try {
-    if (newStatus === 'offline') {
-      await client.user.setUsername(`${originalBotName} متوقف`);
-    } else {
-      await client.user.setUsername(originalBotName);
-    }
-  } catch (error) {
-    console.error('خطأ في تغيير اسم البوت:', error);
-  }
-  
-  botStatus = newStatus;
-  saveAllData(); // حفظ الحالة في الملف
-  return botStatus;
+export interface IconData {
+  iconURL?: string;
+  proxyIconURL?: string;
 }
 
-// دالة الحصول على حالة البوت
-function getBotStatus() {
-  return botStatus;
+export interface EmbedAuthorData extends Omit<APIEmbedAuthor, 'icon_url' | 'proxy_icon_url'>, IconData {}
+
+export interface EmbedFooterData extends Omit<APIEmbedFooter, 'icon_url' | 'proxy_icon_url'>, IconData {}
+
+export interface EmbedAssetData extends Omit<APIEmbedImage, 'proxy_url'> {
+  proxyURL?: string;
 }
 
-// دالة للتحقق من حالة البوت قبل تنفيذ أي أمر
-function checkBotStatus() {
-  return botStatus === 'online';
+export class EmbedBuilder extends BuildersEmbed {
+  public constructor(data?: EmbedData | APIEmbed);
+  public override setColor(color: ColorResolvable | null): this;
+  public static from(other: JSONEncodable<APIEmbed> | APIEmbed): EmbedBuilder;
+  public get length(): number;
 }
 
-// دوال مساعدة للعسكر
-function isMilitaryUser(userId, guildId) {
-  return militaryUsers[userId] && militaryUsers[userId].guildId === guildId;
+export class Embed {
+  private constructor(data: APIEmbed);
+  public readonly data: Readonly<APIEmbed>;
+  public get fields(): APIEmbedField[];
+  public get footer(): EmbedFooterData | null;
+  public get title(): string | null;
+  public get description(): string | null;
+  public get url(): string | null;
+  public get color(): number | null;
+  public get hexColor(): string | null;
+  public get timestamp(): string | null;
+  public get thumbnail(): EmbedAssetData | null;
+  public get image(): EmbedAssetData | null;
+  public get author(): EmbedAuthorData | null;
+  public get provider(): APIEmbedProvider | null;
+  public get video(): EmbedAssetData | null;
+  public get length(): number;
+  public equals(other: Embed | APIEmbed): boolean;
+  public toJSON(): APIEmbed;
 }
 
-function getMilitaryUser(userId, guildId) {
-  return militaryUsers[userId] || null;
+export interface MappedChannelCategoryTypes {
+  [ChannelType.GuildAnnouncement]: NewsChannel;
+  [ChannelType.GuildVoice]: VoiceChannel;
+  [ChannelType.GuildText]: TextChannel;
+  [ChannelType.GuildStageVoice]: StageChannel;
+  [ChannelType.GuildForum]: ForumChannel;
+  [ChannelType.GuildMedia]: MediaChannel;
 }
 
-function getMilitaryPoints(userId, guildId) {
-  return militaryData.points[guildId]?.[userId] || 0;
+export type CategoryChannelType = Exclude<
+  ChannelType,
+  | ChannelType.DM
+  | ChannelType.GroupDM
+  | ChannelType.PublicThread
+  | ChannelType.AnnouncementThread
+  | ChannelType.PrivateThread
+  | ChannelType.GuildCategory
+  | ChannelType.GuildDirectory
+>;
+
+export class CategoryChannel extends GuildChannel {
+  public get children(): CategoryChannelChildManager;
+  public type: ChannelType.GuildCategory;
+  public get parent(): null;
+  public parentId: null;
 }
 
-function addMilitaryPoints(userId, guildId, points) {
-  if (!militaryData.points[guildId]) militaryData.points[guildId] = {};
-  if (!militaryData.points[guildId][userId]) militaryData.points[guildId][userId] = 0;
-  militaryData.points[guildId][userId] += points;
-  saveAllData();
+export type CategoryChannelResolvable = Snowflake | CategoryChannel;
+
+export type ChannelFlagsString = keyof typeof ChannelFlags;
+
+export type ChannelFlagsResolvable = BitFieldResolvable<ChannelFlagsString, number>;
+
+export class ChannelFlagsBitField extends BitField<ChannelFlagsString> {
+  public static Flags: typeof ChannelFlags;
+  public static resolve(bit?: BitFieldResolvable<ChannelFlagsString, ChannelFlags>): number;
 }
 
-function removeMilitaryPoints(userId, guildId, points) {
-  if (!militaryData.points[guildId]) militaryData.points[guildId] = {};
-  if (!militaryData.points[guildId][userId]) militaryData.points[guildId][userId] = 0;
-  militaryData.points[guildId][userId] = Math.max(0, militaryData.points[guildId][userId] - points);
-  saveAllData();
+export abstract class BaseChannel extends Base {
+  public constructor(client: Client<true>, data?: RawChannelData, immediatePatch?: boolean);
+  public get createdAt(): Date | null;
+  public get createdTimestamp(): number | null;
+  public id: Snowflake;
+  public flags: Readonly<ChannelFlagsBitField> | null;
+  public get partial(): false;
+  public type: ChannelType;
+  public get url(): string;
+  public delete(): Promise<this>;
+  public fetch(force?: boolean): Promise<this>;
+  public isThread(): this is AnyThreadChannel;
+  public isTextBased(): this is TextBasedChannel;
+  public isDMBased(): this is PartialGroupDMChannel | DMChannel | PartialDMChannel;
+  public isVoiceBased(): this is VoiceBasedChannel;
+  public isThreadOnly(): this is ThreadOnlyChannel;
+  public isSendable(): this is SendableChannels;
+  public toString(): ChannelMention | UserMention;
 }
 
-function setMilitaryPoints(userId, guildId, points) {
-  if (!militaryData.points[guildId]) militaryData.points[guildId] = {};
-  militaryData.points[guildId][userId] = Math.max(0, points);
-  saveAllData();
+export type If<Value extends boolean, TrueResult, FalseResult = null> = Value extends true
+  ? TrueResult
+  : Value extends false
+    ? FalseResult
+    : TrueResult | FalseResult;
+
+/** @internal */
+type AsyncEventIteratorDisposability =
+  ReturnType<typeof EventEmitter.on> extends AsyncDisposable ? AsyncDisposable : {};
+/** @internal */
+interface AsyncEventIterator<Params extends any[]>
+  extends AsyncIterableIterator<Params>,
+    AsyncEventIteratorDisposability {
+  [Symbol.asyncIterator](): AsyncEventIterator<Params>;
 }
 
-function getAllMilitaryPoints(guildId) {
-  if (!militaryData.points[guildId]) return [];
-  return Object.entries(militaryData.points[guildId])
-    .map(([userId, points]) => ({ userId, points }))
-    .sort((a, b) => b.points - a.points); // ترتيب تنازلي حسب النقاط
+export class Client<Ready extends boolean = boolean> extends BaseClient {
+  public constructor(options: ClientOptions);
+  private actions: unknown;
+  private presence: ClientPresence;
+  private _eval(script: string): unknown;
+  private _validateOptions(options: ClientOptions): void;
+  private get _censoredToken(): string | null;
+  // This a technique used to brand the ready state. Or else we'll get `never` errors on typeguard checks.
+  private readonly _ready: Ready;
+
+  // Override inherited static EventEmitter methods, with added type checks for Client events.
+  public static once<Emitter extends EventEmitter, Event extends keyof ClientEvents>(
+    eventEmitter: Emitter,
+    eventName: Emitter extends Client ? Event : string | symbol,
+    options?: { signal?: AbortSignal | undefined },
+  ): Promise<Emitter extends Client ? ClientEvents[Event] : any[]>;
+  public static on<Emitter extends EventEmitter, Event extends keyof ClientEvents>(
+    eventEmitter: Emitter,
+    eventName: Emitter extends Client ? Event : string | symbol,
+    options?: { signal?: AbortSignal | undefined },
+  ): AsyncEventIterator<Emitter extends Client ? ClientEvents[Event] : any[]>;
+
+  public application: If<Ready, ClientApplication>;
+  public channels: ChannelManager;
+  public get emojis(): BaseGuildEmojiManager;
+  public guilds: GuildManager;
+  public options: Omit<ClientOptions, 'intents'> & { intents: IntentsBitField };
+  public get readyAt(): If<Ready, Date>;
+  public readyTimestamp: If<Ready, number>;
+  public sweepers: Sweepers;
+  public shard: ShardClientUtil | null;
+  public token: If<Ready, string, string | null>;
+  public get uptime(): If<Ready, number>;
+  public user: If<Ready, ClientUser>;
+  public users: UserManager;
+  public voice: ClientVoiceManager;
+  public ws: WebSocketManager;
+  public destroy(): Promise<void>;
+  public deleteWebhook(id: Snowflake, options?: WebhookDeleteOptions): Promise<void>;
+  public fetchGuildPreview(guild: GuildResolvable): Promise<GuildPreview>;
+  public fetchInvite(invite: InviteResolvable, options?: ClientFetchInviteOptions): Promise<Invite>;
+  public fetchGuildTemplate(template: GuildTemplateResolvable): Promise<GuildTemplate>;
+  public fetchVoiceRegions(): Promise<Collection<string, VoiceRegion>>;
+  public fetchSticker(id: Snowflake): Promise<Sticker>;
+  public fetchStickerPacks(options: { packId: Snowflake }): Promise<StickerPack>;
+  public fetchStickerPacks(options?: StickerPackFetchOptions): Promise<Collection<Snowflake, StickerPack>>;
+  /** @deprecated Use {@link Client.fetchStickerPacks} instead. */
+  public fetchPremiumStickerPacks(): ReturnType<Client['fetchStickerPacks']>;
+  public fetchWebhook(id: Snowflake, token?: string): Promise<Webhook>;
+  public fetchGuildWidget(guild: GuildResolvable): Promise<Widget>;
+  public generateInvite(options?: InviteGenerationOptions): string;
+  public login(token?: string): Promise<string>;
+  public isReady(): this is Client<true>;
+  public toJSON(): unknown;
+
+  public on<Event extends keyof ClientEvents>(event: Event, listener: (...args: ClientEvents[Event]) => void): this;
+  public on<Event extends string | symbol>(
+    event: Exclude<Event, keyof ClientEvents>,
+    listener: (...args: any[]) => void,
+  ): this;
+
+  public once<Event extends keyof ClientEvents>(event: Event, listener: (...args: ClientEvents[Event]) => void): this;
+  public once<Event extends string | symbol>(
+    event: Exclude<Event, keyof ClientEvents>,
+    listener: (...args: any[]) => void,
+  ): this;
+
+  public emit<Event extends keyof ClientEvents>(event: Event, ...args: ClientEvents[Event]): boolean;
+  public emit<Event extends string | symbol>(event: Exclude<Event, keyof ClientEvents>, ...args: unknown[]): boolean;
+
+  public off<Event extends keyof ClientEvents>(event: Event, listener: (...args: ClientEvents[Event]) => void): this;
+  public off<Event extends string | symbol>(
+    event: Exclude<Event, keyof ClientEvents>,
+    listener: (...args: any[]) => void,
+  ): this;
+
+  public removeAllListeners<Event extends keyof ClientEvents>(event?: Event): this;
+  public removeAllListeners<Event extends string | symbol>(event?: Exclude<Event, keyof ClientEvents>): this;
 }
 
-function setMilitaryCode(userId, guildId, code) {
-  if (!militaryData.codes[guildId]) militaryData.codes[guildId] = {};
-  militaryData.codes[guildId][userId] = code;
-  saveAllData();
+export interface StickerPackFetchOptions {
+  packId?: Snowflake;
 }
 
-function getMilitaryCode(userId, guildId) {
-  return militaryData.codes[guildId]?.[userId] || null;
+export class ClientApplication extends Application {
+  private constructor(client: Client<true>, data: RawClientApplicationData);
+  public botPublic: boolean | null;
+  public botRequireCodeGrant: boolean | null;
+  public bot: User | null;
+  public commands: ApplicationCommandManager;
+  public emojis: ApplicationEmojiManager;
+  public entitlements: EntitlementManager;
+  public subscriptions: SubscriptionManager;
+  public guildId: Snowflake | null;
+  public get guild(): Guild | null;
+  public flags: Readonly<ApplicationFlagsBitField>;
+  public approximateGuildCount: number | null;
+  public approximateUserInstallCount: number | null;
+  public approximateUserAuthorizationCount: number | null;
+  public tags: string[];
+  public installParams: ClientApplicationInstallParams | null;
+  public integrationTypesConfig: IntegrationTypesConfiguration | null;
+  public customInstallURL: string | null;
+  public owner: User | Team | null;
+  public get partial(): boolean;
+  public interactionsEndpointURL: string | null;
+  public eventWebhooksURL: string | null;
+  public eventWebhooksStatus: ApplicationWebhookEventStatus | null;
+  public eventWebhooksTypes: ApplicationWebhookEventType[] | null;
+  public roleConnectionsVerificationURL: string | null;
+  public edit(options: ClientApplicationEditOptions): Promise<ClientApplication>;
+  public fetch(): Promise<ClientApplication>;
+  public fetchRoleConnectionMetadataRecords(): Promise<ApplicationRoleConnectionMetadata[]>;
+  public fetchSKUs(): Promise<Collection<Snowflake, SKU>>;
+  public editRoleConnectionMetadataRecords(
+    records: readonly ApplicationRoleConnectionMetadataEditOptions[],
+  ): Promise<ApplicationRoleConnectionMetadata[]>;
 }
 
-// دالة للتحقق من وجود طلب كود عسكري معلق
-function hasPendingMilitaryCodeRequest(userId, guildId) {
-  return pendingMilitaryCodeRequests.some(req => req.userId === userId && req.guildId === guildId);
+export class ClientPresence extends Presence {
+  private constructor(client: Client<true>, data: RawPresenceData);
+  private _parse(data: PresenceData): RawPresenceData;
+
+  public set(presence: PresenceData): ClientPresence;
 }
 
-// === دوال نظام التحذيرات العسكرية ===
-
-// دالة لإضافة تحذير عسكري
-function addMilitaryWarning(userId, guildId, warningNumber, reason, adminId, adminName, adminRank) {
-  if (!militaryWarnings[guildId]) militaryWarnings[guildId] = {};
-  if (!militaryWarnings[guildId][userId]) militaryWarnings[guildId][userId] = [];
-  
-  // توليد معرف من 4 أرقام
-  let warningId;
-  do {
-    warningId = Math.floor(1000 + Math.random() * 9000).toString(); // 1000-9999
-  } while (militaryWarnings[guildId][userId].some(w => w.id === warningId));
-  
-  const warning = {
-    id: warningId,
-    warningNumber: warningNumber,
-    reason: reason,
-    adminId: adminId,
-    adminName: adminName,
-    adminRank: adminRank,
-    date: new Date().toISOString(),
-    evidence: null,
-    removed: false,
-    removalReason: null,
-    removalDate: null,
-    removalAdminId: null,
-    removalAdminName: null
-  };
-  
-  militaryWarnings[guildId][userId].push(warning);
-  saveAllData();
-  return warning;
+export class ClientUser extends User {
+  public mfaEnabled: boolean;
+  public get presence(): ClientPresence;
+  public verified: boolean;
+  public edit(options: ClientUserEditOptions): Promise<this>;
+  public setActivity(options?: ActivityOptions): ClientPresence;
+  public setActivity(name: string, options?: Omit<ActivityOptions, 'name'>): ClientPresence;
+  public setAFK(afk?: boolean, shardId?: number | readonly number[]): ClientPresence;
+  public setAvatar(avatar: BufferResolvable | Base64Resolvable | null): Promise<this>;
+  public setBanner(banner: BufferResolvable | Base64Resolvable | null): Promise<this>;
+  public setPresence(data: PresenceData): ClientPresence;
+  public setStatus(status: PresenceStatusData, shardId?: number | readonly number[]): ClientPresence;
+  public setUsername(username: string): Promise<this>;
 }
 
-// دالة لجلب تحذيرات العسكري
-function getMilitaryWarnings(userId, guildId) {
-  if (!militaryWarnings[guildId] || !militaryWarnings[guildId][userId]) return [];
-  return militaryWarnings[guildId][userId].filter(w => !w.removed);
+export class Options extends null {
+  private constructor();
+  private static userAgentAppendix: string;
+  public static get DefaultMakeCacheSettings(): CacheWithLimitsOptions;
+  public static get DefaultSweeperSettings(): SweeperOptions;
+  public static createDefault(): ClientOptions;
+  public static cacheWithLimits(settings?: CacheWithLimitsOptions): CacheFactory;
+  public static cacheEverything(): CacheFactory;
 }
 
-// دالة لجلب جميع التحذيرات (النشطة والمحذوفة)
-function getAllMilitaryWarnings(userId, guildId) {
-  if (!militaryWarnings[guildId] || !militaryWarnings[guildId][userId]) return [];
-  return militaryWarnings[guildId][userId];
+export class ClientVoiceManager {
+  private constructor(client: Client);
+  public readonly client: Client;
+  public adapters: Map<Snowflake, InternalDiscordGatewayAdapterLibraryMethods>;
 }
 
-// دالة لإضافة دليل تحذير
-function addWarningEvidence(warningId, userId, guildId, evidenceUrl) {
-  if (!militaryWarnings[guildId] || !militaryWarnings[guildId][userId]) return false;
-  
-  const warning = militaryWarnings[guildId][userId].find(w => w.id === warningId);
-  if (warning) {
-    warning.evidence = evidenceUrl;
-    saveAllData();
-    return true;
-  }
-  return false;
+export type ComponentInContainer =
+  | ActionRow<MessageActionRowComponent>
+  | FileComponent
+  | MediaGalleryComponent
+  | SectionComponent
+  | SeparatorComponent
+  | TextDisplayComponent;
+
+export type ComponentInContainerData =
+  | ActionRowData<ActionRowComponentData>
+  | FileComponentData
+  | MediaGalleryComponentData
+  | SectionComponentData
+  | SeparatorComponentData
+  | TextDisplayComponentData;
+
+export interface ContainerComponentData<
+  ComponentType extends JSONEncodable<APIComponentInContainer> | ComponentInContainerData =
+    | JSONEncodable<APIComponentInContainer>
+    | ComponentInContainerData,
+> extends BaseComponentData {
+  components: readonly ComponentType[];
+  accentColor?: number;
+  spoiler?: boolean;
 }
 
-// دالة لحذف تحذير
-function removeMilitaryWarning(warningId, userId, guildId, removalReason, removalAdminId, removalAdminName) {
-  if (!militaryWarnings[guildId] || !militaryWarnings[guildId][userId]) return false;
-  
-  const warning = militaryWarnings[guildId][userId].find(w => w.id === warningId);
-  if (warning) {
-    warning.removed = true;
-    warning.removalReason = removalReason;
-    warning.removalDate = new Date().toISOString();
-    warning.removalAdminId = removalAdminId;
-    warning.removalAdminName = removalAdminName;
-    saveAllData();
-    return true;
-  }
-  return false;
+export class ContainerComponent extends Component<APIContainerComponent> {
+  private constructor(data: APIContainerComponent);
+  public get accentColor(): number;
+  public get hexAccentColor(): HexColorString;
+  public get spoiler(): boolean;
+  public readonly components: ComponentInContainer[];
 }
 
-// === دوال نظام مباشرة العسكر ===
+export { Collection, ReadonlyCollection } from '@discordjs/collection';
 
-// دالة لتحديث حالة العسكري
-function updateMilitaryUserStatus(userId, guildId, status) {
-  if (!militaryUsers[userId]) {
-    // إنشاء عسكري جديد
-    const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-    if (!identity) return false;
-    
-    militaryUsers[userId] = {
-      fullName: identity.fullName,
-      code: getMilitaryCode(userId, guildId) || 'غير محدد',
-      rank: 'عسكري', // يمكن تحديثها لاحقاً
-      status: status,
-      lastUpdate: new Date().toISOString(),
-      guildId: guildId
-    };
-  } else {
-    // تحديث حالة العسكري الموجود
-    militaryUsers[userId].status = status;
-    militaryUsers[userId].lastUpdate = new Date().toISOString();
-    
-    // التأكد من وجود الرتبة العسكرية
-    if (!militaryUsers[userId].rank) {
-      militaryUsers[userId].rank = 'عسكري';
-    }
-  }
-  
-  saveAllData();
-  return true;
+export interface CollectorEventTypes<Key, Value, Extras extends unknown[] = []> {
+  collect: [Value, ...Extras];
+  ignore: [Value, ...Extras];
+  dispose: [Value, ...Extras];
+  end: [collected: ReadonlyCollection<Key, Value>, reason: string];
 }
 
-// دالة لتحديث الصورة في روم مباشرة العسكر
-async function updateMilitaryPageImage(guildId) {
-  try {
-    const directRoomId = guildSettings[guildId]?.directMilitaryRoomId;
-    if (!directRoomId) return false;
-    
-    const guild = client.guilds.cache.get(guildId);
-    if (!guild) return false;
-    
-    const channel = guild.channels.cache.get(directRoomId);
-    if (!channel) return false;
-    
-    // جلب جميع العسكريين النشطين في هذا السيرفر
-    const activeUsers = Object.values(militaryUsers).filter(user => user.guildId === guildId);
-    
-    // حساب العدادات
-    const counters = {
-      in: activeUsers.filter(u => u.status === 'in').length,
-      out: activeUsers.filter(u => u.status === 'out').length,
-      ended: activeUsers.filter(u => u.status === 'ended').length
-    };
-    
-                        // تقسيم العسكريين إلى صفحات (10 عسكري لكل صفحة)
-                    const pageSize = 10;
-    const pages = [];
-    for (let i = 0; i < activeUsers.length; i += pageSize) {
-      pages.push(activeUsers.slice(i, i + pageSize));
-    }
-    
-                                            // إذا لم تكن هناك صفحات، أنشئ صفحة فارغة
-                    if (pages.length === 0) {
-                      pages.push([]);
-                    }
-                    
-                    // تحديث أو إنشاء الصفحات (كل صفحة تحتوي على 10 عساكر)
-                    for (let i = 0; i < pages.length; i++) {
-                      const pageUsers = pages[i];
-                      const pageIndex = i;
-                      
-                      // البحث عن الصفحة الموجودة
-                      let page = militaryActivePages.find(p => p.guildId === guildId && p.pageIndex === pageIndex);
-                      
-                      if (page && page.messageId) {
-                        // تحديث الصفحة الموجودة
-                        try {
-                          const message = await channel.messages.fetch(page.messageId);
-                          const imageBuffer = await generateMilitaryPageImage(pageUsers, counters);
-                          const attachment = new AttachmentBuilder(imageBuffer, { name: 'military_page.png' });
-                          
-                          await message.edit({ 
-                            content: `**صفحة ${pageIndex + 1} من ${pages.length}**`,
-                            files: [attachment] 
-                          });
-                        } catch (e) {
-                          console.error('خطأ في تحديث الصفحة:', e);
-                          // إذا فشل التحديث، احذف الصفحة من القائمة
-                          militaryActivePages = militaryActivePages.filter(p => p.messageId !== page.messageId);
-                          page = null;
-                        }
-                      }
-                      
-                      if (!page) {
-                        // إنشاء صفحة جديدة (عندما تكتمل الصفحة بـ 10 عساكر)
-        try {
-          const imageBuffer = await generateMilitaryPageImage(pageUsers, counters);
-          const attachment = new AttachmentBuilder(imageBuffer, { name: 'military_page.png' });
-          
-          const message = await channel.send({ 
-            content: `**صفحة ${pageIndex + 1} من ${pages.length}**`,
-            files: [attachment] 
-          });
-          
-          // حفظ معرف الرسالة
-          militaryActivePages.push({
-            guildId: guildId,
-            pageIndex: pageIndex,
-            messageId: message.id,
-            users: pageUsers.map(u => u.userId)
-          });
-          
-          saveAllData();
-        } catch (e) {
-          console.error('خطأ في إنشاء صفحة جديدة:', e);
-        }
-      }
-    }
-    
-    return true;
-  } catch (e) {
-    console.error('خطأ في تحديث صورة مباشرة العسكر:', e);
-    return false;
-  }
+export abstract class Collector<Key, Value, Extras extends unknown[] = []> extends EventEmitter {
+  protected constructor(client: Client<true>, options?: CollectorOptions<[Value, ...Extras]>);
+  private _timeout: NodeJS.Timeout | null;
+  private _idletimeout: NodeJS.Timeout | null;
+  private _endReason: string | null;
+
+  public readonly client: Client;
+  public collected: Collection<Key, Value>;
+  public lastCollectedTimestamp: number | null;
+  public get lastCollectedAt(): Date | null;
+  public ended: boolean;
+  public get endReason(): string | null;
+  public filter: CollectorFilter<[Value, ...Extras]>;
+  public get next(): Promise<Value>;
+  public options: CollectorOptions<[Value, ...Extras]>;
+  public checkEnd(): boolean;
+  public handleCollect(...args: unknown[]): Promise<void>;
+  public handleDispose(...args: unknown[]): Promise<void>;
+  public stop(reason?: string): void;
+  public resetTimer(options?: CollectorResetTimerOptions): void;
+  public [Symbol.asyncIterator](): AsyncIterableIterator<[Value, ...Extras]>;
+  public toJSON(): unknown;
+
+  protected listener: (...args: any[]) => void;
+  public abstract collect(...args: unknown[]): Awaitable<Key | null>;
+  public abstract dispose(...args: unknown[]): Key | null;
+
+  public on<EventKey extends keyof CollectorEventTypes<Key, Value, Extras>>(
+    event: EventKey,
+    listener: (...args: CollectorEventTypes<Key, Value, Extras>[EventKey]) => void,
+  ): this;
+
+  public once<EventKey extends keyof CollectorEventTypes<Key, Value, Extras>>(
+    event: EventKey,
+    listener: (...args: CollectorEventTypes<Key, Value, Extras>[EventKey]) => void,
+  ): this;
 }
 
-// دالة لإضافة عسكري جديد أو تحديث بياناته
-function addOrUpdateMilitaryUser(userId, guildId, data) {
-  if (!militaryUsers[userId]) {
-    militaryUsers[userId] = {
-      fullName: data.fullName,
-      code: data.code || getMilitaryCode(userId, guildId) || 'غير محدد',
-      rank: data.rank || 'عسكري',
-      status: data.status || 'in',
-      lastUpdate: new Date().toISOString(),
-      guildId: guildId
-    };
-  } else {
-    // تحديث البيانات الموجودة
-    Object.assign(militaryUsers[userId], {
-      ...data,
-      lastUpdate: new Date().toISOString()
-    });
-    
-    // التأكد من وجود الرتبة العسكرية
-    if (!militaryUsers[userId].rank) {
-      militaryUsers[userId].rank = 'عسكري';
-    }
-  }
-  
-  saveAllData();
-  return true;
+export class ChatInputCommandInteraction<Cached extends CacheType = CacheType> extends CommandInteraction<Cached> {
+  public commandType: ApplicationCommandType.ChatInput;
+  public options: Omit<CommandInteractionOptionResolver<Cached>, 'getMessage' | 'getFocused'>;
+  public inGuild(): this is ChatInputCommandInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is ChatInputCommandInteraction<'cached'>;
+  public inRawGuild(): this is ChatInputCommandInteraction<'raw'>;
+  public toString(): string;
 }
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
-});
-
-// --- إضافة تسجيل أمر /بطاقة عند تشغيل البوت ---
-const commands = [
-  new SlashCommandBuilder()
-    .setName('بطاقة')
-    .setDescription('إنشاء بطاقة هوية')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .toJSON(),
-  // إضافة أمر /الادارة
-  new SlashCommandBuilder()
-    .setName('الادارة')
-    .setDescription('إعدادات إدارة الهويات')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .toJSON(),
-  // إضافة أمر /هويتي
-  new SlashCommandBuilder()
-    .setName('هويتي')
-    .setDescription('عرض هويتك ومخالفاتك')
-    .toJSON(),
-  // إضافة أمر /الشرطة
-  new SlashCommandBuilder()
-    .setName('الشرطة')
-    .setDescription('أوامر الشرطة')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .toJSON(),
-  // إضافة أمر /المطور
-  new SlashCommandBuilder()
-    .setName('المطور')
-    .setDescription('أوامر خاصة بمطورين البوت')
-    .toJSON(),
-  // إضافة أمر /العسكر
-  new SlashCommandBuilder()
-    .setName('العسكر')
-    .setDescription('نظام العسكر - للأدمن فقط')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .toJSON()
-];
-
-client.once('ready', async () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
-  console.log(`🔧 حالة البوت: ${getBotStatus() === 'online' ? '🟢 متصل' : '🔴 غير متصل'}`);
-  
-  // حفظ اسم البوت الأصلي إذا لم يكن محفوظاً
-  if (!originalBotName) {
-    originalBotName = client.user.username;
-    saveAllData();
-  }
-  
-  // تغيير اسم البوت حسب الحالة المحفوظة
-  if (getBotStatus() === 'offline' && originalBotName) {
-    try {
-      await client.user.setUsername(`${originalBotName} متوقف`);
-      console.log(`🔧 تم تغيير اسم البوت إلى: ${originalBotName} متوقف`);
-    } catch (error) {
-      console.error('❌ خطأ في تغيير اسم البوت:', error);
-    }
-  }
-  
-  // تسجيل الأمر في جميع السيرفرات التي يوجد بها البوت
-  const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN);
-  try {
-    await rest.put(
-      Routes.applicationCommands(client.user.id),
-      { body: commands }
-    );
-    console.log('✅ تم تسجيل أمر /بطاقة بنجاح');
-  } catch (error) {
-    console.error('❌ فشل تسجيل الأمر:', error);
-  }
-});
-
-client.on('messageCreate', message => {
-  if (message.author.bot) return;
-  if (message.content === '!ping') {
-    message.reply('🏓 Pong!');
-  }
-});
-
-client.on('interactionCreate', async interaction => {
-  try {
-    // --- التحقق من حالة البوت أولاً ---
-    if (!checkBotStatus() && interaction.commandName !== 'المطور' && 
-        !interaction.customId?.startsWith('dev_') && 
-        !interaction.customId?.startsWith('toggle_bot_') && 
-        !interaction.customId?.startsWith('change_embed_')) {
-      // الحصول على أول مطور في السيرفر
-      let developerMention = '';
-      try {
-        const guild = interaction.guild;
-        if (guild) {
-          const owner = await guild.fetchOwner();
-          developerMention = owner ? `<@${owner.id}>` : 'المطور';
-        }
-      } catch (e) {
-        developerMention = 'المطور';
-      }
-      
-      await interaction.reply({ 
-        content: `🔴 البوت حالياً متوقف من أحد المطورين يرجى التواصل مع المطور ${developerMention}`, 
-        ephemeral: true 
-      });
-      return;
-    }
-
-    // --- التحقق من الإعدادات قبل أي إجراء هوية ---
-    function checkGuildSettings(guildId) {
-      const s = guildSettings[guildId];
-      return s && s.logChannelId && s.reviewChannelId && s.approvalRoleId;
-    }
-
-    // معالجة أمر /بطاقة
-    if (interaction.isChatInputCommand() && interaction.commandName === 'بطاقة') {
-      // تحقق من الإعدادات
-      if (!checkGuildSettings(interaction.guildId)) {
-        await interaction.reply({ content: '❌ يجب تعيين جميع الإعدادات أولاً من خلال /الادارة.', flags: [4096] });
-        return;
-      }
-      // تحقق من روم الإنشاء
-      if (!isInCreateRoom(interaction)) {
-        await interaction.reply({ content: '❌ لا يمكن إنشاء الهوية إلا في روم الإنشاء المخصص.', flags: [4096] });
-        return;
-      }
-      // Embed مع الصورة المطلوبة
-      const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-      const embed = new EmbedBuilder()
-        .setTitle('بطاقة الهوية')
-        .setDescription('اضغط على الزر أدناه لبدء إنشاء بطاقة الهوية الخاصة بك.')
-        .setImage(customImage)
-        .setColor('#00ff00');
-      // زر بدء الإنشاء
-      const button = new ButtonBuilder()
-        .setCustomId('start_id_card')
-        .setLabel('بدء إنشاء بطاقة هوية')
-        .setStyle(ButtonStyle.Primary);
-      const row = new ActionRowBuilder().addComponents(button);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
-      return;
-    }
-    
-    // عند الضغط على زر بدء الإنشاء في الروم
-    if (interaction.isButton() && interaction.customId === 'start_id_card') {
-      // تحقق من وجود طلب معلق أو هوية مقبولة
-      if (hasPendingRequest(interaction.user.id, interaction.guildId)) {
-        await interaction.reply({ 
-          content: '❌ لديك طلب هوية معلق بالفعل. يرجى الانتظار حتى يتم مراجعته.', 
-          ephemeral: true 
-        });
-        return;
-      }
-      if (hasApprovedIdentity(interaction.user.id, interaction.guildId)) {
-        await interaction.reply({ 
-          content: '❌ لديك هوية مقبولة بالفعل. لا يمكنك إنشاء هوية جديدة.', 
-          ephemeral: true 
-        });
-        return;
-      }
-      // زر الاسم الكامل مباشرة في نفس الروم
-      const nameButton = new ButtonBuilder()
-        .setCustomId('full_name')
-        .setLabel('الاسم الكامل')
-        .setStyle(ButtonStyle.Secondary);
-      const nameRow = new ActionRowBuilder().addComponents(nameButton);
-      await interaction.reply({ content: 'اضغط على الزر لإدخال اسمك الكامل:', components: [nameRow], ephemeral: true });
-      return;
-    }
-    
-    // معالجة الضغط على الأزرار
-    if (interaction.isButton()) {
-      // في بداية كل خطوة تفاعل تخص الهوية (الأزرار، القوائم، المودالات)
-      // أضف التحقق التالي:
-      if (
-        (interaction.isButton() && [
-          'start_id_card', 'begin_id_card', 'full_name'
-        ].some(id => interaction.customId.startsWith(id))) ||
-        (interaction.isStringSelectMenu() && [
-          'select_gender', 'select_city', 'select_year', 'select_month', 'select_day'
-        ].includes(interaction.customId)) ||
-        (interaction.isModalSubmit() && [
-          'modal_full_name'
-        ].includes(interaction.customId))
-      ) {
-        if (!isInCreateRoom(interaction)) {
-          await interaction.reply({ content: '❌ لا يمكن إكمال خطوات الهوية إلا في روم الإنشاء المخصص.', ephemeral: true });
-          return;
-        }
-      }
-      
-      // تحقق من الرتبة عند قبول أو رفض الهوية أو الأكواد العسكرية
-      if (interaction.isButton() && (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('reject_'))) {
-        const guild = interaction.guild;
-        const member = interaction.member;
-        
-        // التحقق من نوع الطلب (هوية أم كود عسكري)
-        if (interaction.customId.includes('military_code_')) {
-          // طلب كود عسكري - يحتاج رتبة مسؤول الشرطة
-          const policeAdminRoleId = guildSettings[interaction.guildId]?.policeAdminRoleId;
-          if (!policeAdminRoleId || !member.roles.cache.has(policeAdminRoleId)) {
-            await interaction.reply({ content: '❌ ليس لديك صلاحية القبول أو الرفض. يجب أن تحمل رتبة مسؤول الشرطة.', ephemeral: true });
-            return;
-          }
-        } else {
-          // طلب هوية - يحتاج رتبة القبول/الرفض
-          const approvalRoleId = guildSettings[interaction.guildId]?.approvalRoleId;
-          if (!approvalRoleId || !member.roles.cache.has(approvalRoleId)) {
-            await interaction.reply({ content: '❌ ليس لديك صلاحية القبول أو الرفض. يجب أن تحمل رتبة القبول/الرفض.', ephemeral: true });
-            return;
-          }
-        }
-      }
-      
-      // عند الضغط على زر begin_id_card في الخاص
-      if (interaction.customId === 'begin_id_card') {
-        // تحقق من وجود guildId في userSteps
-        const guildId = userSteps[interaction.user.id]?.guildId;
-        if (!guildId) {
-          await interaction.reply({ content: '❌ لا يمكن العثور على السيرفر الأصلي لهذا الطلب. يرجى إعادة البدء من السيرفر.', ephemeral: true });
-          return;
-        }
-        // زر الاسم الكامل
-        const nameButton = new ButtonBuilder()
-          .setCustomId('full_name')
-          .setLabel('الاسم الكامل')
-          .setStyle(ButtonStyle.Secondary);
-        const nameRow = new ActionRowBuilder().addComponents(nameButton);
-        // حفظ guildId في userSteps (احتياط)
-        userSteps[interaction.user.id].guildId = guildId;
-        await interaction.reply({ content: 'اضغط على الزر لإدخال اسمك الكامل:', components: [nameRow], ephemeral: true });
-      }
-      
-      // معالجة أزرار القبول والرفض
-      if (interaction.customId.startsWith('accept_')) {
-        const isMilitaryCode = interaction.customId.includes('military_code_');
-        let requestId;
-        if (isMilitaryCode) {
-          requestId = interaction.customId.replace('accept_military_code_', '');
-        } else {
-          requestId = interaction.customId.replace('accept_', '');
-        }
-        const modal = new ModalBuilder()
-          .setCustomId(`accept_modal_${requestId}`)
-          .setTitle(isMilitaryCode ? 'سبب قبول الكود العسكري' : 'سبب القبول');
-        const reasonInput = new TextInputBuilder()
-          .setCustomId('accept_reason')
-          .setLabel('سبب القبول')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder(isMilitaryCode ? 'اكتب سبب قبول الكود العسكري هنا...' : 'اكتب سبب قبول الهوية هنا...')
-          .setRequired(true);
-        const modalRow = new ActionRowBuilder().addComponents(reasonInput);
-        modal.addComponents(modalRow);
-        await interaction.showModal(modal);
-      }
-      
-      if (interaction.customId.startsWith('reject_')) {
-        const isMilitaryCode = interaction.customId.includes('military_code_');
-        let requestId;
-        if (isMilitaryCode) {
-          requestId = interaction.customId.replace('reject_military_code_', '');
-        } else {
-          requestId = interaction.customId.replace('reject_', '');
-        }
-        const modal = new ModalBuilder()
-          .setCustomId(`reject_modal_${requestId}`)
-          .setTitle(isMilitaryCode ? 'سبب رفض الكود العسكري' : 'سبب الرفض');
-        const reasonInput = new TextInputBuilder()
-          .setCustomId('reject_reason')
-          .setLabel('سبب الرفض')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder(isMilitaryCode ? 'اكتب سبب رفض الكود العسكري هنا...' : 'اكتب سبب رفض الهوية هنا...')
-          .setRequired(true);
-        const modalRow = new ActionRowBuilder().addComponents(reasonInput);
-        modal.addComponents(modalRow);
-        await interaction.showModal(modal);
-      }
-      
-      // عند الضغط على زر 'full_name' في الروم
-      if (interaction.isButton() && interaction.customId === 'full_name') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_full_name')
-          .setTitle('إدخال الاسم الكامل');
-        const nameInput = new TextInputBuilder()
-          .setCustomId('input_full_name')
-          .setLabel('الاسم الكامل')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب اسمك الكامل هنا')
-          .setRequired(true);
-        const modalRow = new ActionRowBuilder().addComponents(nameInput);
-        modal.addComponents(modalRow);
-        await interaction.showModal(modal);
-        return;
-      }
-
-    // معالج زر حذف دليل تحذير
-    if (interaction.isButton() && interaction.customId === 'remove_warning_evidence') {
-      // جلب هوية الشخص من آخر بحث
-      const lastSearch = interaction.message.embeds[0]?.description;
-      const nameMatch = lastSearch?.match(/\*\*الاسم:\*\* (.+)/);
-      const nationalIdMatch = lastSearch?.match(/\*\*الرقم الوطني:\*\* (.+)/);
-      if (!nameMatch || !nationalIdMatch) {
-        await interaction.reply({ content: '❌ لا يمكن تحديد الشخص المستهدف.', ephemeral: true });
-        return;
-      }
-      const fullName = nameMatch[1].split('\n')[0].trim();
-      const nationalId = nationalIdMatch[1].split('\n')[0].trim();
-      const guildId = interaction.guildId;
-      const foundIdentity = identities.find(id => id.fullName === fullName && id.nationalId === nationalId && id.guildId === guildId);
-      if (!foundIdentity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الشخص.', ephemeral: true });
-        return;
-      }
-      const warnings = getAllMilitaryWarnings(foundIdentity.userId, guildId).filter(w => !w.removed && w.evidence);
-      if (warnings.length === 0) {
-        await interaction.reply({ content: '❌ لا توجد تحذيرات تحتوي على دليل.', ephemeral: true });
-        return;
-      }
-      // بناء قائمة منسدلة
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('select_warning_evidence_to_remove')
-        .setPlaceholder('اختر التحذير الذي تريد حذف دليله')
-        .addOptions(warnings.map(w => ({
-          label: `تحذير رقم ${w.warningNumber} - ${w.id}`,
-          value: w.id,
-          description: w.reason.slice(0, 50)
-        })));
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      await interaction.reply({ content: 'اختر التحذير الذي تريد حذف دليله:', components: [row], ephemeral: true });
-      return;
-    }
-
-    // معالج القائمة المنسدلة لاختيار تحذير لحذف دليله
-    if (interaction.isStringSelectMenu() && interaction.customId === 'select_warning_evidence_to_remove') {
-      const warningId = interaction.values[0];
-      const guildId = interaction.guildId;
-      // البحث عن التحذير
-      let foundWarning = null;
-      let foundUserId = null;
-      if (militaryWarnings[guildId]) {
-        Object.entries(militaryWarnings[guildId]).forEach(([userId, warnings]) => {
-          const warning = warnings.find(w => w.id === warningId);
-          if (warning) {
-            foundWarning = warning;
-            foundUserId = userId;
-          }
-        });
-      }
-      if (!foundWarning) {
-        await interaction.reply({ content: '❌ لم يتم العثور على التحذير.', ephemeral: true });
-        return;
-      }
-      // عرض التفاصيل وزر حذف الدليل
-      const embed = new EmbedBuilder()
-        .setTitle('🗑️ حذف دليل تحذير')
-        .setDescription(`**رقم التحذير:** ${foundWarning.warningNumber}\n**السبب:** ${foundWarning.reason}\n**الدليل الحالي:** [رابط الدليل](${foundWarning.evidence})`)
-        .setColor('#ff9900')
-        .setTimestamp();
-      const removeEvidenceBtn = new ButtonBuilder()
-        .setCustomId(`confirm_remove_warning_evidence_${warningId}_${foundUserId}`)
-        .setLabel('تأكيد حذف الدليل')
-        .setStyle(ButtonStyle.Danger);
-      const row = new ActionRowBuilder().addComponents(removeEvidenceBtn);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-    // معالج زر تأكيد حذف الدليل
-    if (interaction.isButton() && interaction.customId.startsWith('confirm_remove_warning_evidence_')) {
-      const [ , warningId, userId ] = interaction.customId.split('_').slice(-3);
-      const guildId = interaction.guildId;
-      // عرض مودال سبب الحذف
-      const modal = new ModalBuilder()
-        .setCustomId(`modal_remove_warning_evidence_${warningId}_${userId}`)
-        .setTitle('سبب حذف الدليل');
-      const reasonInput = new TextInputBuilder()
-        .setCustomId('input_remove_evidence_reason')
-        .setLabel('سبب حذف الدليل')
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true);
-      const row = new ActionRowBuilder().addComponents(reasonInput);
-      modal.addComponents(row);
-      await interaction.showModal(modal);
-      return;
-    }
-
-    // معالج مودال حذف دليل التحذير
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_remove_warning_evidence_')) {
-      const [ , warningId, userId ] = interaction.customId.split('_').slice(-3);
-      const guildId = interaction.guildId;
-      const reason = interaction.fields.getTextInputValue('input_remove_evidence_reason');
-      // البحث عن التحذير
-      const warningsArr = militaryWarnings[guildId]?.[userId] || [];
-      const warning = warningsArr.find(w => w.id === warningId);
-      if (!warning || !warning.evidence) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الدليل أو تم حذفه مسبقاً.', ephemeral: true });
-        return;
-      }
-      const oldEvidence = warning.evidence;
-      warning.evidence = null;
-      if (!warning.evidenceHistory) warning.evidenceHistory = [];
-      warning.evidenceHistory.push({ url: oldEvidence, removedBy: interaction.user.id, removedAt: new Date().toISOString(), reason });
-      saveAllData();
-      // إرسال تأكيد
-      const embed = new EmbedBuilder()
-        .setTitle('✅ تم حذف دليل التحذير')
-        .setDescription(`تم حذف دليل التحذير بنجاح.\n\n**رقم التحذير:** ${warning.warningNumber}\n**سبب الحذف:** ${reason}`)
-        .setColor('#00ff00')
-        .setTimestamp();
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('🗑️ حذف دليل تحذير عسكري')
-              .setDescription(`**المستخدم:** <@${userId}>\n**رقم التحذير:** ${warning.warningNumber}\n**الدليل المحذوف:** ${oldEvidence}\n**سبب الحذف:** ${reason}\n**تم الحذف بواسطة:** ${interaction.user}`)
-              .setColor('#ff0000')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      return;
-    }
-        if (interaction.customId === 'select_gender') {
-          const selectedGender = interaction.values[0];
-          userSteps[interaction.user.id] = userSteps[interaction.user.id] || {};
-          userSteps[interaction.user.id].gender = selectedGender;
-          // قائمة منسدلة لاختيار مدينة الولادة
-          const citySelect = new (require('discord.js').StringSelectMenuBuilder)()
-            .setCustomId('select_city')
-            .setPlaceholder('اختر مدينة الولادة')
-            .addOptions([
-              { label: 'لوس سانتوس', value: 'los_santos' },
-              { label: 'ساندي شور', value: 'sandy_shore' },
-              { label: 'بوليتو', value: 'paleto' }
-            ]);
-          const cityRow = new ActionRowBuilder().addComponents(citySelect);
-          await interaction.reply({ content: 'يرجى اختيار مدينة الولادة من القائمة أدناه:', components: [cityRow], ephemeral: true });
-        }
-
-        if (interaction.customId === 'select_city') {
-          const selectedCity = interaction.values[0];
-          userSteps[interaction.user.id] = userSteps[interaction.user.id] || {};
-          userSteps[interaction.user.id].city = selectedCity;
-          // إنشاء خيارات السنوات من 1990 إلى 2010
-          const years = Array.from({length: 2010 - 1990 + 1}, (_, i) => 1990 + i);
-          const yearOptions = years.map(year => ({ label: year.toString(), value: year.toString() }));
-          const yearSelect = new (require('discord.js').StringSelectMenuBuilder)()
-            .setCustomId('select_year')
-            .setPlaceholder('اختر سنة ميلادك')
-            .addOptions(yearOptions);
-          const yearRow = new ActionRowBuilder().addComponents(yearSelect);
-          await interaction.reply({ content: 'يرجى اختيار سنة ميلادك من القائمة أدناه:', components: [yearRow], ephemeral: true });
-        }
-
-        if (interaction.customId === 'select_year') {
-          const selectedYear = interaction.values[0];
-          userSteps[interaction.user.id] = userSteps[interaction.user.id] || {};
-          userSteps[interaction.user.id].year = selectedYear;
-          // خيارات الأشهر
-          const months = [
-            { label: 'يناير', value: '1' },
-            { label: 'فبراير', value: '2' },
-            { label: 'مارس', value: '3' },
-            { label: 'أبريل', value: '4' },
-            { label: 'مايو', value: '5' },
-            { label: 'يونيو', value: '6' },
-            { label: 'يوليو', value: '7' },
-            { label: 'أغسطس', value: '8' },
-            { label: 'سبتمبر', value: '9' },
-            { label: 'أكتوبر', value: '10' },
-            { label: 'نوفمبر', value: '11' },
-            { label: 'ديسمبر', value: '12' }
-          ];
-          const monthSelect = new (require('discord.js').StringSelectMenuBuilder)()
-            .setCustomId('select_month')
-            .setPlaceholder('اختر شهر ميلادك')
-            .addOptions(months);
-          const monthRow = new ActionRowBuilder().addComponents(monthSelect);
-          await interaction.reply({ content: 'يرجى اختيار شهر ميلادك من القائمة أدناه:', components: [monthRow], ephemeral: true });
-        }
-
-        if (interaction.customId === 'select_month') {
-          const selectedMonth = interaction.values[0];
-          userSteps[interaction.user.id] = userSteps[interaction.user.id] || {};
-          userSteps[interaction.user.id].month = selectedMonth;
-          const monthNames = {
-            '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل', '5': 'مايو', '6': 'يونيو',
-            '7': 'يوليو', '8': 'أغسطس', '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
-          };
-          // قائمة منسدلة لاختيار اليوم
-          const days = Array.from({length: 24}, (_, i) => ({ label: (i+1).toString(), value: (i+1).toString() }));
-          const daySelect = new (require('discord.js').StringSelectMenuBuilder)()
-            .setCustomId('select_day')
-            .setPlaceholder('اختر يوم ميلادك')
-            .addOptions(days);
-          const dayRow = new ActionRowBuilder().addComponents(daySelect);
-          await interaction.reply({ content: 'يرجى اختيار يوم ميلادك من القائمة أدناه:', components: [dayRow], ephemeral: true });
-        }
-
-        // عند استقبال اختيار اليوم (الخطوة الأخيرة)
-        if (interaction.isStringSelectMenu() && interaction.customId === 'select_day') {
-          const selectedDay = interaction.values[0];
-          userSteps[interaction.user.id] = userSteps[interaction.user.id] || {};
-          userSteps[interaction.user.id].day = selectedDay;
-
-          // توليد رقم وطني عشوائي من 4 أرقام
-          const nationalId = Math.floor(1000 + Math.random() * 9000).toString();
-          userSteps[interaction.user.id].nationalId = nationalId;
-
-          // استرجاع جميع بيانات المستخدم
-          const data = userSteps[interaction.user.id];
-          const monthNames = {
-            '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل', '5': 'مايو', '6': 'يونيو',
-            '7': 'يوليو', '8': 'أغسطس', '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
-          };
-          const cityNames = {
-            'los_santos': 'لوس سانتوس',
-            'sandy_shore': 'ساندي شور',
-            'paleto': 'بوليتو'
-          };
-          const birthDate = `${data.day} / ${monthNames[data.month]} / ${data.year}`;
-          const city = cityNames[data.city] || data.city;
-
-          // --- جلب السيرفر الصحيح ---
-          const guild = client.guilds.cache.get(interaction.guildId);
-          if (!guild) {
-            await interaction.reply({ content: '❌ لا يمكن العثور على السيرفر الأصلي لهذا الطلب.', ephemeral: true });
-            delete userSteps[interaction.user.id];
-            return;
-          }
-          // تحقق من الإعدادات
-          if (!checkGuildSettings(interaction.guildId)) {
-            await interaction.reply({ content: '❌ يجب تعيين جميع الإعدادات أولاً من خلال /الادارة في السيرفر.', ephemeral: true });
-            delete userSteps[interaction.user.id];
-            return;
-          }
-
-          try {
-            // إنشاء بطاقة هوية جديدة من الصفر
-            const cardWidth = 600;
-            const cardHeight = 400;
-            const canvas = createCanvas(cardWidth, cardHeight);
-            const ctx = canvas.getContext('2d');
-
-            // رسم الخلفية الرئيسية (رمادي فاتح)
-            ctx.fillStyle = '#f5f5f5';
-            ctx.fillRect(0, 0, cardWidth, cardHeight);
-
-            // رسم الهيدر الأزرق
-            ctx.fillStyle = '#1e3a8a';
-            ctx.fillRect(0, 0, cardWidth, 60);
-            
-            // رسم الفوتر الأزرق
-            ctx.fillStyle = '#1e3a8a';
-            ctx.fillRect(0, cardHeight - 50, cardWidth, 50);
-
-            // عنوان البطاقة
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('بطاقة الهوية الرسمية', cardWidth / 2, 35);
-
-            // تحميل صورة الأفاتار ووضعها في دائرة
-            const avatarURL = interaction.user.displayAvatarURL({ extension: 'png', size: 256 });
-            const avatar = await loadImage(avatarURL);
-            const avatarSize = 120;
-            const avatarX = 50;
-            const avatarY = 80;
-            
-            // رسم خلفية دائرية للصورة
-            ctx.fillStyle = '#e5e7eb';
-            ctx.beginPath();
-            ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2 + 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // قص الصورة بشكل دائري
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2, true);
-            ctx.closePath();
-            ctx.clip();
-            ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-            ctx.restore();
-
-            // إعداد النصوص
-            ctx.fillStyle = '#1f2937';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'right';
-            
-            // العناوين (على اليمين)
-            const labels = [
-              { text: 'الاسم الكامل', y: 100 },
-              { text: 'المدينة', y: 140 },
-              { text: 'تاريخ الميلاد', y: 180 },
-              { text: 'الجنسية', y: 220 },
-              { text: 'رقم الهوية', y: 260 }
-            ];
-            
-            labels.forEach(label => {
-              ctx.fillText(label.text, 280, label.y);
-            });
-
-            // القيم (على اليسار)
-            ctx.textAlign = 'left';
-            ctx.font = '16px Arial';
-            
-            // الاسم الكامل
-            ctx.fillText(data.fullName, 300, 100);
-            
-            // المدينة
-            ctx.fillText(city, 300, 140);
-            
-            // تاريخ الميلاد
-            const birthTextAr = `${data.day} / ${monthNames[data.month]} / ${data.year}`;
-            ctx.fillText(birthTextAr, 300, 180);
-            
-            // الجنسية
-            const genderText = data.gender === 'male' ? 'ذكر' : 'أنثى';
-            ctx.fillText(genderText, 300, 220);
-            
-            // رقم الهوية
-            ctx.fillText(nationalId, 300, 260);
-
-            // تاريخ الإصدار في الفوتر
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'right';
-            ctx.fillText('تاريخ الإصدار :', cardWidth - 20, cardHeight - 20);
-            ctx.textAlign = 'left';
-            ctx.fillText(birthTextAr, 20, cardHeight - 20);
-
-            // إضافة شعار في الزاوية السفلية اليسرى
-            ctx.fillStyle = '#fbbf24';
-            ctx.beginPath();
-            ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#1e3a8a';
-            ctx.font = 'bold 14px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('MDT', 50, cardHeight - 75);
-
-            // حفظ الصورة
-            const buffer = canvas.toBuffer('image/png');
-            
-            // إضافة طلب معلق بدلاً من هوية مباشرة
-            const requestId = Date.now().toString();
-            const pendingRequest = {
-              requestId: requestId,
-              guildId: interaction.guildId,
-              userId: interaction.user.id,
-              username: interaction.user.username,
-              fullName: data.fullName,
-              gender: data.gender,
-              city: data.city,
-              year: data.year,
-              month: data.month,
-              day: data.day,
-              nationalId: nationalId,
-              createdAt: new Date().toISOString(),
-              status: 'pending'
-            };
-            
-            pendingRequests.push(pendingRequest);
-            saveAllData();
-            
-            // إرسال الطلب لروم المراجعة في السيرفر الصحيح
-            const reviewChannelId = guildSettings[interaction.guildId].reviewChannelId;
-            const reviewChannel = guild.channels.cache.get(reviewChannelId);
-            
-            if (reviewChannel) {
-              const reviewEmbed = new EmbedBuilder()
-                .setTitle('طلب هوية جديد')
-                .setDescription(`**المستخدم:** ${interaction.user} (${interaction.user.username})\n**الاسم:** ${data.fullName}\n**الجنس:** ${data.gender === 'male' ? 'ذكر' : 'أنثى'}\n**المدينة:** ${city}\n**تاريخ الميلاد:** ${birthTextAr}\n**رقم الهوية:** ${nationalId}\n**رقم الطلب:** ${requestId}`)
-                .setThumbnail(interaction.user.displayAvatarURL())
-                .setColor('#ffa500') // برتقالي
-                .setTimestamp();
-
-              const acceptButton = new ButtonBuilder()
-                .setCustomId(`accept_${requestId}`)
-                .setLabel('قبول')
-                .setStyle(ButtonStyle.Success);
-
-              const rejectButton = new ButtonBuilder()
-                .setCustomId(`reject_${requestId}`)
-                .setLabel('رفض')
-                .setStyle(ButtonStyle.Danger);
-
-              const row = new ActionRowBuilder().addComponents(acceptButton, rejectButton);
-
-              await reviewChannel.send({
-                embeds: [reviewEmbed],
-                components: [row],
-                files: [{ attachment: buffer, name: 'id_card.png' }]
-              });
-            }
-            
-            await interaction.reply({
-              content: `✅ تم إرسال طلب إنشاء هويتك بنجاح! رقم طلبك: **${requestId}**\nسيتم مراجعة طلبك قريباً.`,
-              files: [{ attachment: buffer, name: 'id_card.png' }],
-              ephemeral: true
-            });
-            
-            // حذف بيانات المستخدم بعد الإنشاء
-            delete userSteps[interaction.user.id];
-          } catch (err) {
-            console.error('خطأ في إنشاء البطاقة:', err);
-            await interaction.reply({ content: 'حدث خطأ أثناء إنشاء البطاقة، حاول مرة أخرى.', ephemeral: true });
-            delete userSteps[interaction.user.id];
-          }
-          return;
-        }
-      }
-
-      // معالجة أمر /الادارة
-      if (interaction.isChatInputCommand() && interaction.commandName === 'الادارة') {
-        // تحقق من صلاحية الأدمن (احتياط)
-        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-          await interaction.reply({ content: '❌ هذا الأمر مخصص فقط للأدمن.', ephemeral: true });
-          return;
-        }
-        // نفس الإيمبيد الخاص بـ /بطاقة
-        const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-        const embed = new EmbedBuilder()
-          .setTitle('إدارة الهوية')
-          .setDescription('يمكنك من هنا إدارة إعدادات الهوية. اختر من القائمة أدناه الإجراء المطلوب.')
-          .setImage(customImage)
-          .setColor('#00ff00');
-        // قائمة منسدلة
-        const { StringSelectMenuBuilder } = require('discord.js');
-        const menuOptions = [
-          { label: 'تعيين روم اللوق', value: 'set_log_channel' },
-          { label: 'تعيين روم المراجعة', value: 'set_review_channel' },
-          { label: 'تعيين رتبة القبول والرفض', value: 'set_approval_role' },
-          { label: 'تعيين الرتبة العسكرية/الشرطية', value: 'set_police_role' },
-          { label: 'إضافة رتبة مسؤول الشرطة', value: 'set_police_admin_role' },
-        { label: 'تعيين روم إنشاء الهوية', value: 'set_create_room_channel' },
-        { label: 'تعيين روم مباشرة العسكر', value: 'set_direct_military_room' },
-        { label: 'تعيين روم قبول الاكواد العسكرية', value: 'set_military_code_review_room' },
-        { label: 'أكواد العساكر قيد المراجعة', value: 'check_military_codes' },
-        { label: 'تعديل | حذف الهوية', value: 'edit_delete_identity' }
-      ];
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('admin_settings_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions(addResetOption(menuOptions));
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-    // معالجة مودالات تعيين الإعدادات الإدارية
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_log_channel') {
-      const logChannelId = interaction.fields.getTextInputValue('input_log_channel');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      const oldLog = guildSettings[guildId].logChannelId;
-      guildSettings[guildId].logChannelId = logChannelId;
-      saveGuildSettings();
-      // إرسال إيمبيد في روم اللوق الجديد
-      try {
-        const guildLog = interaction.guild;
-        if (!guildLog) {
-          await interaction.reply({ content: '❌ لا يمكن تنفيذ هذا الإجراء إلا من داخل سيرفر.', ephemeral: true });
-          return;
-        }
-        const logChannel = guildLog.channels.cache.get(logChannelId);
-        if (logChannel) {
-          const embed = new EmbedBuilder()
-            .setTitle('📋 تم تعيين روم اللوق')
-            .setDescription(`قام <@${interaction.user.id}> بتعيين روم اللوق إلى: <#${logChannelId}>\n${oldLog && oldLog !== logChannelId ? `\n(الروم السابق: <#${oldLog}>)` : ''}`)
-            .setColor('#1e3a8a')
-            .setTimestamp();
-          logChannel.send({ embeds: [embed] });
-        }
-      } catch (e) { /* تجاهل الخطأ */ }
-      await interaction.reply({ content: '✅ تم تعيين روم اللوق بنجاح!', ephemeral: true });
-      return;
-    }
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_review_channel') {
-      const reviewChannelId = interaction.fields.getTextInputValue('input_review_channel');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].reviewChannelId = reviewChannelId;
-      saveGuildSettings();
-      // إرسال لوق في روم اللوق إذا كان معينًا
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const guildLog2 = interaction.guild;
-          if (!guildLog2) {
-            await interaction.reply({ content: '❌ لا يمكن تنفيذ هذا الإجراء إلا من داخل سيرفر.', ephemeral: true });
-            return;
-          }
-          const logChannel2 = guildLog2.channels.cache.get(logChannelId);
-          if (logChannel2) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين روم المراجعة')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين روم المراجعة إلى: <#${reviewChannelId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel2.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعيين روم المراجعة بنجاح!', ephemeral: true });
-      return;
-    }
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_approval_role') {
-      const approvalRoleId = interaction.fields.getTextInputValue('input_approval_role');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].approvalRoleId = approvalRoleId;
-      saveGuildSettings();
-      // إرسال لوق في روم اللوق إذا كان معينًا
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const guildLog3 = interaction.guild;
-          if (!guildLog3) {
-            await interaction.reply({ content: '❌ لا يمكن تنفيذ هذا الإجراء إلا من داخل سيرفر.', ephemeral: true });
-            return;
-          }
-          const logChannel3 = guildLog3.channels.cache.get(logChannelId);
-          if (logChannel3) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين رتبة القبول والرفض')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين رتبة القبول والرفض إلى: <@&${approvalRoleId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel3.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعيين رتبة القبول والرفض بنجاح!', ephemeral: true });
-      return;
-    }
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_police_role') {
-      const policeRoleId = interaction.fields.getTextInputValue('input_police_role');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].policeRoleId = policeRoleId;
-      saveGuildSettings();
-      // إرسال لوق في روم اللوق إذا كان معينًا
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين رتبة الشرطة')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين رتبة الشرطة إلى: <@&${policeRoleId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعيين رتبة الشرطة بنجاح!', ephemeral: true });
-      return;
-    }
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_create_room_channel') {
-      const createRoomChannelId = interaction.fields.getTextInputValue('input_create_room_channel');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].createRoomChannelId = createRoomChannelId;
-      saveGuildSettings();
-      // إرسال لوق في روم اللوق إذا كان معينًا
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين روم إنشاء الهوية')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين روم إنشاء الهوية إلى: <#${createRoomChannelId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعيين روم إنشاء الهوية بنجاح!', ephemeral: true });
-      return;
-    }
-    // مودال تعيين روم مباشرة العسكر
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_direct_military_room') {
-      const directRoomId = interaction.fields.getTextInputValue('input_direct_military_room');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].directMilitaryRoomId = directRoomId;
-      saveGuildSettings();
-      
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين روم مباشرة العسكر')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين روم مباشرة العسكر إلى: <#${directRoomId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      
-      await interaction.reply({ content: `✅ تم تعيين روم مباشرة العسكر: <#${directRoomId}> بنجاح!`, ephemeral: true });
-      return;
-    }
-    // مودال تعيين روم قبول الاكواد العسكرية
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_military_code_review_room') {
-      const reviewRoomId = interaction.fields.getTextInputValue('input_military_code_review_room');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].militaryCodeReviewRoomId = reviewRoomId;
-      saveGuildSettings();
-      
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين روم قبول الاكواد العسكرية')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين روم قبول الاكواد العسكرية إلى: <#${reviewRoomId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      
-      await interaction.reply({ content: `✅ تم تعيين روم قبول الاكواد العسكرية: <#${reviewRoomId}> بنجاح!`, ephemeral: true });
-      return;
-    }
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_set_police_admin_role') {
-      const policeAdminRoleId = interaction.fields.getTextInputValue('input_police_admin_role');
-      const guildId = interaction.guildId;
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].policeAdminRoleId = policeAdminRoleId;
-      saveGuildSettings();
-      // إرسال لوق في روم اللوق إذا كان معينًا
-      const logChannelId = guildSettings[guildId].logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const embed = new EmbedBuilder()
-              .setTitle('📋 تم تعيين رتبة مسؤول الشرطة')
-              .setDescription(`قام <@${interaction.user.id}> بتعيين رتبة مسؤول الشرطة إلى: <@&${policeAdminRoleId}>`)
-              .setColor('#1e3a8a')
-              .setTimestamp();
-            logChannel.send({ embeds: [embed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعيين رتبة مسؤول الشرطة بنجاح!', ephemeral: true });
-      return;
-    }
-    
-    // مودال البحث عن الكود العسكري
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_check_military_codes') {
-      const searchTerm = interaction.fields.getTextInputValue('input_search_military_code');
-      const guildId = interaction.guildId;
-      
-      // البحث في الهويات بالاسم الكامل أو الرقم الوطني
-      const foundIdentity = identities.find(id => 
-        id.guildId === guildId && 
-        (id.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-         id.nationalId === searchTerm)
-      );
-      
-      if (!foundIdentity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على هوية بهذا الاسم أو الرقم الوطني.', ephemeral: true });
-        return;
-      }
-      
-      const userId = foundIdentity.userId;
-      
-      // البحث عن طلب معلق
-      const pendingRequest = pendingMilitaryCodeRequests.find(req => 
-        req.userId === userId && req.guildId === guildId
-      );
-      
-      // البحث عن كود مقبول
-      const approvedCode = getMilitaryCode(userId, guildId);
-      
-      // إنشاء الإيمبيد
-      const embed = new EmbedBuilder()
-        .setTitle('🔍 معلومات الكود العسكري')
-        .setDescription(`**الاسم:** ${foundIdentity.fullName}\n**الرقم الوطني:** ${foundIdentity.nationalId}\n**المستخدم:** <@${userId}>`)
-        .setColor('#1e3a8a')
-        .setTimestamp();
-      
-      if (pendingRequest) {
-        // طلب معلق
-        embed.addFields(
-          { name: '📋 حالة الكود العسكري', value: '⏳ **طلب معلق قيد المراجعة**', inline: false },
-          { name: '🔐 الكود المطلوب', value: `\`${pendingRequest.code}\``, inline: true },
-          { name: '📅 تاريخ الطلب', value: `<t:${Math.floor(new Date(pendingRequest.requestedAt).getTime() / 1000)}:F>`, inline: true },
-          { name: '🆔 معرف الطلب', value: `\`${pendingRequest.requestId}\``, inline: true }
-        );
-        
-        // زر حذف الطلب المعلق
-        const deleteButton = new ButtonBuilder()
-          .setCustomId(`delete_pending_military_code_${pendingRequest.requestId}`)
-          .setLabel('🗑️ حذف الطلب المعلق')
-          .setStyle(ButtonStyle.Danger);
-        
-        const row = new ActionRowBuilder().addComponents(deleteButton);
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-        return;
-      } else if (approvedCode) {
-        // كود مقبول
-        embed.addFields(
-          { name: '📋 حالة الكود العسكري', value: '✅ **كود عسكري مقبول**', inline: false },
-          { name: '🔐 الكود العسكري', value: `\`${approvedCode}\``, inline: true }
-        );
-        embed.setColor('#00ff00');
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      } else {
-        // لا يوجد كود
-        embed.addFields(
-          { name: '📋 حالة الكود العسكري', value: '❌ **لا يوجد كود عسكري**', inline: false }
-        );
-        embed.setColor('#ff0000');
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-    }
-
-
-
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_request_military_code') {
-      const code = interaction.fields.getTextInputValue('input_military_code');
-      const guildId = interaction.guildId;
-      const userId = interaction.user.id;
-      
-      // إنشاء طلب كود عسكري جديد
-      const requestId = Date.now().toString() + Math.random().toString().slice(2,8);
-      const request = {
-        requestId,
-        userId,
-        guildId,
-        code,
-        username: interaction.user.username,
-        fullName: identities.find(id => id.userId === userId && id.guildId === guildId)?.fullName || 'غير معروف',
-        requestedAt: new Date().toISOString()
-      };
-      
-      // إضافة الطلب إلى القائمة المعلقة
-      pendingMilitaryCodeRequests.push(request);
-      saveAllData();
-      
-      // إرسال الطلب إلى روم قبول الأكواد العسكرية
-      const reviewRoomId = guildSettings[guildId]?.militaryCodeReviewRoomId;
-      if (reviewRoomId) {
-        try {
-          const reviewChannel = interaction.guild.channels.cache.get(reviewRoomId);
-          if (reviewChannel) {
-            const embed = new EmbedBuilder()
-              .setTitle('🔐 طلب كود عسكري جديد')
-              .setDescription(`**المستخدم:** ${interaction.user} (${request.username})\n**الاسم:** ${request.fullName}\n**الكود المطلوب:** \`${code}\`\n**وقت الطلب:** <t:${Math.floor(Date.now() / 1000)}:F>\n**معرف الطلب:** ${requestId}`)
-              .setColor('#fbbf24')
-              .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-              .setTimestamp();
-            
-            const acceptButton = new ButtonBuilder()
-              .setCustomId(`accept_military_code_${requestId}`)
-              .setLabel('قبول')
-              .setStyle(ButtonStyle.Success);
-            
-            const rejectButton = new ButtonBuilder()
-              .setCustomId(`reject_military_code_${requestId}`)
-              .setLabel('رفض')
-              .setStyle(ButtonStyle.Danger);
-            
-            const row = new ActionRowBuilder().addComponents(acceptButton, rejectButton);
-            await reviewChannel.send({ embeds: [embed], components: [row] });
-          }
-        } catch (e) {
-          console.error('خطأ في إرسال طلب الكود العسكري:', e);
-        }
-      }
-      
-      await interaction.reply({ content: '✅ تم إرسال طلب الكود العسكري بنجاح! سيتم مراجعته من قبل مسؤولي الشرطة.', ephemeral: true });
-      return;
-    }
-
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_add_military_points') {
-      const searchTerm = interaction.fields.getTextInputValue('input_target_user');
-      const pointsToAdd = parseInt(interaction.fields.getTextInputValue('input_points_to_add'));
-      const guildId = interaction.guildId;
-      
-      if (isNaN(pointsToAdd) || pointsToAdd <= 0) {
-        await interaction.reply({ content: '❌ يرجى إدخال عدد صحيح موجب من النقاط.', ephemeral: true });
-        return;
-      }
-      
-      // البحث عن الهوية بالاسم أو الرقم الوطني
-      const foundIdentity = identities.find(id => 
-        id.guildId === guildId && 
-        (id.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-         id.nationalId === searchTerm)
-      );
-      
-      if (!foundIdentity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على شخص بهذا الاسم أو الرقم الوطني.', ephemeral: true });
-        return;
-      }
-      
-      const userId = foundIdentity.userId;
-      const currentPoints = getMilitaryPoints(userId, guildId);
-      const newTotalPoints = currentPoints + pointsToAdd;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const militaryCode = getMilitaryCode(userId, guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('📋 تأكيد إضافة النقاط العسكرية')
-          .setDescription('**مراجعة المعلومات قبل الإضافة:**')
-          .setColor('#fbbf24')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${foundIdentity.fullName}\n**الرقم الوطني:** ${foundIdentity.nationalId}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '🎖️ **المعلومات العسكرية**', value: `**الكود العسكري:** ${militaryCode ? `\`${militaryCode}\`` : 'غير محدد'}`, inline: false },
-            { name: '⭐ **النقاط**', value: `**النقاط الحالية:** \`${currentPoints} نقطة\`\n**النقاط المراد إضافتها:** \`+${pointsToAdd} نقطة\`\n**النقاط الإجمالية بعد الإضافة:** \`${newTotalPoints} نقطة\``, inline: false }
-          )
-          .setFooter({ text: 'اضغط زر التأكيد لإضافة النقاط رسمياً' })
-          .setTimestamp();
-        
-        const confirmButton = new ButtonBuilder()
-          .setCustomId(`confirm_add_points_${userId}_${pointsToAdd}`)
-          .setLabel('✅ تأكيد الإضافة')
-          .setStyle(ButtonStyle.Success);
-        
-        const cancelButton = new ButtonBuilder()
-          .setCustomId('cancel_add_points')
-          .setLabel('❌ إلغاء')
-          .setStyle(ButtonStyle.Danger);
-        
-        const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton);
-        
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
-
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_remove_military_points') {
-      const searchTerm = interaction.fields.getTextInputValue('input_target_user_remove');
-      const pointsToRemove = parseInt(interaction.fields.getTextInputValue('input_points_to_remove'));
-      const guildId = interaction.guildId;
-      
-      if (isNaN(pointsToRemove) || pointsToRemove <= 0) {
-        await interaction.reply({ content: '❌ يرجى إدخال عدد صحيح موجب من النقاط.', ephemeral: true });
-        return;
-      }
-      
-      // البحث عن الهوية بالاسم أو الرقم الوطني
-      const foundIdentity = identities.find(id => 
-        id.guildId === guildId && 
-        (id.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-         id.nationalId === searchTerm)
-      );
-      
-      if (!foundIdentity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على شخص بهذا الاسم أو الرقم الوطني.', ephemeral: true });
-        return;
-      }
-      
-      const userId = foundIdentity.userId;
-      const currentPoints = getMilitaryPoints(userId, guildId);
-      
-      if (currentPoints < pointsToRemove) {
-        await interaction.reply({ content: '❌ النقاط الحالية أقل من النقاط المراد خصمها.', ephemeral: true });
-        return;
-      }
-      
-      const newTotalPoints = currentPoints - pointsToRemove;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const militaryCode = getMilitaryCode(userId, guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('📋 تأكيد خصم النقاط العسكرية')
-          .setDescription('**مراجعة المعلومات قبل الخصم:**')
-          .setColor('#ff6b35')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${foundIdentity.fullName}\n**الرقم الوطني:** ${foundIdentity.nationalId}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '🎖️ **المعلومات العسكرية**', value: `**الكود العسكري:** ${militaryCode ? `\`${militaryCode}\`` : 'غير محدد'}`, inline: false },
-            { name: '⭐ **النقاط**', value: `**النقاط الحالية:** \`${currentPoints} نقطة\`\n**النقاط المراد خصمها:** \`-${pointsToRemove} نقطة\`\n**النقاط المتبقية بعد الخصم:** \`${newTotalPoints} نقطة\``, inline: false }
-          )
-          .setFooter({ text: 'اضغط زر التأكيد لخصم النقاط رسمياً' })
-          .setTimestamp();
-        
-        const confirmButton = new ButtonBuilder()
-          .setCustomId(`confirm_remove_points_${userId}_${pointsToRemove}`)
-          .setLabel('✅ تأكيد الخصم')
-          .setStyle(ButtonStyle.Success);
-        
-        const cancelButton = new ButtonBuilder()
-          .setCustomId('cancel_remove_points')
-          .setLabel('❌ إلغاء')
-          .setStyle(ButtonStyle.Danger);
-        
-        const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton);
-        
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
-    // معالجة قائمة إدارة النظام
-    if (interaction.isStringSelectMenu() && interaction.customId === 'admin_settings_menu') {
-      const selected = interaction.values[0];
-      
-      if (selected === 'reset') {
-        // إعادة تعيين القائمة
-        const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-        const embed = new EmbedBuilder()
-          .setTitle('إدارة الهوية')
-          .setDescription('يمكنك من هنا إدارة إعدادات الهوية. اختر من القائمة أدناه الإجراء المطلوب.')
-          .setImage(customImage)
-          .setColor('#00ff00');
-        const menuOptions = [
-          { label: 'تعيين روم اللوق', value: 'set_log_channel' },
-          { label: 'تعيين روم المراجعة', value: 'set_review_channel' },
-          { label: 'تعيين رتبة القبول والرفض', value: 'set_approval_role' },
-          { label: 'تعيين الرتبة العسكرية/الشرطية', value: 'set_police_role' },
-          { label: 'إضافة رتبة مسؤول الشرطة', value: 'set_police_admin_role' },
-          { label: 'تعيين روم إنشاء الهوية', value: 'set_create_room_channel' },
-          { label: 'تعيين روم مباشرة العسكر', value: 'set_direct_military_room' },
-          { label: 'تعيين روم قبول الاكواد العسكرية', value: 'set_military_code_review_room' },
-          { label: 'أكواد العساكر قيد المراجعة', value: 'check_military_codes' },
-          { label: 'تعديل | حذف الهوية', value: 'edit_delete_identity' }
-        ];
-        const selectMenu = new StringSelectMenuBuilder()
-          .setCustomId('admin_settings_menu')
-          .setPlaceholder('اختر إجراء...')
-          .addOptions(addResetOption(menuOptions));
-        const row = new ActionRowBuilder().addComponents(selectMenu);
-        await interaction.reply({ embeds: [embed], components: [row], flags: [4096] });
-        return;
-      }
-      
-      // معالجة الخيارات الأخرى
-      if (selected === 'set_log_channel') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_log_channel')
-          .setTitle('تعيين روم اللوق');
-        const input = new TextInputBuilder()
-          .setCustomId('input_log_channel')
-          .setLabel('أدخل آيدي روم اللوق')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_review_channel') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_review_channel')
-          .setTitle('تعيين روم المراجعة');
-        const input = new TextInputBuilder()
-          .setCustomId('input_review_channel')
-          .setLabel('أدخل آيدي روم المراجعة')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_approval_role') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_approval_role')
-          .setTitle('تعيين رتبة القبول والرفض');
-        const input = new TextInputBuilder()
-          .setCustomId('input_approval_role')
-          .setLabel('أدخل آيدي رتبة القبول والرفض')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_police_role') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_police_role')
-          .setTitle('تعيين رتبة الشرطة');
-        const input = new TextInputBuilder()
-          .setCustomId('input_police_role')
-          .setLabel('أدخل آيدي رتبة الشرطة')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_police_admin_role') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_police_admin_role')
-          .setTitle('تعيين رتبة مسؤول الشرطة');
-        const input = new TextInputBuilder()
-          .setCustomId('input_police_admin_role')
-          .setLabel('أدخل آيدي رتبة مسؤول الشرطة')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_create_room_channel') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_create_room_channel')
-          .setTitle('تعيين روم إنشاء الهوية');
-        const input = new TextInputBuilder()
-          .setCustomId('input_create_room_channel')
-          .setLabel('أدخل آيدي روم إنشاء الهوية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_direct_military_room') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_direct_military_room')
-          .setTitle('تعيين روم مباشرة العسكر');
-        const input = new TextInputBuilder()
-          .setCustomId('input_direct_military_room')
-          .setLabel('أدخل آيدي روم مباشرة العسكر')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'set_military_code_review_room') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_set_military_code_review_room')
-          .setTitle('تعيين روم قبول الاكواد العسكرية');
-        const input = new TextInputBuilder()
-          .setCustomId('input_military_code_review_room')
-          .setLabel('أدخل آيدي روم قبول الاكواد العسكرية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('مثال: 123456789012345678')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'check_military_codes') {
-        const guildId = interaction.guildId;
-        const pendingCodes = pendingMilitaryCodeRequests.filter(req => req.guildId === guildId);
-        
-        if (pendingCodes.length === 0) {
-          await interaction.reply({ content: '❌ لا توجد أكواد عسكرية قيد المراجعة.', flags: [4096] });
-          return;
-        }
-        
-        const embed = new EmbedBuilder()
-          .setTitle('📋 الأكواد العسكرية قيد المراجعة')
-          .setDescription(`**عدد الأكواد المعلقة:** ${pendingCodes.length}`)
-          .setColor('#fbbf24')
-          .setTimestamp();
-        
-        pendingCodes.forEach((code, index) => {
-          const identity = identities.find(id => id.userId === code.userId && id.guildId === guildId);
-          embed.addFields({
-            name: `🔐 الكود رقم ${index + 1}`,
-            value: `**المستخدم:** <@${code.userId}>\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الكود المطلوب:** \`${code.code}\`\n**تاريخ الطلب:** <t:${Math.floor(new Date(code.requestedAt).getTime() / 1000)}:F>\n**معرف الطلب:** \`${code.requestId}\``,
-            inline: false
-          });
-        });
-        
-        await interaction.reply({ embeds: [embed], flags: [4096] });
-        return;
-      }
-      
-      if (selected === 'edit_delete_identity') {
-        const guildIdentities = identities.filter(i => i.guildId === interaction.guildId);
-        
-        if (guildIdentities.length === 0) {
-          await interaction.reply({ content: '❌ لا توجد هويات في هذا السيرفر.', flags: [4096] });
-          return;
-        }
-        
-        const embed = new EmbedBuilder()
-          .setTitle('إدارة الهويات')
-          .setDescription('اختر هوية من القائمة أدناه لعرضها أو تعديلها أو حذفها.')
-          .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
-          .setColor('#00ff00');
-        
-        const pageSize = 22;
-        const pageIdentities = guildIdentities.slice(0, pageSize);
-        const options = pageIdentities.map(i => ({ label: i.fullName, value: `identity_${i.userId}` }));
-        
-        if (guildIdentities.length > pageSize) {
-          options.push({ label: 'رؤية المزيد', value: 'see_more_identities' });
-        }
-        
-        const menu = new StringSelectMenuBuilder()
-          .setCustomId('identity_select_menu_page_1')
-          .setPlaceholder('اختر هوية...')
-          .addOptions(options);
-        
-        const row = new ActionRowBuilder().addComponents(menu);
-        await interaction.reply({ embeds: [embed], components: [row], flags: [4096] });
-        return;
-      }
-    }
-    
-    // منطق إعادة تعيين الإعدادات
-    if (
-      interaction.isStringSelectMenu() &&
-      interaction.customId === 'identity_select_menu_page_1' &&
-      (interaction.values[0] === 'reset' || interaction.values[0] === 'reset_identities')
-    ) {
-      // إعادة إرسال نفس الإيمبيد بدون أي تغيير في البيانات
-      const embed = new EmbedBuilder()
-        .setTitle('إدارة الهويات')
-        .setDescription('اختر هوية من القائمة أدناه لعرضها أو تعديلها أو حذفها.')
-        .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
-        .setColor('#00ff00');
-      // إعادة بناء القائمة المنسدلة بنفس الأسماء (أول 22 هوية)
-      const guildIdentities = identities.filter(i => i.guildId === interaction.guildId);
-      const page = 1;
-      const pageSize = 22;
-      const totalPages = Math.ceil(guildIdentities.length / pageSize) || 1;
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageIdentities = guildIdentities.slice(start, end);
-      const options = pageIdentities.map(i => ({ label: i.fullName, value: `identity_${i.userId}` }));
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: 'see_more_identities' });
-      }
-      options.push({ label: 'إعادة تعيين', value: 'reset_identities', description: 'إعادة تعيين القائمة' });
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('identity_select_menu_page_1')
-        .setPlaceholder('اختر هوية...')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-    // عند اختيار 'تعديل | حذف الهوية' من القائمة المنسدلة
-    if (interaction.isStringSelectMenu() && interaction.customId === 'identity_select_menu_page_1' && interaction.values[0].startsWith('identity_')) {
-      const userId = interaction.values[0].replace('identity_', '');
-      const identity = identities.find(i => i.userId === userId);
-
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-
-      const embed = new EmbedBuilder()
-        .setTitle('تفاصيل الهوية')
-        .setDescription(`**المستخدم:** <@${identity.userId}>\n**الاسم الكامل:** ${identity.fullName}\n**الجنس:** ${identity.gender === 'male' ? 'ذكر' : 'أنثى'}\n**المدينة:** ${identity.city}\n**تاريخ الميلاد:** ${identity.day} / ${identity.month} / ${identity.year}\n**رقم الهوية:** ${identity.nationalId}\n**تاريخ القبول:** ${identity.approvedAt}\n**تم القبول من قبل:** <@${identity.approvedBy}>`)
-        .setThumbnail(await client.users.fetch(identity.userId).then(u => u.displayAvatarURL({ dynamic: true })))
-        .setColor('#00ff00')
-        .setTimestamp();
-
-      const row = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId(`edit_identity_${identity.userId}`)
-            .setLabel('تعديل الهوية')
-            .setStyle(ButtonStyle.Primary),
-          new ButtonBuilder()
-            .setCustomId(`delete_identity_${identity.userId}`)
-            .setLabel('حذف الهوية')
-            .setStyle(ButtonStyle.Danger),
-          new ButtonBuilder()
-            .setCustomId('back_to_admin_menu')
-            .setLabel('رجوع إلى القائمة')
-            .setStyle(ButtonStyle.Secondary)
-        );
-
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-    // عند الضغط على زر 'رجوع إلى القائمة' في تفاصيل الهوية
-    if (interaction.isButton() && interaction.customId.startsWith('back_to_admin_menu')) {
-      const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-      const embed = new EmbedBuilder()
-        .setTitle('بطاقة الهوية')
-        .setDescription('يمكنك من هنا إدارة إعدادات الهويات. اختر من القائمة أدناه الإجراء المطلوب.')
-        .setImage(customImage)
-        .setColor('#00ff00');
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('admin_settings_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions([
-          { label: 'تعيين روم اللوق', value: 'set_log_channel' },
-          { label: 'تعيين روم المراجعة', value: 'set_review_channel' },
-          { label: 'تعيين رتبة القبول والرفض', value: 'set_approval_role' },
-          { label: 'تعيين الرتبة العسكرية/الشرطية', value: 'set_police_role' },
-          { label: 'إضافة رتبة مسؤول الشرطة', value: 'set_police_admin_role' },
-          { label: 'تعيين روم إنشاء الهوية', value: 'set_create_room_channel' },
-          { label: 'تعديل | حذف الهوية', value: 'edit_delete_identity' },
-          { label: 'إعادة تعيين', value: 'reset', description: 'إعادة تعيين جميع الإعدادات' }
-        ]);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-    // عند الضغط على زر 'تعديل الهوية' في تفاصيل الهوية
-    if (interaction.isButton() && interaction.customId.startsWith('edit_identity_')) {
-      try {
-        const userId = interaction.customId.replace('edit_identity_', '');
-        const identity = identities.find(i => i.userId === userId);
-        if (!identity) {
-          await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-          return;
-        }
-        // فتح مودال التعديل مباشرة مع الحقول المطلوبة (بدون المدينة)
-        const modal = new ModalBuilder()
-          .setCustomId(`edit_identity_modal_${identity.userId}`)
-          .setTitle('تعديل معلومات الهوية');
-        const nameInput = new TextInputBuilder()
-          .setCustomId('edit_full_name')
-          .setLabel('الاسم الكامل')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setValue(identity.fullName);
-        const genderInput = new TextInputBuilder()
-          .setCustomId('edit_gender')
-          .setLabel('الجنس (ذكر أو أنثى)')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setValue(identity.gender === 'male' ? 'ذكر' : 'أنثى');
-        const birthInput = new TextInputBuilder()
-          .setCustomId('edit_birth')
-          .setLabel('تاريخ الميلاد (يوم/شهر/سنة)')
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setValue(`${identity.day}/${identity.month}/${identity.year}`);
-        const row1 = new ActionRowBuilder().addComponents(nameInput);
-        const row2 = new ActionRowBuilder().addComponents(genderInput);
-        const row3 = new ActionRowBuilder().addComponents(birthInput);
-        modal.addComponents(row1, row2, row3);
-        await interaction.showModal(modal);
-        return;
-  } catch (error) {
-        console.error('❌ خطأ في تفاعل زر تعديل الهوية:', error);
-    if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: '❌ حدث خطأ أثناء معالجة الطلب: ' + error.message, ephemeral: true });
-    } else {
-          await interaction.reply({ content: '❌ حدث خطأ أثناء معالجة الطلب: ' + error.message, ephemeral: true });
-        }
-        return;
-      }
-    }
-
-    // عند استقبال مودال التعديل، أرسل إيمبيد فيه معلومات الهوية بعد التعديل مع زرين: تأكيد التعديل وإلغاء التعديل
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('edit_identity_modal_')) {
-      const userId = interaction.customId.replace('edit_identity_modal_', '');
-      const fullName = interaction.fields.getTextInputValue('edit_full_name');
-      const genderText = interaction.fields.getTextInputValue('edit_gender');
-      const birth = interaction.fields.getTextInputValue('edit_birth');
-      // معالجة تاريخ الميلاد
-      let day = '', month = '', year = '';
-      const birthParts = birth.split('/');
-      if (birthParts.length === 3) {
-        day = birthParts[0].trim();
-        month = birthParts[1].trim();
-        year = birthParts[2].trim();
-      }
-      const gender = (genderText === 'ذكر' || genderText === 'male') ? 'male' : 'female';
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      // بناء إيمبيد المعاينة
-      const user = await client.users.fetch(identity.userId).catch(() => null);
-      const avatar = user ? user.displayAvatarURL({ dynamic: true }) : null;
-      const embed = new EmbedBuilder()
-        .setTitle('تأكيد تعديل الهوية')
-        .setDescription(`**المستخدم:** <@${identity.userId}>\n**الاسم الكامل:** ${fullName}\n**الجنس:** ${gender === 'male' ? 'ذكر' : 'أنثى'}\n**المدينة:** ${identity.city}\n**تاريخ الميلاد:** ${day} / ${month} / ${year}\n**رقم الهوية:** ${identity.nationalId}`)
-        .setColor('#00ff00')
-        .setTimestamp();
-      if (avatar) embed.setThumbnail(avatar);
-      const row = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId(`confirm_edit_identity_final_${identity.userId}`)
-            .setLabel('تأكيد التعديل')
-            .setStyle(ButtonStyle.Success),
-          new ButtonBuilder()
-            .setCustomId(`cancel_edit_identity_final_${identity.userId}`)
-            .setLabel('إلغاء التعديل')
-            .setStyle(ButtonStyle.Secondary)
-        );
-      // حفظ البيانات المؤقتة في userSteps
-      userSteps[interaction.user.id] = {
-        editPreview: { userId, fullName, gender, day, month, year }
-      };
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-    // عند الضغط على زر 'تأكيد التعديل' بعد المعاينة
-    if (interaction.isButton() && interaction.customId.startsWith('confirm_edit_identity_final_')) {
-      const userId = interaction.customId.replace('confirm_edit_identity_final_', '');
-      const preview = userSteps[interaction.user.id]?.editPreview;
-      if (!preview || preview.userId !== userId) {
-        await interaction.reply({ content: '❌ لا توجد بيانات تعديل محفوظة.', ephemeral: true });
-        return;
-      }
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      // حفظ التعديلات
-      identity.fullName = preview.fullName;
-      identity.gender = preview.gender;
-      identity.day = preview.day;
-      identity.month = preview.month;
-      identity.year = preview.year;
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('✏️ تم تعديل هوية')
-              .setDescription(`**تم تعديل هوية المستخدم:** <@${identity.userId}>\n**تم التعديل من قبل:** <@${interaction.user.id}>\n**الاسم الكامل:** ${identity.fullName}\n**الجنس:** ${identity.gender === 'male' ? 'ذكر' : 'أنثى'}\n**المدينة:** ${identity.city}\n**تاريخ الميلاد:** ${identity.day} / ${identity.month} / ${identity.year}`)
-              .setColor('#fbbf24')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      delete userSteps[interaction.user.id];
-      await interaction.reply({ content: '✅ تم حفظ التعديلات بنجاح!', ephemeral: true });
-      return;
-    }
-
-    // عند الضغط على زر 'حذف الهوية' في تفاصيل الهوية
-    if (interaction.isButton() && interaction.customId.startsWith('delete_identity_')) {
-      try {
-        const userId = interaction.customId.replace('delete_identity_', '');
-        const identity = identities.find(i => i.userId === userId);
-        if (!identity) {
-          await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-          return;
-        }
-        const user = await client.users.fetch(identity.userId).catch(() => null);
-        const avatar = user ? user.displayAvatarURL({ dynamic: true }) : null;
-        // مودال سبب الحذف
-        const modal = new ModalBuilder()
-          .setCustomId(`delete_identity_modal_${userId}`)
-          .setTitle('سبب حذف الهوية');
-        const reasonInput = new TextInputBuilder()
-          .setCustomId('delete_reason')
-          .setLabel('سبب الحذف')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('اكتب سبب حذف الهوية هنا...')
-          .setRequired(true);
-        const modalRow = new ActionRowBuilder().addComponents(reasonInput);
-        modal.addComponents(modalRow);
-        await interaction.showModal(modal);
-        return;
-      } catch (error) {
-        console.error('❌ خطأ في تفاعل زر حذف الهوية:', error);
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: '❌ حدث خطأ أثناء معالجة الطلب: ' + error.message, ephemeral: true });
-        } else {
-          await interaction.reply({ content: '❌ حدث خطأ أثناء معالجة الطلب: ' + error.message, ephemeral: true });
-        }
-        return;
-      }
-    }
-
-    // عند تأكيد الحذف (مودال)
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('delete_identity_modal_')) {
-      const userId = interaction.customId.replace('delete_identity_modal_', '');
-      const reason = interaction.fields.getTextInputValue('delete_reason');
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      identities = identities.filter(i => i.userId !== userId);
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('🗑️ تم حذف هوية')
-              .setDescription(`**تم حذف هوية المستخدم:** <@${identity.userId}>
-**الاسم:** ${identity.fullName}
-**تم الحذف من قبل:** <@${interaction.user.id}>
-**السبب:** ${reason}`)
-              .setColor('#ff0000')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم حذف الهوية بنجاح!', ephemeral: true });
-      return;
-    }
-
-    // عند حفظ التعديل (مودال تعديل الهوية)
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('edit_identity_modal_')) {
-      const userId = interaction.customId.replace('edit_identity_modal_', '');
-      const fullName = interaction.fields.getTextInputValue(`edit_full_name_${userId}`);
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      const oldName = identity.fullName;
-      identity.fullName = fullName;
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('✏️ تم تعديل هوية')
-              .setDescription(`**تم تعديل هوية المستخدم:** <@${identity.userId}>
-**الاسم السابق:** ${oldName}
-**الاسم الجديد:** ${identity.fullName}
-**تم التعديل من قبل:** <@${interaction.user.id}>`)
-              .setColor('#fbbf24')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعديل الهوية بنجاح!', ephemeral: true });
-      return;
-    }
-
-    // معالجة أمر /هويتي
-    if (interaction.isChatInputCommand() && interaction.commandName === 'هويتي') {
-      // تحقق من صلاحية الأدمن
-      if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-        await interaction.reply({ content: '❌ هذا الأمر مخصص فقط للأدمن.', ephemeral: true });
-        return;
-      }
-      // نفس إيمبيد /بطاقة
-      const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-      const embed = new EmbedBuilder()
-        .setTitle('هويتك')
-        .setDescription('يمكنك من هنا عرض بطاقتك أو مخالفاتك.')
-        .setImage(customImage)
-        .setColor('#00ff00');
-      // قائمة منسدلة
-      const menuOptions = [
-        { label: 'بطاقتي', value: 'my_card' },
-        { label: 'مخالفاتي', value: 'my_violations' }
-      ];
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('my_identity_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions(addResetOption(menuOptions));
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
-      return;
-    }
-
-    // عند اختيار 'بطاقتي' من قائمة /هويتي
-    if (interaction.isStringSelectMenu() && interaction.customId === 'my_identity_menu' && interaction.values[0] === 'my_card') {
-      const identity = identities.find(i => i.userId === interaction.user.id && i.guildId === interaction.guildId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لا تملك هوية بعد. يمكنك إنشاء هوية من خلال أمر /بطاقة.', ephemeral: true });
-        return;
-      }
-      // توليد صورة البطاقة (canvas)
-      try {
-        const cardWidth = 600;
-        const cardHeight = 400;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, 0, cardWidth, 60);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, cardHeight - 50, cardWidth, 50);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('بطاقة الهوية الرسمية', cardWidth / 2, 35);
-        const user = await client.users.fetch(identity.userId).catch(() => null);
-        const avatarURL = user ? user.displayAvatarURL({ extension: 'png', size: 256 }) : null;
-        if (avatarURL) {
-          const avatar = await loadImage(avatarURL);
-          const avatarSize = 120;
-          const avatarX = 50;
-          const avatarY = 80;
-          ctx.fillStyle = '#e5e7eb';
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2 + 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2, true);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-        ctx.fillStyle = '#1f2937';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
-        const labels = [
-          { text: 'الاسم الكامل', y: 100 },
-          { text: 'المدينة', y: 140 },
-          { text: 'تاريخ الميلاد', y: 180 },
-          { text: 'الجنسية', y: 220 },
-          { text: 'رقم الهوية', y: 260 }
-        ];
-        labels.forEach(label => {
-          ctx.fillText(label.text, 280, label.y);
-        });
-        ctx.textAlign = 'left';
-        ctx.font = '16px Arial';
-        ctx.fillText(identity.fullName, 300, 100);
-        ctx.fillText(identity.city, 300, 140);
-        const monthNames = {
-          '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل', '5': 'مايو', '6': 'يونيو',
-          '7': 'يوليو', '8': 'أغسطس', '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
-        };
-        const birthTextAr = `${identity.day} / ${monthNames[identity.month] || identity.month} / ${identity.year}`;
-        ctx.fillText(birthTextAr, 300, 180);
-        const genderText = identity.gender === 'male' ? 'ذكر' : 'أنثى';
-        ctx.fillText(genderText, 300, 220);
-        ctx.fillText(identity.nationalId, 300, 260);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'right';
-        ctx.fillText('تاريخ الإصدار :', cardWidth - 20, cardHeight - 20);
-        ctx.textAlign = 'left';
-        ctx.fillText(birthTextAr, 20, cardHeight - 20);
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('MDT', 50, cardHeight - 75);
-        const buffer = canvas.toBuffer('image/png');
-        const embed = new EmbedBuilder()
-          .setTitle('بطاقتك الشخصية')
-          .setDescription(`**الاسم:** ${identity.fullName}\n**المدينة:** ${identity.city}\n**تاريخ الميلاد:** ${birthTextAr}\n**الجنس:** ${genderText}\n**رقم الهوية:** ${identity.nationalId}`)
-          .setColor('#00ff00')
-          .setImage('attachment://id_card.png');
-        await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'id_card.png' }], ephemeral: true });
-      } catch (err) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد البطاقة.', ephemeral: true });
-      }
-      return;
-    }
-
-    // عند اختيار 'مخالفاتي' من قائمة /هويتي
-    if (interaction.isStringSelectMenu() && interaction.customId === 'my_identity_menu' && interaction.values[0] === 'my_violations') {
-      const identity = identities.find(i => i.userId === interaction.user.id && i.guildId === interaction.guildId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لا تملك هوية بعد. يمكنك إنشاء هوية من خلال أمر /بطاقة.', ephemeral: true });
-        return;
-      }
-      // استخدم المخالفات الحقيقية
-      const violations = identity.violations || [];
-      // صفحة 1
-      const page = 1;
-      const perPage = 3;
-      const totalPages = Math.ceil(violations.length / perPage);
-      const pageViolations = violations.slice((page-1)*perPage, page*perPage);
-      try {
-        const cardWidth = 600;
-        const cardHeight = 400;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, 0, cardWidth, 60);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('المخالفات', cardWidth / 2, 35);
-        const user = await client.users.fetch(identity.userId).catch(() => null);
-        const avatarURL = user ? user.displayAvatarURL({ extension: 'png', size: 256 }) : null;
-        if (avatarURL) {
-          const avatar = await loadImage(avatarURL);
-          const avatarSize = 100;
-          const avatarX = 30;
-          const avatarY = 80;
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-        ctx.fillStyle = '#222';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(identity.fullName, 150, 120);
-        // إذا لا يوجد مخالفات
-        if (violations.length === 0) {
-          ctx.font = 'bold 32px Arial';
-          ctx.fillStyle = '#ff0000';
-          ctx.textAlign = 'center';
-          ctx.fillText('لايوجد مخالفات', cardWidth/2, cardHeight/2);
-          ctx.fillStyle = '#fbbf24';
-          ctx.beginPath();
-          ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('MDT', 50, cardHeight - 75);
-          const buffer = canvas.toBuffer('image/png');
-          const embed = new EmbedBuilder()
-            .setTitle('مخالفاتك')
-            .setDescription(`**الاسم:** ${identity.fullName}\n**عدد المخالفات:** 0`)
-            .setColor('#ff0000')
-            .setImage('attachment://violations_card.png');
-          await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], ephemeral: true });
-          return;
-        }
-        // رسم مربعات المخالفات (حتى 3)
-        for (let i = 0; i < pageViolations.length; i++) {
-          const v = pageViolations[i];
-          const y = 160 + i*90;
-          // إذا كان المربع الثالث (i === 2) اجعله أصغر أكثر
-          const boxHeight = (i === 2) ? 45 : 80;
-          // لون خلفية المربع حسب حالة المخالفة
-          const boxBg = v.status === 'مسددة' ? '#d1fae5' : '#fee2e2';
-          ctx.fillStyle = boxBg;
-          ctx.strokeStyle = '#1e3a8a';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.roundRect(150, y, 400, boxHeight, 15);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 18px Arial';
-          ctx.fillText(v.name, 170, y+25);
-          ctx.font = '16px Arial';
-          ctx.fillStyle = v.status === 'مسددة' ? '#00ff00' : '#ff0000';
-          ctx.fillText(v.status, 170, y+boxHeight-10);
-          // وصف المخالفة
-          ctx.font = '14px Arial';
-          ctx.fillStyle = '#222';
-          ctx.fillText(v.desc || '', 350, y+25);
-        }
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('MDT', 50, cardHeight - 75);
-        const buffer = canvas.toBuffer('image/png');
-        const customImage = guildSettings[interaction.guildId]?.customEmbedImage;
-        const embed = new EmbedBuilder()
-          .setTitle('مخالفاتك')
-          .setDescription(`**الاسم:** ${identity.fullName}\n**عدد المخالفات:** ${violations.length}\n\n${pageViolations.map(v => `- ${v.name}: ${v.status}`).join('\n')}`)
-          .setColor('#ff0000')
-          .setImage('attachment://violations_card.png');
-        if (customImage) embed.setThumbnail(customImage);
-        // زر رؤية المزيد إذا كان هناك صفحات أخرى
-        let components = [];
-        if (totalPages > 1) {
-          const moreRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId('my_violations_next_page')
-              .setLabel('رؤية المزيد')
-              .setStyle(ButtonStyle.Primary)
-          );
-          components = [moreRow];
-        }
-        await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], components, ephemeral: true });
-      } catch (err) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة المخالفات.', ephemeral: true });
-      }
-      return;
-    }
-    // عند الضغط على زر 'رؤية المزيد' في مخالفاتي
-    if (interaction.isButton() && interaction.customId.startsWith('my_violations_next_page')) {
-      const identity = identities.find(i => i.userId === interaction.user.id && i.guildId === interaction.guildId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لا تملك هوية بعد. يمكنك إنشاء هوية من خلال أمر /بطاقة.', ephemeral: true });
-        return;
-      }
-      // استخراج رقم الصفحة من customId (يدعم صفحات مستقبلية)
-      let page = 2;
-      const match = interaction.customId.match(/^my_violations_next_page_(\d+)$/);
-      if (match) page = parseInt(match[1]);
-      const violations = identity.violations || [];
-      const perPage = 3;
-      const totalPages = Math.ceil(violations.length / perPage);
-      const pageViolations = violations.slice((page-1)*perPage, page*perPage);
-      try {
-        const cardWidth = 600;
-        const cardHeight = 400;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, 0, cardWidth, 60);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('المخالفات', cardWidth / 2, 35);
-        const user = await client.users.fetch(identity.userId).catch(() => null);
-        const avatarURL = user ? user.displayAvatarURL({ extension: 'png', size: 256 }) : null;
-        if (avatarURL) {
-          const avatar = await loadImage(avatarURL);
-          const avatarSize = 100;
-          const avatarX = 30;
-          const avatarY = 80;
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-        ctx.fillStyle = '#222';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(identity.fullName, 150, 120);
-        // إذا لا يوجد مخالفات في هذه الصفحة
-        if (pageViolations.length === 0) {
-          ctx.font = 'bold 32px Arial';
-          ctx.fillStyle = '#ff0000';
-          ctx.textAlign = 'center';
-          ctx.fillText('لايوجد مخالفات في هذه الصفحة', cardWidth/2, cardHeight/2);
-          ctx.fillStyle = '#fbbf24';
-          ctx.beginPath();
-          ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('MDT', 50, cardHeight - 75);
-          const buffer = canvas.toBuffer('image/png');
-          const embed = new EmbedBuilder()
-            .setTitle(`مخالفاتك (صفحة ${page})`)
-            .setDescription(`**الاسم:** ${identity.fullName}\n**عدد المخالفات:** ${violations.length}`)
-            .setColor('#ff0000')
-            .setImage('attachment://violations_card.png');
-          await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], ephemeral: true });
-          return;
-        }
-        // رسم مربعات المخالفات (حتى 3)
-        for (let i = 0; i < pageViolations.length; i++) {
-          const v = pageViolations[i];
-          const y = 160 + i*90;
-          const boxHeight = (i === 2) ? 45 : 80;
-          const boxBg = v.status === 'مسددة' ? '#d1fae5' : '#fee2e2';
-          ctx.fillStyle = boxBg;
-          ctx.strokeStyle = '#1e3a8a';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.roundRect(150, y, 400, boxHeight, 15);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 18px Arial';
-          ctx.fillText(v.name, 170, y+25);
-          ctx.font = '16px Arial';
-          ctx.fillStyle = v.status === 'مسددة' ? '#00ff00' : '#ff0000';
-          ctx.fillText(v.status, 170, y+boxHeight-10);
-        }
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('MDT', 50, cardHeight - 75);
-        const buffer = canvas.toBuffer('image/png');
-        const customImage = guildSettings[interaction.guildId]?.customEmbedImage;
-        const embed = new EmbedBuilder()
-          .setTitle(`مخالفاتك (صفحة ${page})`)
-          .setDescription(`**الاسم:** ${identity.fullName}\n**عدد المخالفات:** ${violations.length}\n\n${pageViolations.map(v => `- ${v.name}: ${v.status}`).join('\n')}`)
-          .setColor('#ff0000')
-          .setImage('attachment://violations_card.png');
-        if (customImage) embed.setThumbnail(customImage);
-        // زر رؤية المزيد إذا كان هناك صفحات أخرى
-        let components = [];
-        if (page < totalPages) {
-          const moreRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId(`my_violations_next_page_${page+1}`)
-              .setLabel('رؤية المزيد')
-              .setStyle(ButtonStyle.Primary)
-          );
-          components = [moreRow];
-        }
-        await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], components, ephemeral: true });
-      } catch (err) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة المخالفات.', ephemeral: true });
-      }
-      return;
-    }
-    // عند حفظ التعديل (مودال تعديل الهوية)
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('edit_identity_modal_')) {
-      const userId = interaction.customId.replace('edit_identity_modal_', '');
-      const fullName = interaction.fields.getTextInputValue(`edit_full_name_${userId}`);
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      const oldName = identity.fullName;
-      identity.fullName = fullName;
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('✏️ تم تعديل هوية')
-              .setDescription(`**تم تعديل هوية المستخدم:** <@${identity.userId}>
-**الاسم السابق:** ${oldName}
-**الاسم الجديد:** ${identity.fullName}
-**تم التعديل من قبل:** <@${interaction.user.id}>`)
-              .setColor('#fbbf24')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعديل الهوية بنجاح!', ephemeral: true });
-      return;
-    }
-    // معالجة إعادة تعيين من قائمة /هويتي فقط
-    if (interaction.isStringSelectMenu() && interaction.customId === 'my_identity_menu' && interaction.values[0] === 'reset') {
-      const embed = new EmbedBuilder()
-        .setTitle('هويتك')
-        .setDescription('يمكنك من هنا عرض بطاقتك أو مخالفاتك.')
-        .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
-        .setColor('#00ff00');
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('my_identity_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions([
-          { label: 'بطاقتي', value: 'my_card' },
-          { label: 'مخالفاتي', value: 'my_violations' },
-          { label: 'إعادة تعيين', value: 'reset', description: 'تحديث الصفحة' }
-        ]);
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.update({ embeds: [embed], components: [row] });
-      return;
-    }
-    // منطق إعادة تعيين الإعدادات الإدارية فقط
-    if (interaction.isStringSelectMenu() && (interaction.customId === 'admin_settings_menu' || interaction.customId === 'identity_select_menu_page_1') && (interaction.values[0] === 'reset' || interaction.values[0] === 'reset_identities')) {
-      // إعادة إرسال نفس إيمبيد إدارة الهويات
-      const embed = new EmbedBuilder()
-        .setTitle('إدارة الهويات')
-        .setDescription('اختر هوية من القائمة أدناه لعرضها أو تعديلها أو حذفها.')
-        .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
-        .setColor('#00ff00');
-      const guildIdentities = identities.filter(i => i.guildId === interaction.guildId);
-      const page = 1;
-      const pageSize = 22;
-      const totalPages = Math.ceil(guildIdentities.length / pageSize) || 1;
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageIdentities = guildIdentities.slice(start, end);
-      const options = pageIdentities.map(i => ({ label: i.fullName, value: `identity_${i.userId}` }));
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: 'see_more_identities' });
-      }
-      options.push({ label: 'إعادة تعيين', value: 'reset_identities', description: 'إعادة تعيين القائمة' });
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('identity_select_menu_page_1')
-        .setPlaceholder('اختر هوية...')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.update({ embeds: [embed], components: [row] });
-      return;
-    }
-
-    // معالجة أمر /العسكر
-    if (interaction.isChatInputCommand() && interaction.commandName === 'العسكر') {
-      // تحقق من صلاحية الأدمن
-      if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-        await interaction.reply({ content: '❌ هذا الأمر مخصص فقط للأدمن.', ephemeral: true });
-        return;
-      }
-      
-      const embed = new EmbedBuilder()
-        .setTitle('نظام العسكر')
-        .setDescription('مرحباً بك في نظام العسكر. اختر من القائمة أدناه الإجراء المطلوب.')
-        .setImage('https://i.postimg.cc/VvC7rqnV/image.png')
-        .setColor('#1e3a8a')
-        .setTimestamp();
-      
-      const menuOptions = [
-        { label: 'تسجيل دخول', value: 'military_login', description: 'تسجيل دخول للعسكر' },
-        { label: 'تعيين الكود العسكري', value: 'set_military_code', description: 'تعيين كود عسكري جديد' },
-        { label: 'نقاطي', value: 'my_military_points', description: 'عرض نقاطك العسكرية' },
-        { label: 'ادارة النقاط | الاكواد العسكرية', value: 'manage_military', description: 'إدارة النظام العسكري' },
-        { label: 'إعادة تعيين', value: 'reset_military', description: 'تحديث الصفحة' }
-      ];
-      
-      const militaryMenu = new StringSelectMenuBuilder()
-        .setCustomId('military_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions(addResetOption(menuOptions));
-      
-      const row = new ActionRowBuilder().addComponents(militaryMenu);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
-      return;
-    }
-
-    // معالجة أمر /الشرطة
-    if (interaction.isChatInputCommand() && interaction.commandName === 'الشرطة') {
-      // تحقق من صلاحية الأدمن (احتياط)
-      if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-        await interaction.reply({ content: '❌ هذا الأمر مخصص فقط للأدمن.', ephemeral: true });
-        return;
-      }
-      // نفس إيمبيد /بطاقة
-      const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-      const embed = new EmbedBuilder()
-        .setTitle('الشرطة')
-        .setDescription('قائمة أوامر الشرطة. اختر من القائمة أدناه الإجراء المطلوب.')
-        .setImage(customImage)
-        .setColor('#00ff00');
-      const menuOptions = [
-        { label: 'بحث عن شخص', value: 'search_person' },
-        { label: 'سجل الجرائم', value: 'crime_record' },
-        { label: 'المخالفات', value: 'violations' },
-        { label: 'ادارة النظام', value: 'system_admin' }
-      ];
-      const policeMenu = new StringSelectMenuBuilder()
-        .setCustomId('police_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions(addResetOption(menuOptions));
-      const row = new ActionRowBuilder().addComponents(policeMenu);
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
-      return;
-    }
-    // معالجة قائمة العسكر
-    if (interaction.isStringSelectMenu() && interaction.customId === 'military_menu') {
-      const selected = interaction.values[0];
-      
-      if (selected === 'reset_page') {
-        // إعادة نفس القائمة (تحديث الصفحة فقط)
-        const embed = new EmbedBuilder()
-          .setTitle('نظام العسكر')
-          .setDescription('مرحباً بك في نظام العسكر. اختر من القائمة أدناه الإجراء المطلوب.')
-          .setImage('https://i.postimg.cc/VvC7rqnV/image.png')
-          .setColor('#1e3a8a')
-          .setTimestamp();
-        
-        const menuOptions = [
-          { label: 'تسجيل دخول', value: 'military_login', description: 'تسجيل دخول للعسكر' },
-          { label: 'تعيين الكود العسكري', value: 'set_military_code', description: 'تعيين كود عسكري جديد' },
-          { label: 'نقاطي', value: 'my_military_points', description: 'عرض نقاطك العسكرية' },
-          { label: 'ادارة النقاط | الاكواد العسكرية', value: 'manage_military', description: 'إدارة النظام العسكري' },
-          { label: 'إعادة تعيين', value: 'reset_page', description: 'تحديث الصفحة' }
-        ];
-        
-        const militaryMenu = new StringSelectMenuBuilder()
-          .setCustomId('military_menu')
-          .setPlaceholder('اختر إجراء...')
-          .addOptions(menuOptions);
-        
-        const row = new ActionRowBuilder().addComponents(militaryMenu);
-        await interaction.update({ embeds: [embed], components: [row] });
-        return;
-      }
-      
-      if (selected === 'military_login') {
-        // التحقق من الشروط المطلوبة
-        const guildId = interaction.guildId;
-        const userId = interaction.user.id;
-        
-        // 1. التحقق من رتبة الشرطة
-        if (!hasPoliceRole(interaction.member, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تحمل رتبة الشرطة لاستخدام هذا الإجراء.', ephemeral: true });
-          return;
-        }
-        
-        // 2. التحقق من وجود هوية مقبولة
-        if (!hasApprovedIdentity(userId, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تملك هوية مقبولة لاستخدام هذا الإجراء.', ephemeral: true });
-          return;
-        }
-        
-        // 3. التحقق من وجود كود عسكري
-        const militaryCode = getMilitaryCode(userId, guildId);
-        if (!militaryCode) {
-          await interaction.reply({ content: '❌ يجب أن يكون لديك كود عسكري معين. استخدم "تعيين الكود العسكري" أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // إذا اجتمعت جميع الشروط، عرض قائمة تسجيل الدخول
-        const embed = new EmbedBuilder()
-          .setTitle('نظام تسجيل الدخول العسكري')
-          .setDescription(`**المستخدم:** ${interaction.user}\n**الكود العسكري:** \`${militaryCode}\`\n\nاختر من القائمة أدناه الإجراء المطلوب:`)
-          .setColor('#1e3a8a')
-          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        
-        const loginOptions = [
-          { label: 'تسجيل دخول', value: 'military_clock_in', description: 'تسجيل دخول للعمل العسكري' },
-          { label: 'تسجيل خروج', value: 'military_clock_out', description: 'تسجيل خروج من العمل العسكري' },
-          { label: 'انهاء عمل', value: 'military_end_shift', description: 'انهاء المناوبة العسكرية' }
-        ];
-        
-        const loginMenu = new StringSelectMenuBuilder()
-          .setCustomId('military_login_menu')
-          .setPlaceholder('اختر إجراء تسجيل الدخول...')
-          .addOptions(loginOptions);
-        
-        const row = new ActionRowBuilder().addComponents(loginMenu);
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-        return;
-      }
-      
-      if (selected === 'set_military_code') {
-        // التحقق من الشروط المطلوبة
-        const guildId = interaction.guildId;
-        const userId = interaction.user.id;
-        
-        // التحقق من وجود هوية مقبولة
-        if (!hasApprovedIdentity(userId, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تكون لديك هوية مقبولة أولاً قبل طلب كود عسكري.', ephemeral: true });
-          return;
-        }
-        
-        // التحقق من رتبة الشرطة
-        if (!hasPoliceRole(interaction.member, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تكون لديك رتبة الشرطة أولاً قبل طلب كود عسكري.', ephemeral: true });
-          return;
-        }
-        
-        // التحقق من وجود كود عسكري بالفعل
-        if (getMilitaryCode(userId, guildId)) {
-          await interaction.reply({ content: '❌ لايمكنك تقديم طلب كود عسكري اخر لديك كود عسكري ب الفعل', ephemeral: true });
-          return;
-        }
-        
-        // التحقق من وجود طلب معلق
-        if (hasPendingMilitaryCodeRequest(userId, guildId)) {
-          await interaction.reply({ content: '❌ لديك طلب قيد المراجعة الى الان يرجى الانتضار في حال التاخير تواصل مع مسوؤلين الشرطة', ephemeral: true });
-          return;
-        }
-        
-        // فتح مودال طلب الكود العسكري
-        const modal = new ModalBuilder()
-          .setCustomId('modal_request_military_code')
-          .setTitle('طلب كود عسكري');
-        
-        const codeInput = new TextInputBuilder()
-          .setCustomId('input_military_code')
-          .setLabel('اكتب كودك العسكري')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب كودك العسكري هنا')
-          .setRequired(true);
-        
-        const row = new ActionRowBuilder().addComponents(codeInput);
-        modal.addComponents(row);
-        
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'my_military_points') {
-        const userId = interaction.user.id;
-        const guildId = interaction.guildId;
-        
-        // التحقق من وجود هوية مقبولة
-        if (!hasApprovedIdentity(userId, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تكون لديك هوية مقبولة أولاً لعرض نقاطك العسكرية.', ephemeral: true });
-          return;
-        }
-        
-        const points = getMilitaryPoints(userId, guildId);
-        const militaryCode = getMilitaryCode(userId, guildId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const militaryUser = getMilitaryUser(userId, guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('🎖️ نقاطك العسكرية')
-          .setDescription(`**مرحباً بك في نظام النقاط العسكرية!**`)
-          .setColor('#fbbf24')
-          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}`, inline: false },
-            { name: '🎖️ **المعلومات العسكرية**', value: `**الكود العسكري:** ${militaryCode ? `\`${militaryCode}\`` : 'غير محدد'}\n**الرتبة:** ${militaryUser?.rank || 'عسكري'}`, inline: false },
-            { name: '⭐ **النقاط العسكرية**', value: `**إجمالي النقاط:** \`${points} نقطة\``, inline: false }
-          )
-          .setFooter({ text: 'نظام النقاط العسكرية' })
-          .setTimestamp();
-        
-        // إضافة معلومات إضافية حسب مستوى النقاط
-        if (points >= 100) {
-          embed.addFields({ name: '🏆 **مستوى متقدم**', value: 'أنت من العسكريين المتميزين!', inline: false });
-        } else if (points >= 50) {
-          embed.addFields({ name: '🥉 **مستوى متوسط**', value: 'أداؤك جيد، استمر في التقدم!', inline: false });
-        } else if (points >= 10) {
-          embed.addFields({ name: '🆕 **مستوى مبتدئ**', value: 'أنت في بداية رحلتك العسكرية!', inline: false });
-        } else {
-          embed.addFields({ name: '🌱 **مستوى جديد**', value: 'ابدأ رحلتك العسكرية واكتسب نقاطك الأولى!', inline: false });
-        }
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-      
-      if (selected === 'manage_military') {
-        // التحقق من وجود هوية مقبولة ورتبة الشرطة
-        if (!hasApprovedIdentity(interaction.user.id, interaction.guildId) || !hasPoliceRole(interaction.member, interaction.guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تملك هوية مقبولة وأن تحمل رتبة الشرطة لاستخدام هذه الأوامر.', ephemeral: true });
-          return;
-        }
-        
-        // قائمة إدارة العسكر
-        const embed = new EmbedBuilder()
-          .setTitle('إدارة النظام العسكري')
-          .setDescription('اختر من القائمة أدناه الإجراء المطلوب لإدارة النظام العسكري.')
-          .setColor('#1e3a8a')
-          .setTimestamp();
-        
-        const manageOptions = [
-          { label: 'إضافة نقاط لشخص', value: 'add_points_to_user', description: 'إضافة نقاط عسكرية لشخص معين' },
-          { label: 'خصم نقاط من شخص', value: 'remove_points_from_user', description: 'خصم نقاط عسكرية من شخص معين' },
-          { label: 'عرض جميع النقاط', value: 'view_all_points', description: 'عرض نقاط جميع العسكريين' },
-          { label: 'إدارة الأكواد العسكرية', value: 'manage_military_codes', description: 'إدارة الأكواد العسكرية' },
-          { label: 'إدارة تحذيرات العسكري', value: 'manage_military_warnings', description: 'إدارة تحذيرات العسكري' }
-        ];
-        
-        const manageMenu = new StringSelectMenuBuilder()
-          .setCustomId('manage_military_menu')
-          .setPlaceholder('اختر إجراء إداري...')
-          .addOptions(addResetOption(manageOptions));
-        
-        const row = new ActionRowBuilder().addComponents(manageMenu);
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-        return;
-      }
-
-      if (selected === 'reset_military') {
-        // إعادة تعيين القائمة الرئيسية
-        const embed = new EmbedBuilder()
-          .setTitle('نظام العسكر')
-          .setDescription('مرحباً بك في نظام العسكر. اختر من القائمة أدناه الإجراء المطلوب.')
-          .setImage('https://i.postimg.cc/VvC7rqnV/image.png')
-          .setColor('#1e3a8a')
-          .setTimestamp();
-        
-        const menuOptions = [
-          { label: 'تسجيل دخول', value: 'military_login', description: 'تسجيل دخول للعسكر' },
-          { label: 'تعيين الكود العسكري', value: 'set_military_code', description: 'تعيين كود عسكري جديد' },
-          { label: 'نقاطي', value: 'my_military_points', description: 'عرض نقاطك العسكرية' },
-          { label: 'ادارة النقاط | الاكواد العسكرية', value: 'manage_military', description: 'إدارة النظام العسكري' },
-          { label: 'إعادة تعيين', value: 'reset_military', description: 'تحديث الصفحة' }
-        ];
-        
-        const militaryMenu = new StringSelectMenuBuilder()
-          .setCustomId('military_menu')
-          .setPlaceholder('اختر إجراء...')
-          .addOptions(menuOptions);
-        
-        const row = new ActionRowBuilder().addComponents(militaryMenu);
-        await interaction.update({ embeds: [embed], components: [row] });
-        return;
-      }
-
-
-    }
-
-    // معالجة قائمة تسجيل الدخول العسكري
-    if (interaction.isStringSelectMenu() && interaction.customId === 'military_login_menu') {
-      const selected = interaction.values[0];
-      const guildId = interaction.guildId;
-      const userId = interaction.user.id;
-      
-      if (selected === 'military_clock_in') {
-        // تسجيل دخول للعمل العسكري
-        const guildId = interaction.guildId;
-        const userId = interaction.user.id;
-        
-        // التحقق من وجود هوية مقبولة
-        if (!hasApprovedIdentity(userId, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تكون لديك هوية مقبولة أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // التحقق من وجود كود عسكري
-        const militaryCode = getMilitaryCode(userId, guildId);
-        if (!militaryCode) {
-          await interaction.reply({ content: '❌ يجب أن يكون لديك كود عسكري مقبول أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // تحديث حالة العسكري
-        const success = updateMilitaryUserStatus(userId, guildId, 'in');
-        if (!success) {
-          await interaction.reply({ content: '❌ فشل في تحديث الحالة.', ephemeral: true });
-          return;
-        }
-        
-        // تحديث الصورة في روم مباشرة العسكر
-        await updateMilitaryPageImage(guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('✅ تم تسجيل الدخول بنجاح')
-          .setDescription(`**المستخدم:** ${interaction.user}\n**وقت الدخول:** <t:${Math.floor(Date.now() / 1000)}:F>\n**الحالة:** متصل للعمل العسكري\n**الكود العسكري:** \`${militaryCode}\``)
-          .setColor('#00ff00')
-          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-      
-      if (selected === 'military_clock_out') {
-        // تسجيل خروج من العمل العسكري
-        const guildId = interaction.guildId;
-        const userId = interaction.user.id;
-        
-        // التحقق من وجود هوية مقبولة
-        if (!hasApprovedIdentity(userId, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تكون لديك هوية مقبولة أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // التحقق من وجود كود عسكري
-        const militaryCode = getMilitaryCode(userId, guildId);
-        if (!militaryCode) {
-          await interaction.reply({ content: '❌ يجب أن يكون لديك كود عسكري مقبول أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // تحديث حالة العسكري
-        const success = updateMilitaryUserStatus(userId, guildId, 'out');
-        if (!success) {
-          await interaction.reply({ content: '❌ فشل في تحديث الحالة.', ephemeral: true });
-          return;
-        }
-        
-        // تحديث الصورة في روم مباشرة العسكر
-        await updateMilitaryPageImage(guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('🔄 تم تسجيل الخروج بنجاح')
-          .setDescription(`**المستخدم:** ${interaction.user}\n**وقت الخروج:** <t:${Math.floor(Date.now() / 1000)}:F>\n**الحالة:** خارج من العمل العسكري\n**الكود العسكري:** \`${militaryCode}\``)
-          .setColor('#ff9900')
-          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-      
-      if (selected === 'military_end_shift') {
-        // انهاء المناوبة العسكرية
-        const guildId = interaction.guildId;
-        const userId = interaction.user.id;
-        
-        // التحقق من وجود هوية مقبولة
-        if (!hasApprovedIdentity(userId, guildId)) {
-          await interaction.reply({ content: '❌ يجب أن تكون لديك هوية مقبولة أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // التحقق من وجود كود عسكري
-        const militaryCode = getMilitaryCode(userId, guildId);
-        if (!militaryCode) {
-          await interaction.reply({ content: '❌ يجب أن يكون لديك كود عسكري مقبول أولاً.', ephemeral: true });
-          return;
-        }
-        
-        // تحديث حالة العسكري
-        const success = updateMilitaryUserStatus(userId, guildId, 'ended');
-        if (!success) {
-          await interaction.reply({ content: '❌ فشل في تحديث الحالة.', ephemeral: true });
-          return;
-        }
-        
-        // تحديث الصورة في روم مباشرة العسكر
-        await updateMilitaryPageImage(guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('🏁 تم انهاء المناوبة بنجاح')
-          .setDescription(`**المستخدم:** ${interaction.user}\n**وقت انهاء المناوبة:** <t:${Math.floor(Date.now() / 1000)}:F>\n**الحالة:** مناوبة منتهية\n**الكود العسكري:** \`${militaryCode}\``)
-          .setColor('#ff0000')
-          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-    }
-
-    // معالجة قائمة إدارة العسكر
-    if (interaction.isStringSelectMenu() && interaction.customId === 'manage_military_menu') {
-      const selected = interaction.values[0];
-      
-      if (selected === 'reset_page') {
-        // إعادة نفس القائمة
-        const embed = new EmbedBuilder()
-          .setTitle('إدارة النظام العسكري')
-          .setDescription('اختر من القائمة أدناه الإجراء المطلوب لإدارة النظام العسكري.')
-          .setColor('#1e3a8a')
-          .setTimestamp();
-        
-        const manageOptions = [
-          { label: 'إضافة نقاط لشخص', value: 'add_points_to_user', description: 'إضافة نقاط عسكرية لشخص معين' },
-          { label: 'خصم نقاط من شخص', value: 'remove_points_from_user', description: 'خصم نقاط عسكرية من شخص معين' },
-          { label: 'عرض جميع النقاط', value: 'view_all_points', description: 'عرض نقاط جميع العسكريين' },
-          { label: 'إدارة الأكواد العسكرية', value: 'manage_military_codes', description: 'إدارة الأكواد العسكرية' },
-          { label: 'إدارة تحذيرات العسكري', value: 'manage_military_warnings', description: 'إدارة تحذيرات العسكري' },
-          { label: 'إعادة تعيين', value: 'reset_page', description: 'تحديث الصفحة' }
-        ];
-        
-        const manageMenu = new StringSelectMenuBuilder()
-          .setCustomId('manage_military_menu')
-          .setPlaceholder('اختر إجراء إداري...')
-          .addOptions(manageOptions);
-        
-        const row = new ActionRowBuilder().addComponents(manageMenu);
-        await interaction.update({ embeds: [embed], components: [row] });
-        return;
-      }
-      
-      if (selected === 'add_points_to_user') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_add_military_points')
-          .setTitle('إضافة نقاط عسكرية');
-        
-        const userInput = new TextInputBuilder()
-          .setCustomId('input_target_user')
-          .setLabel('اسم الشخص أو الرقم الوطني')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        
-        const pointsInput = new TextInputBuilder()
-          .setCustomId('input_points_to_add')
-          .setLabel('عدد النقاط')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب عدد النقاط المراد إضافتها')
-          .setRequired(true);
-        
-        const row1 = new ActionRowBuilder().addComponents(userInput);
-        const row2 = new ActionRowBuilder().addComponents(pointsInput);
-        modal.addComponents(row1, row2);
-        
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'remove_points_from_user') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_remove_military_points')
-          .setTitle('خصم نقاط عسكرية');
-        
-        const userInput = new TextInputBuilder()
-          .setCustomId('input_target_user_remove')
-          .setLabel('اسم الشخص أو الرقم الوطني')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        
-        const pointsInput = new TextInputBuilder()
-          .setCustomId('input_points_to_remove')
-          .setLabel('عدد النقاط')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب عدد النقاط المراد خصمها')
-          .setRequired(true);
-        
-        const row1 = new ActionRowBuilder().addComponents(userInput);
-        const row2 = new ActionRowBuilder().addComponents(pointsInput);
-        modal.addComponents(row1, row2);
-        
-        await interaction.showModal(modal);
-        return;
-      }
-      
-      if (selected === 'view_all_points') {
-        const guildId = interaction.guildId;
-        const allPoints = getAllMilitaryPoints(guildId);
-        
-        if (allPoints.length === 0) {
-          await interaction.reply({ content: '❌ لا توجد نقاط عسكرية مسجلة حالياً.', ephemeral: true });
-          return;
-        }
-        
-        const embed = new EmbedBuilder()
-          .setTitle('📊 جميع النقاط العسكرية')
-          .setDescription('قائمة بجميع النقاط العسكرية في السيرفر (مرتبة حسب النقاط)')
-          .setColor('#1e3a8a')
-          .setTimestamp();
-        
-        let description = '';
-        let rank = 1;
-        
-        for (const { userId, points } of allPoints) {
-          try {
-            const user = await client.users.fetch(userId);
-            const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-            const militaryCode = getMilitaryCode(userId, guildId);
-            
-            // إضافة رتبة حسب النقاط
-            let rankEmoji = '🥇';
-            if (rank === 2) rankEmoji = '🥈';
-            else if (rank === 3) rankEmoji = '🥉';
-            else if (rank > 3) rankEmoji = `**${rank}.**`;
-            
-            description += `${rankEmoji} **${user.username}**\n`;
-            description += `   👤 **الاسم:** ${identity?.fullName || 'غير محدد'}\n`;
-            description += `   🎖️ **الكود:** ${militaryCode ? `\`${militaryCode}\`` : 'غير محدد'}\n`;
-            description += `   ⭐ **النقاط:** \`${points} نقطة\`\n\n`;
-            
-            rank++;
-          } catch (e) {
-            description += `**مستخدم غير معروف (${userId}):** ${points} نقطة\n\n`;
-            rank++;
-          }
-        }
-        
-        embed.setDescription(description);
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-      
-      if (selected === 'manage_military_codes') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_manage_military_codes')
-          .setTitle('إدارة الأكواد العسكرية');
-        
-        const userInput = new TextInputBuilder()
-          .setCustomId('input_search_military_code')
-          .setLabel('اسم الشخص أو الرقم الوطني')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        
-        const row = new ActionRowBuilder().addComponents(userInput);
-        modal.addComponents(row);
-        
-        await interaction.showModal(modal);
-        return;
-      }
-
-      if (selected === 'manage_military_warnings') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_manage_military_warnings')
-          .setTitle('إدارة تحذيرات العسكري');
-        
-        const userInput = new TextInputBuilder()
-          .setCustomId('input_search_military_warnings')
-          .setLabel('اسم الشخص أو الرقم الوطني')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        
-        const row = new ActionRowBuilder().addComponents(userInput);
-        modal.addComponents(row);
-        
-        await interaction.showModal(modal);
-        return;
-      }
-    }
-
-    // معالجة قائمة الشرطة
-    if (interaction.isStringSelectMenu() && interaction.customId === 'police_menu') {
-      // تحقق من رتبة الشرطة وهوية مقبولة
-      if (!hasPoliceRole(interaction.member, interaction.guildId) || !hasApprovedIdentity(interaction.user.id, interaction.guildId)) {
-        await interaction.reply({ content: '❌ يجب أن تملك هوية وأن تحمل رتبة الشرطة لاستخدام هذه الأوامر.', ephemeral: true });
-        return;
-      }
-      const selected = interaction.values[0];
-      if (selected === 'reset_police') {
-        // إعادة نفس القائمة (تحديث الصفحة فقط)
-        const embed = new EmbedBuilder()
-          .setTitle('الشرطة')
-          .setDescription('قائمة أوامر الشرطة. اختر من القائمة أدناه الإجراء المطلوب.')
-          .setImage(customImage)
-          .setColor('#00ff00');
-        const policeMenu = new StringSelectMenuBuilder()
-          .setCustomId('police_menu')
-          .setPlaceholder('اختر إجراء...')
-          .addOptions([
-            { label: 'بحث عن شخص', value: 'search_person' },
-            { label: 'سجل الجرائم', value: 'crime_record' },
-            { label: 'المخالفات', value: 'violations' },
-            { label: 'ادارة النظام', value: 'system_admin' },
-            { label: 'إعادة تعيين', value: 'reset_police', description: 'تحديث الصفحة' }
-          ]);
-        const row = new ActionRowBuilder().addComponents(policeMenu);
-        await interaction.update({ embeds: [embed], components: [row] });
-        return;
-      }
-      if (selected === 'search_person') {
-        // فتح مودال اسم أو رقم هوية
-        const modal = new ModalBuilder()
-          .setCustomId('modal_search_person')
-          .setTitle('بحث عن شخص');
-        const input = new TextInputBuilder()
-          .setCustomId('input_search_person')
-          .setLabel('اسم الشخص أو رقم الهوية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الأول أو الكامل أو الرقم الوطني')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      if (selected === 'crime_record') {
-        // فقط افتح المودال ولا تنفذ أي منطق آخر هنا
-        const modal = new ModalBuilder()
-          .setCustomId('modal_crime_record')
-          .setTitle('بحث سجل الجرائم');
-        const input = new TextInputBuilder()
-          .setCustomId('input_crime_record')
-          .setLabel('اسم الشخص الكامل أو رقم الهوية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      if (selected === 'violations') {
-        // فتح مودال اسم أو رقم هوية (بحث مخالفات)
-        const modal = new ModalBuilder()
-          .setCustomId('modal_police_violations')
-          .setTitle('بحث مخالفات شخص');
-        const input = new TextInputBuilder()
-          .setCustomId('input_police_violations')
-          .setLabel('اسم الشخص الكامل أو رقم الهوية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      if (selected === 'system_admin') {
-        // تحقق من وجود هوية ورُتبة الشرطة فقط (وليس مسؤول الشرطة)
-        const policeRoleId = guildSettings[interaction.guildId]?.policeRoleId;
-        if (!hasApprovedIdentity(interaction.user.id, interaction.guildId) || !policeRoleId || !interaction.member.roles.cache.has(policeRoleId)) {
-          await interaction.reply({ content: '❌ يجب أن تملك هوية وأن تحمل رتبة الشرطة لاستخدام هذا الإجراء.', ephemeral: true });
-          return;
-        }
-        // فتح مودال لكتابة اسم الشخص أو رقمه الوطني
-        const modal = new ModalBuilder()
-          .setCustomId('modal_system_admin_search_person')
-          .setTitle('بحث عن شخص لإدارة النظام');
-        const input = new TextInputBuilder()
-          .setCustomId('input_system_admin_search_person')
-          .setLabel('اسم الشخص أو رقم الهوية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الاسم الكامل أو الرقم الوطني')
-          .setRequired(true);
-        const row = new ActionRowBuilder().addComponents(input);
-        modal.addComponents(row);
-        await interaction.showModal(modal);
-        return;
-      }
-      // باقي الأزرار (سجل الجرائم، المخالفات، ادارة النظام) منطقها لاحقاً
-      await interaction.reply({ content: '🚧 سيتم تنفيذ هذا الزر لاحقاً.', ephemeral: true });
-      return;
-    }
-    // معالجة مودال بحث عن شخص
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_search_person') {
-      // تحقق من رتبة الشرطة
-      if (!hasPoliceRole(interaction.member, interaction.guildId)) {
-        await interaction.reply({ content: '❌ هذا الإجراء مخصص فقط لحاملي رتبة الشرطة.', ephemeral: true });
-        return;
-      }
-      const value = interaction.fields.getTextInputValue('input_search_person').trim();
-      // بحث بالاسم أو الرقم الوطني
-      let found = null;
-      if (/^\d+$/.test(value)) {
-        found = identities.find(i => i.nationalId === value && i.guildId === interaction.guildId);
-      } else {
-        found = identities.find(i => (i.fullName.includes(value) || i.fullName.split(' ')[0] === value) && i.guildId === interaction.guildId);
-      }
-      if (!found) {
-        await interaction.reply({ content: 'لايوجد شخص بهذا الاسم او الرقم الوطني هذا', ephemeral: true });
-        return;
-      }
-      // إرسال المعلومات كرد خاص في الروم (وليس في الخاص)
-      try {
-        const user = await client.users.fetch(found.userId);
-        const embed = new EmbedBuilder()
-          .setTitle('معلومات الشخص')
-          .setDescription(`**الاسم:** ${found.fullName}\n**الجنس:** ${found.gender === 'male' ? 'ذكر' : 'أنثى'}\n**المدينة:** ${found.city}\n**تاريخ الميلاد:** ${found.day} / ${found.month} / ${found.year}\n**رقم الهوية:** ${found.nationalId}`)
-          .setColor('#00ff00')
-          .setThumbnail(user.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء عرض المعلومات.', ephemeral: true });
-      }
-      return;
-    }
-    // معالجة مودال سجل الجرائم
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_crime_record') {
-      // تحقق من رتبة الشرطة وهوية مقبولة
-      if (!hasPoliceRole(interaction.member, interaction.guildId) || !hasApprovedIdentity(interaction.user.id, interaction.guildId)) {
-        await interaction.reply({ content: '❌ يجب أن تملك هوية وأن تحمل رتبة الشرطة لاستخدام هذه الأوامر.', ephemeral: true });
-        return;
-      }
-      const value = interaction.fields.getTextInputValue('input_crime_record').trim();
-      // بحث بالاسم الكامل أو الرقم الوطني
-      let found = null;
-      if (/^\d+$/.test(value)) {
-        found = identities.find(i => i.nationalId === value && i.guildId === interaction.guildId);
-      } else {
-        found = identities.find(i => i.fullName === value && i.guildId === interaction.guildId);
-      }
-      if (!found) {
-        await interaction.reply({ content: 'لايوجد شخص بهذا الاسم او الرقم الوطني هذا', ephemeral: true });
-        return;
-      }
-      // توليد صورة سجل الجرائم مع بيانات العسكري والشخص المستعلم عنه وجرائم حقيقية
-      try {
-        // بيانات العسكري
-        const officerUser = await client.users.fetch(interaction.user.id);
-        const officerAvatar = officerUser.displayAvatarURL({ extension: 'png', size: 128 });
-        const officerIdentity = identities.find(i => i.userId === interaction.user.id && i.guildId === interaction.guildId);
-        const officerName = officerIdentity ? officerIdentity.fullName : officerUser.username;
-        // بيانات الشخص
-        const targetUser = await client.users.fetch(found.userId);
-        const targetAvatar = targetUser.displayAvatarURL({ extension: 'png', size: 128 });
-        const targetName = found.fullName;
-        // جرائم حقيقية
-        const crimes = found.crimes || [];
-        // منطق الصفحات
-        const page = 1;
-        const perPage = 5;
-        const totalPages = Math.ceil(crimes.length / perPage);
-        const pageCrimes = crimes.slice((page-1)*perPage, page*perPage);
-        // إعداد الصورة
-        const cardWidth = 800;
-        const cardHeight = 600;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        // خلفية سوداء
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        // اسم العسكري وصورته (أعلى يسار)
-        const officerImg = await loadImage(officerAvatar);
-        ctx.save();
-          ctx.beginPath();
-        ctx.arc(60, 60, 40, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(officerImg, 20, 20, 80, 80);
-        ctx.restore();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(officerName, 110, 65);
-        // اسم وصورة الشخص (أعلى يمين)
-        const targetImg = await loadImage(targetAvatar);
-          ctx.save();
-          ctx.beginPath();
-        ctx.arc(cardWidth-60, 60, 40, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-        ctx.drawImage(targetImg, cardWidth-100, 20, 80, 80);
-          ctx.restore();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'right';
-        ctx.fillText(targetName, cardWidth-110, 65);
-        // عنوان سجل الجرائم (أعلى منتصف)
-        ctx.font = 'bold 32px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#00ff00';
-        ctx.fillText('سجل الجرائم', cardWidth/2, 60);
-        // إذا لا يوجد جرائم لهذا الشخص
-        if (pageCrimes.length === 0) {
-          ctx.font = 'bold 36px Arial';
-          ctx.fillStyle = '#ff2222';
-          ctx.textAlign = 'center';
-          ctx.fillText('لايوجد سجل اجرامي للشخص', cardWidth/2, cardHeight/2);
-          const buffer = canvas.toBuffer('image/png');
-          await interaction.reply({ files: [{ attachment: buffer, name: 'crime_record.png' }], ephemeral: true });
-          return;
-        }
-        // مربعات الجرائم
-        const boxStartY = 130;
-        const boxHeight = 65;
-        const boxMargin = 20;
-        for (let i = 0; i < pageCrimes.length; i++) {
-          const y = boxStartY + i * (boxHeight + boxMargin);
-          const isDone = pageCrimes[i].done;
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(60 + 18, y);
-          ctx.lineTo(60 + cardWidth-120 - 18, y);
-          ctx.quadraticCurveTo(60 + cardWidth-120, y, 60 + cardWidth-120, y + 18);
-          ctx.lineTo(60 + cardWidth-120, y + boxHeight - 18);
-          ctx.quadraticCurveTo(60 + cardWidth-120, y + boxHeight, 60 + cardWidth-120 - 18, y + boxHeight);
-          ctx.lineTo(60 + 18, y + boxHeight);
-          ctx.quadraticCurveTo(60, y + boxHeight, 60, y + boxHeight - 18);
-          ctx.lineTo(60, y + 18);
-          ctx.quadraticCurveTo(60, y, 60 + 18, y);
-          ctx.closePath();
-          ctx.fillStyle = isDone ? '#1a4d1a' : '#4d1a1a';
-          ctx.strokeStyle = isDone ? '#00ff00' : '#ff0000';
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-          // عنوان الجريمة
-          ctx.save();
-          ctx.fillStyle = '#fff';
-          ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'left';
-          ctx.fillText(pageCrimes[i].title, 80, y+30);
-        ctx.font = '16px Arial';
-          ctx.fillStyle = '#ccc';
-          ctx.fillText(pageCrimes[i].desc, 80, y+55);
-          ctx.restore();
-        }
-        // زر رؤية المزيد إذا كان هناك صفحات أخرى
-        let components = [];
-        if (totalPages > 1) {
-          const moreRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId(`crime_record_next_page_${found.userId}_2`)
-              .setLabel('رؤية المزيد')
-              .setStyle(ButtonStyle.Primary)
-          );
-          components = [moreRow];
-        }
-        const buffer = canvas.toBuffer('image/png');
-        await interaction.reply({ files: [{ attachment: buffer, name: 'crime_record.png' }], components, ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة سجل الجرائم.', ephemeral: true });
-      }
-      return;
-    }
-    // زر رؤية المزيد لصفحات سجل الجرائم
-    if (interaction.isButton() && interaction.customId.startsWith('crime_record_next_page_')) {
-      // تحقق من رتبة الشرطة وهوية مقبولة
-      if (!hasPoliceRole(interaction.member, interaction.guildId) || !hasApprovedIdentity(interaction.user.id, interaction.guildId)) {
-        await interaction.reply({ content: '❌ يجب أن تملك هوية وأن تحمل رتبة الشرطة لاستخدام هذه الأوامر.', ephemeral: true });
-        return;
-      }
-      // استخراج userId والصفحة
-      const parts = interaction.customId.split('_');
-      const userId = parts[4];
-      const page = parseInt(parts[5]);
-      const found = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!found) {
-        await interaction.reply({ content: 'لايوجد شخص بهذا الرقم الوطني', ephemeral: true });
-        return;
-      }
-      try {
-        // بيانات العسكري
-        const officerUser = await client.users.fetch(interaction.user.id);
-        const officerAvatar = officerUser.displayAvatarURL({ extension: 'png', size: 128 });
-        const officerIdentity = identities.find(i => i.userId === interaction.user.id && i.guildId === interaction.guildId);
-        const officerName = officerIdentity ? officerIdentity.fullName : officerUser.username;
-        // بيانات الشخص
-        const targetUser = await client.users.fetch(found.userId);
-        const targetAvatar = targetUser.displayAvatarURL({ extension: 'png', size: 128 });
-        const targetName = found.fullName;
-        // جرائم حقيقية
-        const crimes = found.crimes || [];
-        const perPage = 5;
-        const totalPages = Math.ceil(crimes.length / perPage);
-        const pageCrimes = crimes.slice((page-1)*perPage, page*perPage);
-        // إعداد الصورة
-        const cardWidth = 800;
-        const cardHeight = 600;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        // خلفية سوداء
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        // اسم العسكري وصورته (أعلى يسار)
-        const officerImg = await loadImage(officerAvatar);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(60, 60, 40, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(officerImg, 20, 20, 80, 80);
-        ctx.restore();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(officerName, 110, 65);
-        // اسم وصورة الشخص (أعلى يمين)
-        const targetImg = await loadImage(targetAvatar);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cardWidth-60, 60, 40, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(targetImg, cardWidth-100, 20, 80, 80);
-        ctx.restore();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 18px Arial';
-        ctx.textAlign = 'right';
-        ctx.fillText(targetName, cardWidth-110, 65);
-        // عنوان سجل الجرائم (أعلى منتصف)
-        ctx.font = 'bold 32px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#00ff00';
-        ctx.fillText('سجل الجرائم', cardWidth/2, 60);
-        // مربعات الجرائم
-        const boxStartY = 130;
-        const boxHeight = 65;
-        const boxMargin = 20;
-        for (let i = 0; i < pageCrimes.length; i++) {
-          const y = boxStartY + i * (boxHeight + boxMargin);
-          const isDone = pageCrimes[i].done;
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(60 + 18, y);
-          ctx.lineTo(60 + cardWidth-120 - 18, y);
-          ctx.quadraticCurveTo(60 + cardWidth-120, y, 60 + cardWidth-120, y + 18);
-          ctx.lineTo(60 + cardWidth-120, y + boxHeight - 18);
-          ctx.quadraticCurveTo(60 + cardWidth-120, y + boxHeight, 60 + cardWidth-120 - 18, y + boxHeight);
-          ctx.lineTo(60 + 18, y + boxHeight);
-          ctx.quadraticCurveTo(60, y + boxHeight, 60, y + boxHeight - 18);
-          ctx.lineTo(60, y + 18);
-          ctx.quadraticCurveTo(60, y, 60 + 18, y);
-          ctx.closePath();
-          ctx.fillStyle = isDone ? '#1a4d1a' : '#4d1a1a';
-          ctx.strokeStyle = isDone ? '#00ff00' : '#ff0000';
-        ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-          // عنوان الجريمة
-          ctx.save();
-          ctx.fillStyle = '#fff';
-          ctx.font = 'bold 20px Arial';
-          ctx.textAlign = 'left';
-          ctx.fillText(pageCrimes[i].title, 80, y+30);
-          ctx.font = '16px Arial';
-          ctx.fillStyle = '#ccc';
-          ctx.fillText(pageCrimes[i].desc, 80, y+55);
-          ctx.restore();
-        }
-        // زر رؤية المزيد إذا كان هناك صفحات أخرى
-        let components = [];
-        if (page < totalPages) {
-          const moreRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId(`crime_record_next_page_${found.userId}_${page+1}`)
-              .setLabel('رؤية المزيد')
-              .setStyle(ButtonStyle.Primary)
-          );
-          components = [moreRow];
-        }
-        const buffer = canvas.toBuffer('image/png');
-        await interaction.reply({ files: [{ attachment: buffer, name: 'crime_record.png' }], components, ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة سجل الجرائم.', ephemeral: true });
-      }
-      return;
-    }
-    // عند حفظ التعديل (مودال تعديل الهوية)
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('edit_identity_modal_')) {
-      const userId = interaction.customId.replace('edit_identity_modal_', '');
-      const fullName = interaction.fields.getTextInputValue(`edit_full_name_${userId}`);
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      const oldName = identity.fullName;
-      identity.fullName = fullName;
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('✏️ تم تعديل هوية')
-              .setDescription(`**تم تعديل هوية المستخدم:** <@${identity.userId}>
-**الاسم السابق:** ${oldName}
-**الاسم الجديد:** ${identity.fullName}
-**تم التعديل من قبل:** <@${interaction.user.id}>`)
-              .setColor('#fbbf24')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم تعديل الهوية بنجاح!', ephemeral: true });
-      return;
-    }
-    // معالجة إعادة تعيين من قائمة /هويتي فقط
-    if (interaction.isStringSelectMenu() && interaction.customId === 'my_identity_menu' && interaction.values[0] === 'reset') {
-      const embed = new EmbedBuilder()
-        .setTitle('هويتك')
-        .setDescription('يمكنك من هنا عرض بطاقتك أو مخالفاتك.')
-        .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
-        .setColor('#00ff00');
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('my_identity_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions([
-          { label: 'بطاقتي', value: 'my_card' },
-          { label: 'مخالفاتي', value: 'my_violations' },
-          { label: 'إعادة تعيين', value: 'reset', description: 'تحديث الصفحة' }
-        ]);
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.update({ embeds: [embed], components: [row] });
-      return;
-    }
-    // منطق إعادة تعيين الإعدادات الإدارية فقط
-    if (interaction.isStringSelectMenu() && (interaction.customId === 'admin_settings_menu' || interaction.customId === 'identity_select_menu_page_1') && (interaction.values[0] === 'reset' || interaction.values[0] === 'reset_identities')) {
-      // إعادة إرسال نفس إيمبيد إدارة الهويات
-      const embed = new EmbedBuilder()
-        .setTitle('إدارة الهويات')
-        .setDescription('اختر هوية من القائمة أدناه لعرضها أو تعديلها أو حذفها.')
-        .setImage('https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless')
-        .setColor('#00ff00');
-      const guildIdentities = identities.filter(i => i.guildId === interaction.guildId);
-      const page = 1;
-      const pageSize = 22;
-      const totalPages = Math.ceil(guildIdentities.length / pageSize) || 1;
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageIdentities = guildIdentities.slice(start, end);
-      const options = pageIdentities.map(i => ({ label: i.fullName, value: `identity_${i.userId}` }));
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: 'see_more_identities' });
-      }
-      options.push({ label: 'إعادة تعيين', value: 'reset_identities', description: 'إعادة تعيين القائمة' });
-      const menu = new StringSelectMenuBuilder()
-        .setCustomId('identity_select_menu_page_1')
-        .setPlaceholder('اختر هوية...')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(menu);
-      await interaction.update({ embeds: [embed], components: [row] });
-      return;
-    }
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_police_violations') {
-      // تحقق من رتبة الشرطة وهوية مقبولة
-      if (!hasPoliceRole(interaction.member, interaction.guildId) || !hasApprovedIdentity(interaction.user.id, interaction.guildId)) {
-        await interaction.reply({ content: '❌ يجب أن تملك هوية وأن تحمل رتبة الشرطة لاستخدام هذه الأوامر.', ephemeral: true });
-        return;
-      }
-      const value = interaction.fields.getTextInputValue('input_police_violations').trim();
-      // بحث بالاسم الكامل أو الرقم الوطني
-      let found = null;
-      if (/^\d+$/.test(value)) {
-        found = identities.find(i => i.nationalId === value && i.guildId === interaction.guildId);
-      } else {
-        found = identities.find(i => i.fullName === value && i.guildId === interaction.guildId);
-      }
-      if (!found) {
-        await interaction.reply({ content: 'لايوجد شخص بهذا الاسم او الرقم الوطني هذا', ephemeral: true });
-        return;
-      }
-      // توليد صورة المخالفات للشخص المطلوب
-      try {
-        const cardWidth = 600;
-        const cardHeight = 400;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, 0, cardWidth, 60);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, cardHeight - 50, cardWidth, 50);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('المخالفات', cardWidth / 2, 35);
-        const user = await client.users.fetch(found.userId).catch(() => null);
-        const avatarURL = user ? user.displayAvatarURL({ extension: 'png', size: 256 }) : null;
-        if (avatarURL) {
-          const avatar = await loadImage(avatarURL);
-          const avatarSize = 100;
-          const avatarX = 30;
-          const avatarY = 80;
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-        ctx.fillStyle = '#222';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(found.fullName, 150, 120);
-        // جلب مخالفات الشخص (حاليًا فارغة)
-        const violations = found.violations || [];
-        const page = 1;
-        const perPage = 3;
-        const totalPages = Math.ceil(violations.length / perPage);
-        const pageViolations = violations.slice((page-1)*perPage, page*perPage);
-        // إذا لا يوجد مخالفات
-        if (violations.length === 0) {
-          ctx.font = 'bold 32px Arial';
-          ctx.fillStyle = '#ff0000';
-          ctx.textAlign = 'center';
-          ctx.fillText('لايوجد مخالفات', cardWidth/2, cardHeight/2);
-          ctx.fillStyle = '#fbbf24';
-          ctx.beginPath();
-          ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('MDT', 50, cardHeight - 75);
-          const buffer = canvas.toBuffer('image/png');
-          await interaction.reply({ files: [{ attachment: buffer, name: 'violations_card.png' }], ephemeral: true });
-          return;
-        }
-        // رسم مربعات المخالفات (حتى 3)
-        for (let i = 0; i < Math.min(pageViolations.length, 3); i++) {
-          const v = pageViolations[i];
-          const y = 160 + i*90;
-          const boxHeight = (i === 2) ? 45 : 80;
-          const boxBg = v.status === 'مسددة' ? '#d1fae5' : '#fee2e2';
-          ctx.fillStyle = boxBg;
-          ctx.strokeStyle = '#1e3a8a';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.roundRect(150, y, 400, boxHeight, 15);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 18px Arial';
-          ctx.fillText(v.name, 170, y+25);
-          ctx.font = '16px Arial';
-          ctx.fillStyle = v.status === 'مسددة' ? '#00ff00' : '#ff0000';
-          ctx.fillText(v.status, 170, y+boxHeight-10);
-          ctx.font = '14px Arial';
-          ctx.fillStyle = '#222';
-          ctx.fillText(v.desc || '', 350, y+25);
-        }
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('MDT', 50, cardHeight - 75);
-        const buffer = canvas.toBuffer('image/png');
-        const customImage = guildSettings[interaction.guildId]?.customEmbedImage;
-        const embed = new EmbedBuilder()
-          .setTitle('مخالفات الشخص')
-          .setDescription(`**الاسم:** ${found.fullName}\n**عدد المخالفات:** ${violations.length}\n\n${pageViolations.map(v => `- ${v.name}: ${v.status}`).join('\n')}`)
-          .setColor('#ff0000')
-          .setImage('attachment://violations_card.png');
-        if (customImage) embed.setThumbnail(customImage);
-        // زر رؤية المزيد إذا كان هناك صفحات أخرى
-        let components = [];
-      if (totalPages > 1) {
-        const moreRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-              .setCustomId(`police_violations_next_page_${found.userId}_2`)
-            .setLabel('رؤية المزيد')
-            .setStyle(ButtonStyle.Primary)
-        );
-          components = [moreRow];
-        }
-        await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], components, ephemeral: true });
-      } catch (err) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة المخالفات.', ephemeral: true });
-      }
-      return;
-    }
-    // زر رؤية المزيد لصفحات مخالفات شخص من الشرطة
-    if (interaction.isButton() && interaction.customId.startsWith('police_violations_next_page_')) {
-      // استخراج userId والصفحة
-      const parts = interaction.customId.split('_');
-      const userId = parts[4];
-      const page = parseInt(parts[5]);
-      const found = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!found) {
-        await interaction.reply({ content: 'لايوجد شخص بهذا الرقم الوطني', ephemeral: true });
-        return;
-      }
-      try {
-        const cardWidth = 600;
-        const cardHeight = 400;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, 0, cardWidth, 60);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, cardHeight - 50, cardWidth, 50);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('المخالفات', cardWidth / 2, 35);
-        const user = await client.users.fetch(found.userId).catch(() => null);
-        const avatarURL = user ? user.displayAvatarURL({ extension: 'png', size: 256 }) : null;
-        if (avatarURL) {
-          const avatar = await loadImage(avatarURL);
-          const avatarSize = 100;
-          const avatarX = 30;
-          const avatarY = 80;
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-        ctx.fillStyle = '#222';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(found.fullName, 150, 120);
-        const violations = found.violations || [];
-        const perPage = 3;
-        const totalPages = Math.ceil(violations.length / perPage);
-        const pageViolations = violations.slice((page-1)*perPage, page*perPage);
-        // إذا لا يوجد مخالفات في هذه الصفحة
-        if (pageViolations.length === 0) {
-          ctx.font = 'bold 32px Arial';
-          ctx.fillStyle = '#ff0000';
-          ctx.textAlign = 'center';
-          ctx.fillText('لايوجد مخالفات في هذه الصفحة', cardWidth/2, cardHeight/2);
-          ctx.fillStyle = '#fbbf24';
-          ctx.beginPath();
-          ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 14px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('MDT', 50, cardHeight - 75);
-          const buffer = canvas.toBuffer('image/png');
-          const embed = new EmbedBuilder()
-            .setTitle(`مخالفات الشخص (صفحة ${page})`)
-            .setDescription(`**الاسم:** ${found.fullName}\n**عدد المخالفات:** ${violations.length}`)
-            .setColor('#ff0000')
-            .setImage('attachment://violations_card.png');
-          await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], ephemeral: true });
-          return;
-        }
-        // رسم مربعات المخالفات (حتى 3)
-        for (let i = 0; i < pageViolations.length; i++) {
-          const v = pageViolations[i];
-          const y = 160 + i*90;
-          const boxHeight = (i === 2) ? 45 : 80;
-          const boxBg = v.status === 'مسددة' ? '#d1fae5' : '#fee2e2';
-          ctx.fillStyle = boxBg;
-          ctx.strokeStyle = '#1e3a8a';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.roundRect(150, y, 400, boxHeight, 15);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = '#1e3a8a';
-          ctx.font = 'bold 18px Arial';
-          ctx.fillText(v.name, 170, y+25);
-          ctx.font = '16px Arial';
-          ctx.fillStyle = v.status === 'مسددة' ? '#00ff00' : '#ff0000';
-          ctx.fillText(v.status, 170, y+boxHeight-10);
-          ctx.font = '14px Arial';
-          ctx.fillStyle = '#222';
-          ctx.fillText(v.desc || '', 350, y+25);
-        }
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('MDT', 50, cardHeight - 75);
-        const buffer = canvas.toBuffer('image/png');
-        const customImage = guildSettings[interaction.guildId]?.customEmbedImage;
-        const embed = new EmbedBuilder()
-          .setTitle(`مخالفات الشخص (صفحة ${page})`)
-          .setDescription(`**الاسم:** ${found.fullName}\n**عدد المخالفات:** ${violations.length}\n\n${pageViolations.map(v => `- ${v.name}: ${v.status}`).join('\n')}`)
-          .setColor('#ff0000')
-          .setImage('attachment://violations_card.png');
-        if (customImage) embed.setThumbnail(customImage);
-        // زر رؤية المزيد إذا كان هناك صفحات أخرى
-        let components = [];
-        if (page < totalPages) {
-          const moreRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId(`police_violations_next_page_${found.userId}_${page+1}`)
-              .setLabel('رؤية المزيد')
-              .setStyle(ButtonStyle.Primary)
-          );
-          components = [moreRow];
-        }
-        await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'violations_card.png' }], components, ephemeral: true });
-      } catch (err) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة المخالفات.', ephemeral: true });
-      }
-      return;
-    }
-    // معالجة مودال إدارة النظام (بحث عن شخص)
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_system_admin_search_person') {
-      const value = interaction.fields.getTextInputValue('input_system_admin_search_person').trim();
-      // بحث بالاسم الكامل أو الرقم الوطني
-      let found = null;
-      if (/^\d+$/.test(value)) {
-        found = identities.find(i => i.nationalId === value && i.guildId === interaction.guildId);
-    } else {
-        found = identities.find(i => i.fullName === value && i.guildId === interaction.guildId);
-      }
-      if (!found) {
-        await interaction.reply({ content: 'لايوجد شخص بهذا الاسم او الرقم الوطني هذا', ephemeral: true });
-      return;
-    }
-      // توليد صورة الهوية (مثل زر بطاقتي)
-      try {
-        console.log('بيانات الهوية:', found);
-        const user = await client.users.fetch(found.userId).catch(() => null);
-        const avatarURL = user ? user.displayAvatarURL({ extension: 'png', size: 256 }) : null;
-        console.log('avatarURL:', avatarURL);
-        const cardWidth = 600;
-        const cardHeight = 400;
-        const canvas = createCanvas(cardWidth, cardHeight);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, 0, cardWidth, 60);
-        ctx.fillStyle = '#1e3a8a';
-        ctx.fillRect(0, cardHeight - 50, cardWidth, 50);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('بطاقة الهوية الرسمية', cardWidth / 2, 35);
-        if (avatarURL) {
-          const avatar = await loadImage(avatarURL);
-          const avatarSize = 120;
-          const avatarX = 50;
-          const avatarY = 80;
-          ctx.fillStyle = '#e5e7eb';
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2 + 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2, true);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-        ctx.fillStyle = '#1f2937';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
-        const labels = [
-          { text: 'الاسم الكامل', y: 100 },
-          { text: 'المدينة', y: 140 },
-          { text: 'تاريخ الميلاد', y: 180 },
-          { text: 'الجنسية', y: 220 },
-          { text: 'رقم الهوية', y: 260 }
-        ];
-        labels.forEach(label => {
-          ctx.fillText(label.text, 280, label.y);
-        });
-        ctx.textAlign = 'left';
-        ctx.font = '16px Arial';
-        ctx.fillText(found.fullName, 300, 100);
-        ctx.fillText(found.city, 300, 140);
-        const monthNames = {
-          '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل', '5': 'مايو', '6': 'يونيو',
-          '7': 'يوليو', '8': 'أغسطس', '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
-        };
-        const birthTextAr = `${found.day} / ${monthNames[found.month] || found.month} / ${found.year}`;
-        ctx.fillText(birthTextAr, 300, 180);
-        const genderText = found.gender === 'male' ? 'ذكر' : 'أنثى';
-        ctx.fillText(genderText, 300, 220);
-        ctx.fillText(found.nationalId, 300, 260);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'right';
-        ctx.fillText('تاريخ الإصدار :', cardWidth - 20, cardHeight - 20);
-        ctx.textAlign = 'left';
-        ctx.fillText(birthTextAr, 20, cardHeight - 20);
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath();
-        ctx.arc(50, cardHeight - 80, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('MDT', 50, cardHeight - 75);
-        const buffer = canvas.toBuffer('image/png');
-        // أزرار الإدارة
-        const row1 = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId(`add_violation_${found.userId}`).setLabel('إضافة مخالفة').setStyle(ButtonStyle.Danger),
-          new ButtonBuilder().setCustomId(`add_crime_${found.userId}`).setLabel('إضافة جريمة').setStyle(ButtonStyle.Danger),
-          new ButtonBuilder().setCustomId(`delete_violation_${found.userId}`).setLabel('حذف مخالفة').setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId(`delete_crime_${found.userId}`).setLabel('حذف جريمة').setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId(`edit_violation_${found.userId}`).setLabel('تعديل مخالفة').setStyle(ButtonStyle.Primary)
-        );
-        const row2 = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId(`edit_crime_${found.userId}`).setLabel('تعديل جريمة').setStyle(ButtonStyle.Primary),
-          new ButtonBuilder().setCustomId(`add_evidence_${found.userId}`).setLabel('إضافة الأدلة').setStyle(ButtonStyle.Success),
-          new ButtonBuilder().setCustomId(`view_evidence_details_${found.userId}`).setLabel('رؤية التفاصيل').setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId(`delete_evidence_${found.userId}`).setLabel('حذف الأدلة').setStyle(ButtonStyle.Danger)
-        );
-        const embed = new EmbedBuilder()
-          .setTitle('هوية الشخص')
-          .setDescription(`**الاسم:** ${found.fullName}\n**المدينة:** ${found.city}\n**تاريخ الميلاد:** ${birthTextAr}\n**الجنس:** ${genderText}\n**رقم الهوية:** ${found.nationalId}`)
-          .setColor('#00ff00')
-          .setImage('attachment://id_card.png');
-        await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'id_card.png' }], components: [row1, row2], ephemeral: true });
-      } catch (e) {
-        console.error('❌ خطأ أثناء توليد صورة الهوية:', e);
-        await interaction.reply({ content: '❌ حدث خطأ أثناء توليد صورة الهوية: ' + e.message, ephemeral: true });
-      }
-    }
-    // زر حذف الأدلة - فقط لمسؤول الشرطة
-if (interaction.isButton() && interaction.customId.startsWith('delete_evidence_')) {
-  if (!hasPoliceAdminRole(interaction.member, interaction.guildId)) {
-    await interaction.reply({ content: '❌ هذا الزر مخصص فقط لمسؤول الشرطة.', ephemeral: true });
-    return;
-  }
-  const userId = interaction.customId.replace('delete_evidence_', '');
-  const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-  if (!identity || !identity.crimes) {
-    await interaction.reply({ content: 'لا توجد جرائم لهذا الشخص.', ephemeral: true });
-    return;
-  }
-  const crimesWithEvidence = identity.crimes.filter(c => Array.isArray(c.evidence) && c.evidence.length > 0);
-  if (crimesWithEvidence.length === 0) {
-    await interaction.reply({ content: 'لا توجد جرائم تحتوي على أدلة.', ephemeral: true });
-    return;
-  }
-  const page = 1;
-  const pageSize = 23;
-  const totalPages = Math.ceil(crimesWithEvidence.length / pageSize);
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const pageCrimes = crimesWithEvidence.slice(start, end);
-  const options = pageCrimes.map((c, idx) => ({
-    label: `${c.title} - ${c.desc || ''}`.slice(0, 90),
-    value: `delete_evidence_crime_${c.id}_${userId}_${page}`
-  }));
-  if (totalPages > 1) {
-    options.push({ label: 'رؤية المزيد', value: `delete_evidence_more_${userId}_${page+1}` });
-  }
-  const selectMenu = new StringSelectMenuBuilder()
-    .setCustomId(`delete_evidence_select_${userId}_${page}`)
-    .setPlaceholder('اختر جريمة لحذف دليل منها')
-    .addOptions(options);
-  const row = new ActionRowBuilder().addComponents(selectMenu);
-  const embed = new EmbedBuilder()
-    .setTitle('حذف الأدلة')
-    .setDescription('اختر جريمة من القائمة أدناه لحذف دليل منها')
-    .setColor('#ff0000');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-// صفحات حذف الأدلة
-if (interaction.isStringSelectMenu() && interaction.customId.startsWith('delete_evidence_select_') && interaction.values[0].startsWith('delete_evidence_more_')) {
-  const parts = interaction.values[0].split('_');
-  const userId = parts[3];
-  const page = parseInt(parts[4]);
-  const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-  if (!identity || !identity.crimes) {
-    await interaction.reply({ content: 'لا توجد جرائم لهذا الشخص.', ephemeral: true });
-        return;
-      }
-  const crimesWithEvidence = identity.crimes.filter(c => Array.isArray(c.evidence) && c.evidence.length > 0);
-  if (crimesWithEvidence.length === 0) {
-    await interaction.reply({ content: 'لا توجد جرائم تحتوي على أدلة.', ephemeral: true });
-    return;
-  }
-  const pageSize = 23;
-  const totalPages = Math.ceil(crimesWithEvidence.length / pageSize);
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const pageCrimes = crimesWithEvidence.slice(start, end);
-  const options = pageCrimes.map((c, idx) => ({
-    label: `${c.title} - ${c.desc || ''}`.slice(0, 90),
-    value: `delete_evidence_crime_${c.id}_${userId}_${page}`
-  }));
-  if (page < totalPages) {
-    options.push({ label: 'رؤية المزيد', value: `delete_evidence_more_${userId}_${page+1}` });
-  }
-      const selectMenu = new StringSelectMenuBuilder()
-    .setCustomId(`delete_evidence_select_${userId}_${page}`)
-    .setPlaceholder('اختر جريمة لحذف دليل منها')
-    .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-    .setTitle('حذف الأدلة')
-    .setDescription('اختر جريمة من القائمة أدناه لحذف دليل منها')
-    .setColor('#ff0000');
-  await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-
-// عند اختيار جريمة لحذف دليل منها
-if (interaction.isStringSelectMenu() && interaction.customId.startsWith('delete_evidence_select_') && interaction.values[0].startsWith('delete_evidence_crime_')) {
-  const parts = interaction.values[0].split('_');
-  const crimeId = parts[3];
-  const userId = parts[4];
-  const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-  const c = identity && identity.crimes ? identity.crimes.find(cc => cc.id === crimeId) : null;
-  if (!identity || !c || !Array.isArray(c.evidence) || c.evidence.length === 0) {
-    await interaction.reply({ content: 'تعذر العثور على الجريمة أو لا يوجد أدلة.', ephemeral: true });
-        return;
-      }
-  // قائمة الأدلة
-  const options = c.evidence.map((url, idx) => ({
-    label: `دليل ${idx+1}`,
-    value: `delete_evidence_url_${crimeId}_${userId}_${idx}`
-  }));
-  const selectMenu = new StringSelectMenuBuilder()
-    .setCustomId(`delete_evidence_url_select_${crimeId}_${userId}`)
-    .setPlaceholder('اختر الدليل الذي تريد حذفه')
-    .addOptions(options);
-  const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-    .setTitle('حذف دليل محدد')
-    .setDescription(`**العنوان:** ${c.title}\n**الوصف:** ${c.desc || ''}\n**الحالة:** ${c.done ? 'منفذة' : 'غير منفذة'}`)
-    .setColor('#ff0000');
-  if (c.evidence[0]) embed.setImage(c.evidence[0]);
-  embed.addFields({ name: 'روابط الأدلة', value: c.evidence.map((url, i) => `[دليل ${i+1}](${url})`).join('\n') });
-  await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-  return;
+export class AutocompleteInteraction<Cached extends CacheType = CacheType> extends BaseInteraction<Cached> {
+  public type: InteractionType.ApplicationCommandAutocomplete;
+  public get command(): ApplicationCommand | ApplicationCommand<{ guild: GuildResolvable }> | null;
+  public channelId: Snowflake;
+  public commandId: Snowflake;
+  public commandName: string;
+  public commandType: ApplicationCommandType.ChatInput;
+  public commandGuildId: Snowflake | null;
+  public responded: boolean;
+  public options: Omit<
+    CommandInteractionOptionResolver<Cached>,
+    'getMessage' | 'getUser' | 'getAttachment' | 'getChannel' | 'getMember' | 'getMentionable' | 'getRole'
+  >;
+  public inGuild(): this is AutocompleteInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is AutocompleteInteraction<'cached'>;
+  public inRawGuild(): this is AutocompleteInteraction<'raw'>;
+  public respond(options: readonly ApplicationCommandOptionChoiceData[]): Promise<void>;
 }
 
-// عند اختيار دليل معين للحذف
-if (interaction.isStringSelectMenu() && interaction.customId.startsWith('delete_evidence_url_select_')) {
-  const parts = interaction.values[0].split('_');
-  const crimeId = parts[3];
-  const userId = parts[4];
-  const evidenceIdx = parseInt(parts[5]);
-  const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-  const c = identity && identity.crimes ? identity.crimes.find(cc => cc.id === crimeId) : null;
-  if (!identity || !c || !Array.isArray(c.evidence) || c.evidence.length <= evidenceIdx) {
-    await interaction.reply({ content: 'تعذر العثور على الدليل.', ephemeral: true });
-    return;
-  }
-  const embed = new EmbedBuilder()
-    .setTitle('تأكيد حذف الدليل المحدد')
-    .setDescription(`**العنوان:** ${c.title}\n**الوصف:** ${c.desc || ''}\n**الحالة:** ${c.done ? 'منفذة' : 'غير منفذة'}`)
-    .setColor('#ff0000');
-  embed.addFields({ name: 'رابط الدليل', value: `[دليل ${evidenceIdx+1}](${c.evidence[evidenceIdx]})` });
-  embed.setImage(c.evidence[evidenceIdx]);
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`confirm_delete_evidence_url_${userId}_${crimeId}_${evidenceIdx}`).setLabel('تأكيد حذف الدليل').setStyle(ButtonStyle.Danger)
+export class CommandInteractionOptionResolver<Cached extends CacheType = CacheType> {
+  private constructor(
+    client: Client<true>,
+    options: readonly CommandInteractionOption[],
+    resolved: CommandInteractionResolvedData,
   );
-  await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-  return;
+  public readonly client: Client;
+  public readonly data: readonly CommandInteractionOption<Cached>[];
+  public readonly resolved: Readonly<CommandInteractionResolvedData<Cached>> | null;
+  private _group: string | null;
+  private _hoistedOptions: CommandInteractionOption<Cached>[];
+  private _subcommand: string | null;
+  private _getTypedOption(
+    name: string,
+    allowedTypes: readonly ApplicationCommandOptionType[],
+    properties: readonly (keyof ApplicationCommandOption)[],
+    required: true,
+  ): CommandInteractionOption<Cached>;
+  private _getTypedOption(
+    name: string,
+    allowedTypes: readonly ApplicationCommandOptionType[],
+    properties: readonly (keyof ApplicationCommandOption)[],
+    required: boolean,
+  ): CommandInteractionOption<Cached> | null;
+
+  public get(name: string, required: true): CommandInteractionOption<Cached>;
+  public get(name: string, required?: boolean): CommandInteractionOption<Cached> | null;
+
+  public getSubcommand(required?: true): string;
+  public getSubcommand(required: boolean): string | null;
+  public getSubcommandGroup(required: true): string;
+  public getSubcommandGroup(required?: boolean): string | null;
+  public getBoolean(name: string, required: true): boolean;
+  public getBoolean(name: string, required?: boolean): boolean | null;
+  /**
+   * @privateRemarks
+   * The ternary in the return type is required.
+   * The `type` property of the {@link PublicThreadChannel} interface is typed as `ChannelType.PublicThread | ChannelType.AnnouncementThread`.
+   * If the user were to pass only one of those channel types, the `Extract<>` would resolve to `never`.
+   */
+  public getChannel<const Type extends ChannelType = ChannelType>(
+    name: string,
+    required: true,
+    channelTypes?: readonly Type[],
+  ): Extract<
+    NonNullable<CommandInteractionOption<Cached>['channel']>,
+    {
+      type: Type extends ChannelType.PublicThread | ChannelType.AnnouncementThread
+        ? ChannelType.PublicThread | ChannelType.AnnouncementThread
+        : Type;
+    }
+  >;
+  /**
+   * @privateRemarks
+   * The ternary in the return type is required.
+   * The `type` property of the {@link PublicThreadChannel} interface is typed as `ChannelType.PublicThread | ChannelType.AnnouncementThread`.
+   * If the user were to pass only one of those channel types, the `Extract<>` would resolve to `never`.
+   */
+  public getChannel<const Type extends ChannelType = ChannelType>(
+    name: string,
+    required?: boolean,
+    channelTypes?: readonly Type[],
+  ): Extract<
+    NonNullable<CommandInteractionOption<Cached>['channel']>,
+    {
+      type: Type extends ChannelType.PublicThread | ChannelType.AnnouncementThread
+        ? ChannelType.PublicThread | ChannelType.AnnouncementThread
+        : Type;
+    }
+  > | null;
+  public getString(name: string, required: true): string;
+  public getString(name: string, required?: boolean): string | null;
+  public getInteger(name: string, required: true): number;
+  public getInteger(name: string, required?: boolean): number | null;
+  public getNumber(name: string, required: true): number;
+  public getNumber(name: string, required?: boolean): number | null;
+  public getUser(name: string, required: true): NonNullable<CommandInteractionOption<Cached>['user']>;
+  public getUser(name: string, required?: boolean): NonNullable<CommandInteractionOption<Cached>['user']> | null;
+  public getMember(name: string): NonNullable<CommandInteractionOption<Cached>['member']> | null;
+  public getRole(name: string, required: true): NonNullable<CommandInteractionOption<Cached>['role']>;
+  public getRole(name: string, required?: boolean): NonNullable<CommandInteractionOption<Cached>['role']> | null;
+  public getAttachment(name: string, required: true): NonNullable<CommandInteractionOption<Cached>['attachment']>;
+  public getAttachment(
+    name: string,
+    required?: boolean,
+  ): NonNullable<CommandInteractionOption<Cached>['attachment']> | null;
+  public getMentionable(
+    name: string,
+    required: true,
+  ): NonNullable<CommandInteractionOption<Cached>['member' | 'role' | 'user']>;
+  public getMentionable(
+    name: string,
+    required?: boolean,
+  ): NonNullable<CommandInteractionOption<Cached>['member' | 'role' | 'user']> | null;
+  public getMessage(name: string, required: true): NonNullable<CommandInteractionOption<Cached>['message']>;
+  public getMessage(name: string, required?: boolean): NonNullable<CommandInteractionOption<Cached>['message']> | null;
+  public getFocused(getFull: true): AutocompleteFocusedOption;
+  public getFocused(getFull?: boolean): string;
 }
 
-// عند تأكيد حذف الدليل المحدد
-if (interaction.isButton() && interaction.customId.startsWith('confirm_delete_evidence_url_')) {
-  if (!hasPoliceAdminRole(interaction.member, interaction.guildId)) {
-    await interaction.reply({ content: '❌ هذا الزر مخصص فقط لمسؤول الشرطة.', ephemeral: true });
-    return;
-  }
-  const parts = interaction.customId.split('_');
-  const userId = parts[4];
-  const crimeId = parts[5];
-  const evidenceIdx = parseInt(parts[6]);
-  const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-  const c = identity && identity.crimes ? identity.crimes.find(cc => cc.id === crimeId) : null;
-  if (!identity || !c || !Array.isArray(c.evidence) || c.evidence.length <= evidenceIdx) {
-    await interaction.reply({ content: 'تعذر العثور على الدليل.', ephemeral: true });
-    return;
-  }
-  const removedUrl = c.evidence.splice(evidenceIdx, 1)[0];
-  saveAllData();
-  // إرسال لوق في روم اللوق
-  const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-  if (logChannelId) {
-    try {
-      const logChannel = interaction.guild.channels.cache.get(logChannelId);
-      if (logChannel) {
-        const logEmbed = new EmbedBuilder()
-          .setTitle('🗑️ حذف دليل')
-          .setDescription(`**تم حذف دليل بواسطة:** <@${interaction.user.id}>\n**للمستخدم:** <@${identity.userId}>\n**العنوان:** ${c.title}\n**رابط الدليل المحذوف:** ${removedUrl}`)
-          .setColor('#ff0000')
-          .setTimestamp();
-        await logChannel.send({ embeds: [logEmbed] });
-      }
-    } catch (e) { /* تجاهل الخطأ */ }
-  }
-  await interaction.reply({ content: '✅ تم حذف الدليل بنجاح!', ephemeral: true });
-  return;
+export class ContextMenuCommandInteraction<Cached extends CacheType = CacheType> extends CommandInteraction<Cached> {
+  public options: Omit<
+    CommandInteractionOptionResolver<Cached>,
+    | 'getMessage'
+    | 'getFocused'
+    | 'getMentionable'
+    | 'getRole'
+    | 'getUser'
+    | 'getMember'
+    | 'getAttachment'
+    | 'getNumber'
+    | 'getInteger'
+    | 'getString'
+    | 'getChannel'
+    | 'getBoolean'
+    | 'getSubcommandGroup'
+    | 'getSubcommand'
+  >;
+  public commandType: ApplicationCommandType.Message | ApplicationCommandType.User;
+  public targetId: Snowflake;
+  public inGuild(): this is ContextMenuCommandInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is ContextMenuCommandInteraction<'cached'>;
+  public inRawGuild(): this is ContextMenuCommandInteraction<'raw'>;
+  private resolveContextMenuOptions(data: APIApplicationCommandInteractionData): CommandInteractionOption<Cached>[];
 }
-    // عند الضغط على زر إضافة مخالفة في إدارة النظام
-    if (interaction.isButton() && interaction.customId.startsWith('add_violation_')) {
-      const userId = interaction.customId.replace('add_violation_', '');
-      // قائمة 24 عنوان مخالفة مرورية
-      const violationTitles = [
-        'تجاوز السرعة المحددة',
-        'قطع إشارة المرور',
-        'الوقوف الخاطئ',
-        'عدم ربط حزام الأمان',
-        'استخدام الجوال أثناء القيادة',
-        'قيادة بدون رخصة',
-        'انتهاء استمارة السيارة',
-        'عدم وجود تأمين',
-        'التفحيط',
-        'التجاوز الخاطئ',
-        'عدم إعطاء الأفضلية',
-        'القيادة عكس السير',
-        'عدم استخدام الإشارات',
-        'الضوضاء المفرطة',
-        'تحميل ركاب زيادة',
-        'عدم وجود لوحات',
-        'تظليل غير نظامي',
-        'عدم وجود طفاية حريق',
-        'عدم وجود مثلث عاكس',
-        'عدم وجود إسعافات أولية',
-        'عدم صلاحية الإطارات',
-        'عدم وجود إنارة كافية',
-        'عدم وجود مرايا جانبية',
-        'عدم وجود مساحات زجاج'
-      ];
-      // قائمة منسدلة
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`select_violation_title_${userId}`)
-        .setPlaceholder('اختر عنوان المخالفة')
-        .addOptions(
-          violationTitles.map((title, idx) => ({ label: title, value: `violation_${idx}` }))
-        );
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('إضافة مخالفة مرورية')
-        .setDescription('اختر عنوان المخالفة المرورية من القائمة أدناه:')
-        .setColor('#ff0000');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند اختيار عنوان المخالفة من القائمة المنسدلة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('select_violation_title_')) {
-      const userId = interaction.customId.replace('select_violation_title_', '');
-      const idx = parseInt(interaction.values[0].replace('violation_', ''));
-      // نفس العناوين
-      const violationTitles = [
-        'تجاوز السرعة المحددة',
-        'قطع إشارة المرور',
-        'الوقوف الخاطئ',
-        'عدم ربط حزام الأمان',
-        'استخدام الجوال أثناء القيادة',
-        'قيادة بدون رخصة',
-        'انتهاء استمارة السيارة',
-        'عدم وجود تأمين',
-        'التفحيط',
-        'التجاوز الخاطئ',
-        'عدم إعطاء الأفضلية',
-        'القيادة عكس السير',
-        'عدم استخدام الإشارات',
-        'الضوضاء المفرطة',
-        'تحميل ركاب زيادة',
-        'عدم وجود لوحات',
-        'تظليل غير نظامي',
-        'عدم وجود طفاية حريق',
-        'عدم وجود مثلث عاكس',
-        'عدم وجود إسعافات أولية',
-        'عدم صلاحية الإطارات',
-        'عدم وجود إنارة كافية',
-        'عدم وجود مرايا جانبية',
-        'عدم وجود مساحات زجاج'
-      ];
-      const selectedTitle = violationTitles[idx] || 'مخالفة مرورية';
-      // مودال وصف المخالفة
-      const modal = new ModalBuilder()
-        .setCustomId(`modal_violation_desc_${userId}_${idx}`)
-        .setTitle('وصف المخالفة');
-      const input = new TextInputBuilder()
-        .setCustomId('input_violation_desc')
-        .setLabel('وصف المخالفة')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('اكتب وصف المخالفة (أحرف فقط)')
-        .setRequired(true)
-        .setMaxLength(25);
-      const row = new ActionRowBuilder().addComponents(input);
-      modal.addComponents(row);
-      await interaction.showModal(modal);
-      return;
-    }
-    // عند حفظ مودال إضافة المخالفة
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_violation_desc_')) {
-      console.log('تم استقبال مودال إضافة المخالفة:', interaction.customId);
-      // استخراج userId وidx
-      const parts = interaction.customId.split('_');
-      const userId = parts[3];
-      const idx = parseInt(parts[4]);
-      // نفس عناوين المخالفات
-      const violationTitles = [
-        'تجاوز السرعة المحددة',
-        'قطع إشارة المرور',
-        'الوقوف الخاطئ',
-        'عدم ربط حزام الأمان',
-        'استخدام الجوال أثناء القيادة',
-        'قيادة بدون رخصة',
-        'انتهاء استمارة السيارة',
-        'عدم وجود تأمين',
-        'التفحيط',
-        'التجاوز الخاطئ',
-        'عدم إعطاء الأفضلية',
-        'القيادة عكس السير',
-        'عدم استخدام الإشارات',
-        'الضوضاء المفرطة',
-        'تحميل ركاب زيادة',
-        'عدم وجود لوحات',
-        'تظليل غير نظامي',
-        'عدم وجود طفاية حريق',
-        'عدم وجود مثلث عاكس',
-        'عدم وجود إسعافات أولية',
-        'عدم صلاحية الإطارات',
-        'عدم وجود إنارة كافية',
-        'عدم وجود مرايا جانبية',
-        'عدم وجود مساحات زجاج'
-      ];
-      const selectedTitle = violationTitles[idx] || 'مخالفة مرورية';
-      const desc = interaction.fields.getTextInputValue('input_violation_desc').trim();
-      // أضف المخالفة إلى بيانات الشخص
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الشخص.', ephemeral: true });
-        return;
-      }
-      if (!identity.violations) identity.violations = [];
-      identity.violations.push({ id: Date.now().toString() + Math.random().toString().slice(2,8), name: selectedTitle, desc: desc, status: 'غير مسددة' });
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('📝 إضافة مخالفة')
-              .setDescription(`**تمت إضافة مخالفة بواسطة:** <@${interaction.user.id}>\n**للمستخدم:** <@${identity.userId}>\n**العنوان:** ${selectedTitle}\n**الوصف:** ${desc}`)
-              .setColor('#ff0000')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: `✅ تم إضافة المخالفة (${selectedTitle}) بنجاح!`, ephemeral: true });
-      return;
-    }
-    // عند الضغط على زر تعديل مخالفة في إدارة النظام
-if (interaction.isButton() && interaction.customId.startsWith('edit_violation_')) {
-  if (!hasPoliceAdminRole(interaction.member, interaction.guildId)) {
-    await interaction.reply({ content: '❌ هذا الزر مخصص فقط لمسؤول الشرطة.', ephemeral: true });
-    return;
-  }
-  const userId = interaction.customId.replace('edit_violation_', '');
-      const page = 1;
-  const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-  if (!identity || !identity.violations || identity.violations.length === 0) {
-    await interaction.reply({ content: 'لا توجد مخالفات لهذا الشخص.', ephemeral: true });
-    return;
-  }
-  const pageSize = 23;
-  const totalPages = Math.ceil(identity.violations.length / pageSize);
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const pageViolations = identity.violations.slice(start, end);
-  const options = pageViolations.map((v, idx) => ({
-    label: `${v.name} - ${v.desc || ''}`.slice(0, 90),
-    value: `edit_violation_${v.id}_${userId}_${page}`
-  }));
-  if (totalPages > 1) {
-    options.push({ label: 'رؤية المزيد', value: `edit_violation_more_${userId}_${page+1}` });
-  }
-  const selectMenu = new StringSelectMenuBuilder()
-    .setCustomId(`edit_violation_select_${userId}_${page}`)
-    .setPlaceholder('اختر مخالفة لتعديلها')
-    .addOptions(options);
-  const row = new ActionRowBuilder().addComponents(selectMenu);
-  const embed = new EmbedBuilder()
-    .setTitle('تعديل مخالفة')
-    .setDescription('اختر مخالفة من القائمة أدناه لتعديلها')
-    .setColor('#fbbf24');
-  await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-  return;
+
+export class PrimaryEntryPointCommandInteraction<
+  Cached extends CacheType = CacheType,
+> extends CommandInteraction<Cached> {
+  public commandType: ApplicationCommandType.PrimaryEntryPoint;
+  public inGuild(): this is PrimaryEntryPointCommandInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is PrimaryEntryPointCommandInteraction<'cached'>;
+  public inRawGuild(): this is PrimaryEntryPointCommandInteraction<'raw'>;
 }
-    // عند اختيار رؤية المزيد في قائمة تعديل المخالفة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('edit_violation_select_') && interaction.values[0].startsWith('edit_violation_more_')) {
-      const parts = interaction.values[0].split('_');
-      const userId = parts[3];
-      const page = parseInt(parts[4]);
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity || !identity.violations || identity.violations.length === 0) {
-        await interaction.reply({ content: 'لا توجد مخالفات لهذا الشخص.', ephemeral: true });
-        return;
-      }
-      const pageSize = 23;
-      const totalPages = Math.ceil(identity.violations.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageViolations = identity.violations.slice(start, end);
-      const options = pageViolations.map((v, idx) => ({
-        label: `${v.name} - ${v.desc || ''}`.slice(0, 90),
-        value: `edit_violation_${v.id}_${userId}_${page}`
-      }));
-      if (page < totalPages) {
-        options.push({ label: 'رؤية المزيد', value: `edit_violation_more_${userId}_${page+1}` });
-      }
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`edit_violation_select_${userId}_${page}`)
-        .setPlaceholder('اختر مخالفة لتعديل حالتها')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('تعديل حالة مخالفة')
-        .setDescription('اختر مخالفة من القائمة أدناه لتعديل حالتها (مسددة/غير مسددة)')
-        .setColor('#fbbf24');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند اختيار مخالفة من القائمة المنسدلة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('edit_violation_select_') && interaction.values[0].startsWith('edit_violation_')) {
-      const parts = interaction.values[0].split('_');
-      const violationId = parts[2];
-      const userId = parts[3];
-      const page = parseInt(parts[4]);
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      const idx = identity && identity.violations ? identity.violations.findIndex(v => v.id === violationId) : -1;
-      if (!identity || !identity.violations || idx === -1) {
-        await interaction.reply({ content: 'تعذر العثور على المخالفة.', ephemeral: true });
-        return;
-      }
-      // أزرار مسددة/غير مسددة مع id
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`set_violation_status_${userId}_${violationId}_paid`).setLabel('مسددة').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId(`set_violation_status_${userId}_${violationId}_unpaid`).setLabel('غير مسددة').setStyle(ButtonStyle.Danger)
-      );
-      const embed = new EmbedBuilder()
-        .setTitle('تعديل حالة المخالفة')
-        .setDescription(`**العنوان:** ${identity.violations[idx].name}\n**الوصف:** ${identity.violations[idx].desc || ''}\n**الحالة الحالية:** ${identity.violations[idx].status}`)
-        .setColor('#fbbf24');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند الضغط على زر مسددة/غير مسددة
-    if (interaction.isButton() && interaction.customId.startsWith('set_violation_status_')) {
-      const parts = interaction.customId.split('_');
-      const userId = parts[3];
-      const violationId = parts[4];
-      const status = parts[5] === 'paid' ? 'مسددة' : 'غير مسددة';
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      console.log('جميع ids:', identity && identity.violations ? identity.violations.map(v => v.id) : []);
-      console.log('violationId المطلوب:', violationId);
-      const idx = identity && identity.violations ? identity.violations.findIndex(v => v.id === violationId) : -1;
-      if (!identity || !identity.violations || idx === -1) {
-        await interaction.reply({ content: 'تعذر العثور على المخالفة.', ephemeral: true });
-        return;
-      }
-      identity.violations[idx].status = status;
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('✏️ تعديل حالة مخالفة')
-              .setDescription(`**تم تعديل حالة مخالفة بواسطة:** <@${interaction.user.id}>\n**للمستخدم:** <@${identity.userId}>\n**العنوان:** ${identity.violations[idx].name}\n**الوصف:** ${identity.violations[idx].desc || ''}\n**الحالة الجديدة:** ${status}`)
-              .setColor(status === 'مسددة' ? '#00ff00' : '#ff0000')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      // تحديث الرسالة مع تعطيل الأزرار
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`set_violation_status_${userId}_${violationId}_paid`).setLabel('مسددة').setStyle(ButtonStyle.Success).setDisabled(true),
-        new ButtonBuilder().setCustomId(`set_violation_status_${userId}_${violationId}_unpaid`).setLabel('غير مسددة').setStyle(ButtonStyle.Danger).setDisabled(true)
-      );
-          const embed = new EmbedBuilder()
-        .setTitle('تعديل حالة المخالفة')
-        .setDescription(`**العنوان:** ${identity.violations[idx].name}\n**الوصف:** ${identity.violations[idx].desc || ''}\n**الحالة الجديدة:** ${status}`)
-        .setColor(status === 'مسددة' ? '#00ff00' : '#ff0000');
-      await interaction.update({ embeds: [embed], components: [row] });
-      return;
-    }
-    // عند الضغط على زر إضافة جريمة في إدارة النظام
-    if (interaction.isButton() && interaction.customId.startsWith('add_crime_')) {
-      const userId = interaction.customId.replace('add_crime_', '');
-      // قائمة 24 عنوان جريمة جنائية
-      const crimeTitles = [
-        'القتل العمد',
-        'السرقة المسلحة',
-        'السطو المسلح',
-        'الخطف',
-        'الاتجار بالمخدرات',
-        'حيازة سلاح غير مرخص',
-        'الاعتداء الجسدي',
-        'التهديد بالقتل',
-        'الاحتيال المالي',
-        'الرشوة',
-        'التزوير',
-        'الهروب من العدالة',
-        'إطلاق نار في الأماكن العامة',
-        'تخريب الممتلكات العامة',
-        'التحرش الجنسي',
-        'الابتزاز',
-        'التحريض على العنف',
-        'غسيل الأموال',
-        'التهريب',
-        'الاعتداء على موظف حكومي',
-        'إعاقة عمل الشرطة',
-        'إخفاء أدلة',
-        'الفرار من موقع الحادث',
-        'التجمع غير القانوني'
-      ];
-      // قائمة منسدلة
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`select_crime_title_${userId}`)
-        .setPlaceholder('اختر عنوان الجريمة')
-        .addOptions(
-          crimeTitles.map((title, idx) => ({ label: title, value: `crime_${idx}` }))
-        );
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('إضافة جريمة جنائية')
-        .setDescription('اختر عنوان الجريمة الجنائية من القائمة أدناه:')
-        .setColor('#ff0000');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند اختيار عنوان الجريمة من القائمة المنسدلة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('select_crime_title_')) {
-      const userId = interaction.customId.replace('select_crime_title_', '');
-      const idx = parseInt(interaction.values[0].replace('crime_', ''));
-      // نفس عناوين الجرائم
-      const crimeTitles = [
-        'القتل العمد',
-        'السرقة المسلحة',
-        'السطو المسلح',
-        'الخطف',
-        'الاتجار بالمخدرات',
-        'حيازة سلاح غير مرخص',
-        'الاعتداء الجسدي',
-        'التهديد بالقتل',
-        'الاحتيال المالي',
-        'الرشوة',
-        'التزوير',
-        'الهروب من العدالة',
-        'إطلاق نار في الأماكن العامة',
-        'تخريب الممتلكات العامة',
-        'التحرش الجنسي',
-        'الابتزاز',
-        'التحريض على العنف',
-        'غسيل الأموال',
-        'التهريب',
-        'الاعتداء على موظف حكومي',
-        'إعاقة عمل الشرطة',
-        'إخفاء أدلة',
-        'الفرار من موقع الحادث',
-        'التجمع غير القانوني'
-      ];
-      const selectedTitle = crimeTitles[idx] || 'جريمة جنائية';
-      // مودال وصف الجريمة
-      const modal = new ModalBuilder()
-        .setCustomId(`modal_crime_desc_${userId}_${idx}`)
-        .setTitle('وصف الجريمة');
-      const input = new TextInputBuilder()
-        .setCustomId('input_crime_desc')
-        .setLabel('وصف الجريمة')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('اكتب وصف الجريمة (أحرف فقط)')
-        .setRequired(true)
-        .setMaxLength(30);
-      const row = new ActionRowBuilder().addComponents(input);
-      modal.addComponents(row);
-      await interaction.showModal(modal);
-      return;
-    }
-    // عند حفظ مودال إضافة الجريمة
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_crime_desc_')) {
-      // استخراج userId وidx
-      const parts = interaction.customId.split('_');
-      const userId = parts[3];
-      const idx = parseInt(parts[4]);
-      // نفس عناوين الجرائم
-      const crimeTitles = [
-        'القتل العمد',
-        'السرقة المسلحة',
-        'السطو المسلح',
-        'الخطف',
-        'الاتجار بالمخدرات',
-        'حيازة سلاح غير مرخص',
-        'الاعتداء الجسدي',
-        'التهديد بالقتل',
-        'الاحتيال المالي',
-        'الرشوة',
-        'التزوير',
-        'الهروب من العدالة',
-        'إطلاق نار في الأماكن العامة',
-        'تخريب الممتلكات العامة',
-        'التحرش الجنسي',
-        'الابتزاز',
-        'التحريض على العنف',
-        'غسيل الأموال',
-        'التهريب',
-        'الاعتداء على موظف حكومي',
-        'إعاقة عمل الشرطة',
-        'إخفاء أدلة',
-        'الفرار من موقع الحادث',
-        'التجمع غير القانوني'
-      ];
-      const selectedTitle = crimeTitles[idx] || 'جريمة جنائية';
-      const desc = interaction.fields.getTextInputValue('input_crime_desc').trim();
-      // أضف الجريمة إلى بيانات الشخص
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الشخص.', ephemeral: true });
-        return;
-      }
-      if (!identity.crimes) identity.crimes = [];
-      identity.crimes.push({ id: Date.now().toString() + Math.random().toString().slice(2,8), title: selectedTitle, desc: desc, done: false });
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('📝 إضافة جريمة')
-              .setDescription(`**تمت إضافة جريمة بواسطة:** <@${interaction.user.id}>\n**للمستخدم:** <@${identity.userId}>\n**العنوان:** ${selectedTitle}\n**الوصف:** ${desc}`)
-            .setColor('#ff0000')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: `✅ تم إضافة الجريمة (${selectedTitle}) بنجاح!`, ephemeral: true });
-          return;
-        }
-    // عند الضغط على زر إضافة جريمة في إدارة النظام
-    if (interaction.isButton() && interaction.customId.startsWith('add_crime_')) {
-      const userId = interaction.customId.replace('add_crime_', '');
-      // قائمة 24 عنوان جريمة جنائية
-      const crimeTitles = [
-        'القتل العمد',
-        'السرقة المسلحة',
-        'السطو المسلح',
-        'الخطف',
-        'الاتجار بالمخدرات',
-        'حيازة سلاح غير مرخص',
-        'الاعتداء الجسدي',
-        'التهديد بالقتل',
-        'الاحتيال المالي',
-        'الرشوة',
-        'التزوير',
-        'الهروب من العدالة',
-        'إطلاق نار في الأماكن العامة',
-        'تخريب الممتلكات العامة',
-        'التحرش الجنسي',
-        'الابتزاز',
-        'التحريض على العنف',
-        'غسيل الأموال',
-        'التهريب',
-        'الاعتداء على موظف حكومي',
-        'إعاقة عمل الشرطة',
-        'إخفاء أدلة',
-        'الفرار من موقع الحادث',
-        'التجمع غير القانوني'
-      ];
-      // قائمة منسدلة
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`select_crime_title_${userId}`)
-        .setPlaceholder('اختر عنوان الجريمة')
-        .addOptions(
-          crimeTitles.map((title, idx) => ({ label: title, value: `crime_${idx}` }))
-        );
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('إضافة جريمة جنائية')
-        .setDescription('اختر عنوان الجريمة الجنائية من القائمة أدناه:')
-        .setColor('#ff0000');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند اختيار عنوان الجريمة من القائمة المنسدلة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('select_crime_title_')) {
-      const userId = interaction.customId.replace('select_crime_title_', '');
-      const idx = parseInt(interaction.values[0].replace('crime_', ''));
-      // نفس عناوين الجرائم
-      const crimeTitles = [
-        'القتل العمد',
-        'السرقة المسلحة',
-        'السطو المسلح',
-        'الخطف',
-        'الاتجار بالمخدرات',
-        'حيازة سلاح غير مرخص',
-        'الاعتداء الجسدي',
-        'التهديد بالقتل',
-        'الاحتيال المالي',
-        'الرشوة',
-        'التزوير',
-        'الهروب من العدالة',
-        'إطلاق نار في الأماكن العامة',
-        'تخريب الممتلكات العامة',
-        'التحرش الجنسي',
-        'الابتزاز',
-        'التحريض على العنف',
-        'غسيل الأموال',
-        'التهريب',
-        'الاعتداء على موظف حكومي',
-        'إعاقة عمل الشرطة',
-        'إخفاء أدلة',
-        'الفرار من موقع الحادث',
-        'التجمع غير القانوني'
-      ];
-      const selectedTitle = crimeTitles[idx] || 'جريمة جنائية';
-      // مودال وصف الجريمة
-      const modal = new ModalBuilder()
-        .setCustomId(`modal_crime_desc_${userId}_${idx}`)
-        .setTitle('وصف الجريمة');
-      const input = new TextInputBuilder()
-        .setCustomId('input_crime_desc')
-        .setLabel('وصف الجريمة')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('اكتب وصف الجريمة (أحرف فقط)')
-        .setRequired(true)
-        .setMaxLength(30);
-      const row = new ActionRowBuilder().addComponents(input);
-      modal.addComponents(row);
-      await interaction.showModal(modal);
-      return;
-    }
-    // عند حفظ مودال إضافة الجريمة
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_crime_desc_')) {
-      // استخراج userId وidx
-      const parts = interaction.customId.split('_');
-      const userId = parts[3];
-      const idx = parseInt(parts[4]);
-      // نفس عناوين الجرائم
-      const crimeTitles = [
-        'القتل العمد',
-        'السرقة المسلحة',
-        'السطو المسلح',
-        'الخطف',
-        'الاتجار بالمخدرات',
-        'حيازة سلاح غير مرخص',
-        'الاعتداء الجسدي',
-        'التهديد بالقتل',
-        'الاحتيال المالي',
-        'الرشوة',
-        'التزوير',
-        'الهروب من العدالة',
-        'إطلاق نار في الأماكن العامة',
-        'تخريب الممتلكات العامة',
-        'التحرش الجنسي',
-        'الابتزاز',
-        'التحريض على العنف',
-        'غسيل الأموال',
-        'التهريب',
-        'الاعتداء على موظف حكومي',
-        'إعاقة عمل الشرطة',
-        'إخفاء أدلة',
-        'الفرار من موقع الحادث',
-        'التجمع غير القانوني'
-      ];
-      const selectedTitle = crimeTitles[idx] || 'جريمة جنائية';
-      const desc = interaction.fields.getTextInputValue('input_crime_desc').trim();
-      // أضف الجريمة إلى بيانات الشخص
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الشخص.', ephemeral: true });
-        return;
-      }
-      if (!identity.crimes) identity.crimes = [];
-      identity.crimes.push({ id: Date.now().toString() + Math.random().toString().slice(2,8), title: selectedTitle, desc: desc, done: false });
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('📝 إضافة جريمة')
-              .setDescription(`**تمت إضافة جريمة بواسطة:** <@${interaction.user.id}>\n**للمستخدم:** <@${identity.userId}>\n**العنوان:** ${selectedTitle}\n**الوصف:** ${desc}`)
-              .setColor('#ff0000')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: `✅ تم إضافة الجريمة (${selectedTitle}) بنجاح!`, ephemeral: true });
-      return;
-    }
-    // عند الضغط على زر إضافة مخالفة في إدارة النظام
-    if (interaction.isButton() && interaction.customId.startsWith('add_violation_')) {
-      const userId = interaction.customId.replace('add_violation_', '');
-      // قائمة 24 عنوان مخالفة مرورية
-      const violationTitles = [
-        'تجاوز السرعة المحددة',
-        'قطع إشارة المرور',
-        'الوقوف الخاطئ',
-        'عدم ربط حزام الأمان',
-        'استخدام الجوال أثناء القيادة',
-        'قيادة بدون رخصة',
-        'انتهاء استمارة السيارة',
-        'عدم وجود تأمين',
-        'التفحيط',
-        'التجاوز الخاطئ',
-        'عدم إعطاء الأفضلية',
-        'القيادة عكس السير',
-        'عدم استخدام الإشارات',
-        'الضوضاء المفرطة',
-        'تحميل ركاب زيادة',
-        'عدم وجود لوحات',
-        'تظليل غير نظامي',
-        'عدم وجود طفاية حريق',
-        'عدم وجود مثلث عاكس',
-        'عدم وجود إسعافات أولية',
-        'عدم صلاحية الإطارات',
-        'عدم وجود إنارة كافية',
-        'عدم وجود مرايا جانبية',
-        'عدم وجود مساحات زجاج'
-      ];
-      // قائمة منسدلة
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`select_violation_title_${userId}`)
-        .setPlaceholder('اختر عنوان المخالفة')
-        .addOptions(
-          violationTitles.map((title, idx) => ({ label: title, value: `violation_${idx}` }))
-        );
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('إضافة مخالفة مرورية')
-        .setDescription('اختر عنوان المخالفة المرورية من القائمة أدناه:')
-        .setColor('#ff0000');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند اختيار إيقاف | تشغيل البوت من قائمة المطور
-    if (interaction.isStringSelectMenu() && interaction.customId === 'dev_menu' && interaction.values[0] === 'toggle_bot_status') {
-      // تحقق من أن المستخدم مطور مصرح له
-      if (!isDeveloper(interaction.user.id)) {
-        await interaction.reply({ 
-          content: '❌ هذا الأمر مخصص فقط للمطورين المصرح لهم.', 
-          ephemeral: true 
-        });
-        return;
-      }
-      // جلب جميع السيرفرات التي يوجد فيها البوت
-      const guilds = client.guilds.cache.map(g => g);
-      const page = 1;
-      const pageSize = 23;
-      const totalPages = Math.ceil(guilds.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageGuilds = guilds.slice(start, end);
-      
-      // بناء الخيارات للقائمة المنسدلة
-      const options = pageGuilds.map(guild => ({
-        label: guild.name.slice(0, 90),
-        value: `toggle_bot_guild_${guild.id}_1`
-      }));
-      
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: `toggle_bot_guilds_more_${page + 1}` });
-      }
-      
-      const guildsMenu = new StringSelectMenuBuilder()
-        .setCustomId('toggle_bot_guilds_menu_1')
-        .setPlaceholder('اختر سيرفر...')
-        .addOptions(options);
-      
-      const row = new ActionRowBuilder().addComponents(guildsMenu);
-      
-      const embed = new EmbedBuilder()
-        .setTitle('إيقاف | تشغيل البوت')
-        .setDescription('اختر سيرفر لإيقاف أو تشغيل البوت فيه.')
-        .setColor('#00ff00');
-      
-      const components = addResetButton([row]);
-      try {
-        await interaction.reply({ embeds: [embed], components: components, ephemeral: true });
-      } catch (error) {
-        if (error.code === 10062) {
-          // التفاعل انتهت صلاحيته، إرسال رسالة جديدة
-          await interaction.followUp({ 
-            content: '✅ تم فتح قائمة السيرفرات بنجاح!', 
-            ephemeral: true 
-          });
-        } else {
-          console.error('خطأ في إرسال التفاعل:', error);
-        }
-      }
-      return;
-    }
 
-    // عند اختيار سيرفر لإيقاف | تشغيل البوت
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('toggle_bot_guilds_menu_') && interaction.values[0].startsWith('toggle_bot_guild_')) {
-      const guildId = interaction.values[0].replace('toggle_bot_guild_', '').split('_')[0];
-      const guild = client.guilds.cache.get(guildId);
-      
-      if (!guild) {
-        await interaction.reply({ content: '❌ لم يتم العثور على السيرفر.', ephemeral: true });
-        return;
-      }
-      
-      // جلب معلومات السيرفر
-      const memberCount = guild.memberCount;
-      const owner = await guild.fetchOwner().catch(() => null);
-      const invite = await guild.invites.fetch().then(invites => invites.first()?.url).catch(() => null);
-      const botStatus = getBotStatus();
-      
-      const embed = new EmbedBuilder()
-        .setTitle(`معلومات السيرفر: ${guild.name}`)
-        .setDescription(`معلومات مفصلة عن السيرفر وحالة البوت`)
-        .setColor('#00ff00')
-        .setThumbnail(guild.iconURL({ dynamic: true }))
-        .addFields(
-          { name: 'الاونر', value: owner ? `<@${owner.id}>` : 'غير متوفر', inline: true },
-          { name: 'عدد الأعضاء', value: `${memberCount}`, inline: true },
-          { name: 'ايدي السيرفر', value: guild.id, inline: true },
-          { name: 'حالة البوت', value: `${botStatus === 'online' ? '🟢 متصل' : '🔴 غير متصل'}`, inline: true },
-          { name: 'رابط السيرفر', value: invite || 'لا يوجد دعوة متاحة', inline: false }
-        );
-      
-      // زر إيقاف/تشغيل البوت
-      const toggleButton = new ButtonBuilder()
-        .setCustomId(`toggle_bot_status_${guildId}`)
-        .setLabel(botStatus === 'online' ? 'إيقاف البوت' : 'تشغيل البوت')
-        .setStyle(botStatus === 'online' ? ButtonStyle.Danger : ButtonStyle.Success);
-      
-      const row = new ActionRowBuilder().addComponents(toggleButton);
-      const components = addResetButton([row]);
-      
-      try {
-        await interaction.reply({ embeds: [embed], components: components, ephemeral: true });
-      } catch (error) {
-        if (error.code === 10062) {
-          // التفاعل انتهت صلاحيته، إرسال رسالة جديدة
-          await interaction.followUp({ 
-            content: '✅ تم فتح معلومات السيرفر بنجاح!', 
-            ephemeral: true 
-          });
-        } else {
-          console.error('خطأ في إرسال التفاعل:', error);
-        }
-      }
-      return;
-    }
+// tslint:disable-next-line no-empty-interface
+export interface DMChannel
+  extends Omit<
+    TextBasedChannelFields<false, true>,
+    'bulkDelete' | 'fetchWebhooks' | 'createWebhook' | 'setRateLimitPerUser' | 'setNSFW'
+  > {}
+export class DMChannel extends BaseChannel {
+  private constructor(client: Client<true>, data?: RawDMChannelData);
+  public flags: Readonly<ChannelFlagsBitField>;
+  public recipientId: Snowflake;
+  public get recipient(): User | null;
+  public type: ChannelType.DM;
+  public fetch(force?: boolean): Promise<this>;
+  public toString(): UserMention;
+}
 
-    // معالجة الصفحات لقائمة إيقاف | تشغيل البوت
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('toggle_bot_guilds_menu_') && interaction.values[0].startsWith('toggle_bot_guilds_more_')) {
-      const page = parseInt(interaction.values[0].replace('toggle_bot_guilds_more_', ''));
-      const guilds = client.guilds.cache.map(g => g);
-      const pageSize = 23;
-      const totalPages = Math.ceil(guilds.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageGuilds = guilds.slice(start, end);
-      
-      const options = pageGuilds.map(guild => ({
-        label: guild.name.slice(0, 90),
-        value: `toggle_bot_guild_${guild.id}_${page}`
-      }));
-      
-      if (page < totalPages) {
-        options.push({ label: 'رؤية المزيد', value: `toggle_bot_guilds_more_${page + 1}` });
-      }
-      
-      const guildsMenu = new StringSelectMenuBuilder()
-        .setCustomId(`toggle_bot_guilds_menu_${page}`)
-        .setPlaceholder('اختر سيرفر...')
-        .addOptions(options);
-      
-      const row = new ActionRowBuilder().addComponents(guildsMenu);
-      
-      const embed = new EmbedBuilder()
-        .setTitle('إيقاف | تشغيل البوت')
-        .setDescription(`اختر سيرفر لإيقاف أو تشغيل البوت فيه. (صفحة ${page})`)
-        .setColor('#00ff00');
-      
-      const components = addResetButton([row]);
-      await interaction.update({ embeds: [embed], components: components });
-      return;
-    }
+export class Emoji extends Base {
+  protected constructor(client: Client<true>, emoji: RawEmojiData);
+  public animated: boolean | null;
+  public get createdAt(): Date | null;
+  public get createdTimestamp(): number | null;
+  public id: Snowflake | null;
+  public name: string | null;
+  public get identifier(): string;
+  public imageURL(options?: BaseImageURLOptions): string | null;
+  public get url(): string | null;
+  public toJSON(): unknown;
+  public toString(): string;
+}
 
-    // عند اختيار تغيير ايمبيد من قائمة المطور
-    if (interaction.isStringSelectMenu() && interaction.customId === 'dev_menu' && interaction.values[0] === 'change_embed') {
-      // تحقق من أن المستخدم مطور مصرح له
-      if (!isDeveloper(interaction.user.id)) {
-        await interaction.reply({ 
-          content: '❌ هذا الأمر مخصص فقط للمطورين المصرح لهم.', 
-          ephemeral: true 
-        });
-        return;
-      }
-      // جلب جميع السيرفرات التي يوجد فيها البوت
-      const guilds = client.guilds.cache.map(g => g);
-      const page = 1;
-      const pageSize = 23;
-      const totalPages = Math.ceil(guilds.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageGuilds = guilds.slice(start, end);
-      // بناء الخيارات للقائمة المنسدلة
-      const options = pageGuilds.map(guild => ({
-        label: guild.name.slice(0, 90),
-        value: `dev_select_guild_${guild.id}_1`
-      }));
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: `dev_guilds_more_${page + 1}` });
-      }
-      const guildsMenu = new StringSelectMenuBuilder()
-        .setCustomId('dev_guilds_menu_1')
-        .setPlaceholder('اختر سيرفر...')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(guildsMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('قائمة السيرفرات')
-        .setDescription('اختر سيرفر لتغيير صورة الإيمبيد الخاصة به.')
-        .setColor('#00ff00');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
-    // عند الضغط على زر إضافة الأدلة
-    if (interaction.isButton() && interaction.customId.startsWith('add_evidence_')) {
-      const userId = interaction.customId.replace('add_evidence_', '');
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity || !identity.crimes || identity.crimes.length === 0) {
-        await interaction.reply({ content: 'لا توجد جرائم لهذا الشخص.', ephemeral: true });
-        return;
-      }
-      const page = 1;
-      const pageSize = 23;
-      const totalPages = Math.ceil(identity.crimes.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageCrimes = identity.crimes.slice(start, end);
-      const options = pageCrimes.map((c, idx) => ({
-        label: `${c.title} - ${c.desc || ''}`.slice(0, 90),
-        value: `add_evidence_crime_${c.id}_${userId}_${page}`
-      }));
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: `add_evidence_more_${userId}_${page+1}` });
-      }
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`add_evidence_select_${userId}_${page}`)
-        .setPlaceholder('اختر جريمة لإضافة دليل')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('إضافة دليل لجريمة')
-        .setDescription('اختر جريمة من القائمة أدناه لإضافة دليل لها')
-        .setColor('#00ff00');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
+export interface ApplicationEmojiCreateOptions {
+  attachment: BufferResolvable | Base64Resolvable;
+  name: string;
+}
 
-    // صفحات إضافة الأدلة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('add_evidence_select_') && interaction.values[0].startsWith('add_evidence_more_')) {
-      const parts = interaction.values[0].split('_');
-      const userId = parts[3];
-      const page = parseInt(parts[4]);
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity || !identity.crimes || identity.crimes.length === 0) {
-        await interaction.reply({ content: 'لا توجد جرائم لهذا الشخص.', ephemeral: true });
-        return;
-      }
-      const pageSize = 23;
-      const totalPages = Math.ceil(identity.crimes.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageCrimes = identity.crimes.slice(start, end);
-      const options = pageCrimes.map((c, idx) => ({
-        label: `${c.title} - ${c.desc || ''}`.slice(0, 90),
-        value: `add_evidence_crime_${c.id}_${userId}_${page}`
-      }));
-      if (page < totalPages) {
-        options.push({ label: 'رؤية المزيد', value: `add_evidence_more_${userId}_${page+1}` });
-      }
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`add_evidence_select_${userId}_${page}`)
-        .setPlaceholder('اختر جريمة لإضافة دليل')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('إضافة دليل لجريمة')
-        .setDescription('اختر جريمة من القائمة أدناه لإضافة دليل لها')
-        .setColor('#00ff00');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
+export interface ApplicationEmojiEditOptions {
+  name?: string;
+}
 
-    // عند اختيار جريمة لإضافة دليل
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('add_evidence_select_') && interaction.values[0].startsWith('add_evidence_crime_')) {
-      const parts = interaction.values[0].split('_');
-      const crimeId = parts[3];
-      const userId = parts[4];
-      // مودال لإدخال رابط صورة الدليل
-      const modal = new ModalBuilder()
-        .setCustomId(`modal_add_evidence_${userId}_${crimeId}`)
-        .setTitle('إضافة دليل للجريمة');
-      const input = new TextInputBuilder()
-        .setCustomId('input_evidence_url')
-        .setLabel('رابط صورة الدليل')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('ضع هنا رابط صورة الدليل (jpg/png/gif/webp)')
-        .setRequired(true)
-        .setMaxLength(300);
-      const row = new ActionRowBuilder().addComponents(input);
-      modal.addComponents(row);
-      await interaction.showModal(modal);
-      return;
-    }
+export class ApplicationEmoji extends Emoji {
+  private constructor(client: Client<true>, data: RawApplicationEmojiData, application: ClientApplication);
 
-    // عند حفظ مودال إضافة الدليل
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_add_evidence_')) {
-      const parts = interaction.customId.split('_');
-      const userId = parts[3];
-      const crimeId = parts[4];
-      const url = interaction.fields.getTextInputValue('input_evidence_url').trim();
-      // تحقق من صحة الرابط
-      if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(url)) {
-        await interaction.reply({ content: '❌ الرابط المدخل ليس صورة صالحة (يجب أن ينتهي بـ jpg/png/gif/webp)', ephemeral: true });
-        return;
-      }
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      const idx = identity && identity.crimes ? identity.crimes.findIndex(c => c.id === crimeId) : -1;
-      if (!identity || !identity.crimes || idx === -1) {
-        await interaction.reply({ content: 'تعذر العثور على الجريمة.', ephemeral: true });
-        return;
-      }
-      if (!identity.crimes[idx].evidence) identity.crimes[idx].evidence = [];
-      identity.crimes[idx].evidence.push(url);
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('📎 إضافة دليل لجريمة')
-              .setDescription(`**تمت إضافة دليل بواسطة:** <@${interaction.user.id}>\n**للمستخدم:** <@${identity.userId}>\n**العنوان:** ${identity.crimes[idx].title}\n**رابط الدليل:** ${url}`)
-              .setColor('#00ff00')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      await interaction.reply({ content: '✅ تم إضافة الدليل بنجاح!', ephemeral: true });
-      return;
-    }
+  public application: ClientApplication;
+  public author: User | null;
+  public id: Snowflake;
+  public managed: boolean | null;
+  public requiresColons: boolean | null;
+  public delete(): Promise<ApplicationEmoji>;
+  public edit(options: ApplicationEmojiEditOptions): Promise<ApplicationEmoji>;
+  public equals(other: ApplicationEmoji | unknown): boolean;
+  public fetchAuthor(): Promise<User>;
+  public setName(name: string): Promise<ApplicationEmoji>;
+}
 
-    // منطق زر رؤية التفاصيل
-    if (interaction.isButton() && interaction.customId.startsWith('view_evidence_details_')) {
-      const userId = interaction.customId.replace('view_evidence_details_', '');
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity || !identity.crimes) {
-        await interaction.reply({ content: 'لا توجد جرائم لهذا الشخص.', ephemeral: true });
-        return;
-      }
-      // فقط الجرائم التي تحتوي على أدلة
-      const crimesWithEvidence = identity.crimes.filter(c => Array.isArray(c.evidence) && c.evidence.length > 0);
-      if (crimesWithEvidence.length === 0) {
-        await interaction.reply({ content: 'لا توجد جرائم تحتوي على أدلة.', ephemeral: true });
-        return;
-      }
-      const page = 1;
-      const pageSize = 23;
-      const totalPages = Math.ceil(crimesWithEvidence.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageCrimes = crimesWithEvidence.slice(start, end);
-      const options = pageCrimes.map((c, idx) => ({
-        label: `${c.title} - ${c.desc || ''}`.slice(0, 90),
-        value: `view_evidence_crime_${c.id}_${userId}_${page}`
-      }));
-      if (totalPages > 1) {
-        options.push({ label: 'رؤية المزيد', value: `view_evidence_more_${userId}_${page+1}` });
-      }
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`view_evidence_select_${userId}_${page}`)
-        .setPlaceholder('اختر جريمة لرؤية تفاصيلها')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('رؤية تفاصيل الأدلة')
-        .setDescription('اختر جريمة من القائمة أدناه لرؤية تفاصيلها مع الأدلة')
-        .setColor('#00ff00');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
+export class ApplicationEmojiManager extends CachedManager<Snowflake, ApplicationEmoji, EmojiResolvable> {
+  private constructor(application: ClientApplication, iterable?: Iterable<RawApplicationEmojiData>);
+  public application: ClientApplication;
+  public create(options: ApplicationEmojiCreateOptions): Promise<ApplicationEmoji>;
+  public fetch(id: Snowflake, options?: BaseFetchOptions): Promise<ApplicationEmoji>;
+  public fetch(id?: undefined, options?: BaseFetchOptions): Promise<Collection<Snowflake, ApplicationEmoji>>;
+  public fetchAuthor(emoji: EmojiResolvable): Promise<User>;
+  public delete(emoji: EmojiResolvable): Promise<void>;
+  public edit(emoji: EmojiResolvable, options: ApplicationEmojiEditOptions): Promise<ApplicationEmoji>;
+}
 
-    // صفحات رؤية التفاصيل
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('view_evidence_select_') && interaction.values[0].startsWith('view_evidence_more_')) {
-      const parts = interaction.values[0].split('_');
-      const userId = parts[3];
-      const page = parseInt(parts[4]);
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      if (!identity || !identity.crimes) {
-        await interaction.reply({ content: 'لا توجد جرائم لهذا الشخص.', ephemeral: true });
-        return;
-      }
-      const crimesWithEvidence = identity.crimes.filter(c => Array.isArray(c.evidence) && c.evidence.length > 0);
-      if (crimesWithEvidence.length === 0) {
-        await interaction.reply({ content: 'لا توجد جرائم تحتوي على أدلة.', ephemeral: true });
-        return;
-      }
-      const pageSize = 23;
-      const totalPages = Math.ceil(crimesWithEvidence.length / pageSize);
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const pageCrimes = crimesWithEvidence.slice(start, end);
-      const options = pageCrimes.map((c, idx) => ({
-        label: `${c.title} - ${c.desc || ''}`.slice(0, 90),
-        value: `view_evidence_crime_${c.id}_${userId}_${page}`
-      }));
-      if (page < totalPages) {
-        options.push({ label: 'رؤية المزيد', value: `view_evidence_more_${userId}_${page+1}` });
-      }
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`view_evidence_select_${userId}_${page}`)
-        .setPlaceholder('اختر جريمة لرؤية تفاصيلها')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(selectMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('رؤية تفاصيل الأدلة')
-        .setDescription('اختر جريمة من القائمة أدناه لرؤية تفاصيلها مع الأدلة')
-        .setColor('#00ff00');
-      await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      return;
-    }
+export class Entitlement extends Base {
+  private constructor(client: Client<true>, data: APIEntitlement);
+  public id: Snowflake;
+  public skuId: Snowflake;
+  public userId: Snowflake;
+  public guildId: Snowflake | null;
+  public applicationId: Snowflake;
+  public type: EntitlementType;
+  public consumed: boolean;
+  public deleted: boolean;
+  public startsTimestamp: number | null;
+  public endsTimestamp: number | null;
+  public get guild(): Guild | null;
+  public get startsAt(): Date | null;
+  public get endsAt(): Date | null;
+  public consume(): Promise<void>;
+  public fetchUser(): Promise<User>;
+  public isActive(): boolean;
+  public isTest(): this is this & {
+    startsTimestamp: null;
+    endsTimestamp: null;
+    get startsAt(): null;
+    get endsAt(): null;
+  };
+  public isUserSubscription(): this is this & { guildId: null; get guild(): null };
+  public isGuildSubscription(): this is this & { guildId: Snowflake; guild: Guild };
+}
 
-    // عند اختيار جريمة لرؤية تفاصيلها
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('view_evidence_select_') && interaction.values[0].startsWith('view_evidence_crime_')) {
-      const parts = interaction.values[0].split('_');
-      const crimeId = parts[3];
-      const userId = parts[4];
-      const identity = identities.find(i => i.userId === userId && i.guildId === interaction.guildId);
-      const c = identity && identity.crimes ? identity.crimes.find(cc => cc.id === crimeId) : null;
-      if (!identity || !c || !Array.isArray(c.evidence) || c.evidence.length === 0) {
-        await interaction.reply({ content: 'تعذر العثور على الجريمة أو لا يوجد أدلة.', ephemeral: true });
-        return;
-      }
-      const embed = new EmbedBuilder()
-        .setTitle('تفاصيل الجريمة مع الأدلة')
-        .setDescription(`**العنوان:** ${c.title}\n**الوصف:** ${c.desc || ''}\n**الحالة:** ${c.done ? 'منفذة' : 'غير منفذة'}`)
-        .setColor('#00ff00');
-      // أضف أول صورة كصورة للإيمبيد
-      if (c.evidence[0]) embed.setImage(c.evidence[0]);
-      // أضف قائمة روابط الأدلة في الحقول
-      embed.addFields({ name: 'روابط الأدلة', value: c.evidence.map((url, i) => `[دليل ${i+1}](${url})`).join('\n') });
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-      return;
-    }
+export class Guild extends AnonymousGuild {
+  private constructor(client: Client<true>, data: RawGuildData);
+  private _sortedRoles(): Collection<Snowflake, Role>;
+  private _sortedChannels(channel: NonThreadGuildBasedChannel): Collection<Snowflake, NonThreadGuildBasedChannel>;
 
-    // عند حفظ التعديل (مودال تعديل الهوية)
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('edit_identity_modal_')) {
-      const userId = interaction.customId.replace('edit_identity_modal_', '');
-      const fullName = interaction.fields.getTextInputValue(`edit_full_name_${userId}`);
-      const identity = identities.find(i => i.userId === userId);
-      if (!identity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الهوية.', ephemeral: true });
-        return;
-      }
-      const oldName = identity.fullName;
-      identity.fullName = fullName;
-      saveAllData();
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[interaction.guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('✏️ تم تعديل هوية')
-              .setDescription(`**تم تعديل هوية المستخدم:** <@${identity.userId}>
-**الاسم السابق:** ${oldName}
-**الاسم الجديد:** ${identity.fullName}
+  public get afkChannel(): VoiceChannel | null;
+  public afkChannelId: Snowflake | null;
+  public afkTimeout: number;
+  public applicationId: Snowflake | null;
+  public maxVideoChannelUsers: number | null;
+  public approximateMemberCount: number | null;
+  public approximatePresenceCount: number | null;
+  public autoModerationRules: AutoModerationRuleManager;
+  public available: boolean;
+  public bans: GuildBanManager;
+  public channels: GuildChannelManager;
+  public commands: GuildApplicationCommandManager;
+  public defaultMessageNotifications: GuildDefaultMessageNotifications;
+  public discoverySplash: string | null;
+  public emojis: GuildEmojiManager;
+  public explicitContentFilter: GuildExplicitContentFilter;
+  public invites: GuildInviteManager;
+  public get joinedAt(): Date;
+  public joinedTimestamp: number;
+  public large: boolean;
+  public maximumMembers: number | null;
+  public maximumPresences: number | null;
+  public maxStageVideoChannelUsers: number | null;
+  public memberCount: number;
+  public members: GuildMemberManager;
+  public mfaLevel: GuildMFALevel;
+  public ownerId: Snowflake;
+  public preferredLocale: Locale;
+  public premiumProgressBarEnabled: boolean;
+  public premiumTier: GuildPremiumTier;
+  public presences: PresenceManager;
+  public get publicUpdatesChannel(): TextChannel | null;
+  public publicUpdatesChannelId: Snowflake | null;
+  public roles: RoleManager;
+  public get rulesChannel(): TextChannel | null;
+  public rulesChannelId: Snowflake | null;
+  public get safetyAlertsChannel(): TextChannel | null;
+  public safetyAlertsChannelId: Snowflake | null;
+  public scheduledEvents: GuildScheduledEventManager;
+  public get shard(): WebSocketShard;
+  public shardId: number;
+  public soundboardSounds: GuildSoundboardSoundManager;
+  public stageInstances: StageInstanceManager;
+  public stickers: GuildStickerManager;
+  public incidentsData: IncidentActions | null;
+  public get systemChannel(): TextChannel | null;
+  public systemChannelFlags: Readonly<SystemChannelFlagsBitField>;
+  public systemChannelId: Snowflake | null;
+  public vanityURLUses: number | null;
+  public get voiceAdapterCreator(): InternalDiscordGatewayAdapterCreator;
+  public voiceStates: VoiceStateManager;
+  public get widgetChannel(): TextChannel | NewsChannel | VoiceBasedChannel | ForumChannel | MediaChannel | null;
+  public widgetChannelId: Snowflake | null;
+  public widgetEnabled: boolean | null;
+  public get maximumBitrate(): number;
+  public createTemplate(name: string, description?: string): Promise<GuildTemplate>;
+  public delete(): Promise<Guild>;
+  public discoverySplashURL(options?: ImageURLOptions): string | null;
+  public edit(options: GuildEditOptions): Promise<Guild>;
+  public editOnboarding(options: GuildOnboardingEditOptions): Promise<GuildOnboarding>;
+  public editWelcomeScreen(options: WelcomeScreenEditOptions): Promise<WelcomeScreen>;
+  public equals(guild: Guild): boolean;
+  public fetchAuditLogs<Event extends GuildAuditLogsResolvable = AuditLogEvent>(
+    options?: GuildAuditLogsFetchOptions<Event>,
+  ): Promise<GuildAuditLogs<Event extends null ? AuditLogEvent : Event>>;
+  public fetchIntegrations(): Promise<Collection<Snowflake | string, Integration>>;
+  public fetchOnboarding(): Promise<GuildOnboarding>;
+  public fetchOwner(options?: BaseFetchOptions): Promise<GuildMember>;
+  public fetchPreview(): Promise<GuildPreview>;
+  public fetchTemplates(): Promise<Collection<GuildTemplate['code'], GuildTemplate>>;
+  public fetchVanityData(): Promise<Vanity>;
+  public fetchWebhooks(): Promise<Collection<Snowflake, Webhook<WebhookType.ChannelFollower | WebhookType.Incoming>>>;
+  public fetchWelcomeScreen(): Promise<WelcomeScreen>;
+  public fetchWidget(): Promise<Widget>;
+  public fetchWidgetSettings(): Promise<GuildWidgetSettings>;
+  public widgetImageURL(style?: GuildWidgetStyle): string;
+  public leave(): Promise<Guild>;
+  public disableInvites(disabled?: boolean): Promise<Guild>;
+  public setIncidentActions(incidentActions: IncidentActionsEditOptions): Promise<IncidentActions>;
+  public setAFKChannel(afkChannel: VoiceChannelResolvable | null, reason?: string): Promise<Guild>;
+  public setAFKTimeout(afkTimeout: number, reason?: string): Promise<Guild>;
+  public setBanner(banner: BufferResolvable | Base64Resolvable | null, reason?: string): Promise<Guild>;
+  public setDefaultMessageNotifications(
+    defaultMessageNotifications: GuildDefaultMessageNotifications | null,
+    reason?: string,
+  ): Promise<Guild>;
+  public setDiscoverySplash(
+    discoverySplash: BufferResolvable | Base64Resolvable | null,
+    reason?: string,
+  ): Promise<Guild>;
+  public setExplicitContentFilter(
+    explicitContentFilter: GuildExplicitContentFilter | null,
+    reason?: string,
+  ): Promise<Guild>;
+  public setIcon(icon: BufferResolvable | Base64Resolvable | null, reason?: string): Promise<Guild>;
+  public setName(name: string, reason?: string): Promise<Guild>;
+  public setOwner(owner: GuildMemberResolvable, reason?: string): Promise<Guild>;
+  public setPreferredLocale(preferredLocale: Locale | null, reason?: string): Promise<Guild>;
+  public setPublicUpdatesChannel(publicUpdatesChannel: TextChannelResolvable | null, reason?: string): Promise<Guild>;
+  public setRulesChannel(rulesChannel: TextChannelResolvable | null, reason?: string): Promise<Guild>;
+  public setSafetyAlertsChannel(safetyAlertsChannel: TextChannelResolvable | null, reason?: string): Promise<Guild>;
+  public setSplash(splash: BufferResolvable | Base64Resolvable | null, reason?: string): Promise<Guild>;
+  public setSystemChannel(systemChannel: TextChannelResolvable | null, reason?: string): Promise<Guild>;
+  public setSystemChannelFlags(systemChannelFlags: SystemChannelFlagsResolvable, reason?: string): Promise<Guild>;
+  public setVerificationLevel(verificationLevel: GuildVerificationLevel | null, reason?: string): Promise<Guild>;
+  public setPremiumProgressBarEnabled(enabled?: boolean, reason?: string): Promise<Guild>;
+  public setWidgetSettings(settings: GuildWidgetSettingsData, reason?: string): Promise<Guild>;
+  public setMFALevel(level: GuildMFALevel, reason?: string): Promise<Guild>;
+  public toJSON(): unknown;
+}
 
-**تم التعديل من قبل:** <@${interaction.user.id}>`)
-              .setColor('#fbbf24')
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-    }
+export interface FileComponentData extends BaseComponentData {
+  file: UnfurledMediaItemData;
+  spoiler?: boolean;
+}
+export class FileComponent extends Component<APIFileComponent> {
+  private constructor(data: APIFileComponent);
+  public readonly file: UnfurledMediaItem;
+  public get spoiler(): boolean;
+}
 
-    // عند اختيار 'رؤية المزيد' في قائمة السيرفرات
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('dev_guilds_menu_') && interaction.values[0].startsWith('dev_guilds_more_')) {
-      const nextPage = parseInt(interaction.values[0].split('_').pop());
-      const guilds = client.guilds.cache.map(g => g);
-      const pageSize = 23;
-      const totalPages = Math.ceil(guilds.length / pageSize);
-      const start = (nextPage - 1) * pageSize;
-      const end = start + pageSize;
-      const pageGuilds = guilds.slice(start, end);
-      const options = pageGuilds.map(guild => ({
-        label: guild.name.slice(0, 90),
-        value: `dev_select_guild_${guild.id}_${nextPage}`
-      }));
-      if (nextPage < totalPages) {
-        options.push({ label: 'رؤية المزيد', value: `dev_guilds_more_${nextPage + 1}` });
-      }
-      const guildsMenu = new StringSelectMenuBuilder()
-        .setCustomId(`dev_guilds_menu_${nextPage}`)
-        .setPlaceholder('اختر سيرفر...')
-        .addOptions(options);
-      const row = new ActionRowBuilder().addComponents(guildsMenu);
-      const embed = new EmbedBuilder()
-        .setTitle('قائمة السيرفرات')
-        .setDescription('اختر سيرفر لتغيير صورة الإيمبيد الخاصة به.')
-        .setColor('#00ff00');
-      await interaction.update({ embeds: [embed], components: [row] });
-      return;
-    }
+export class GuildAuditLogs<Event extends AuditLogEvent = AuditLogEvent> {
+  private constructor(guild: Guild, data: RawGuildAuditLogData);
+  private applicationCommands: Collection<Snowflake, ApplicationCommand>;
+  private webhooks: Collection<Snowflake, Webhook<WebhookType.ChannelFollower | WebhookType.Incoming>>;
+  private integrations: Collection<Snowflake | string, Integration>;
+  private guildScheduledEvents: Collection<Snowflake, GuildScheduledEvent>;
+  private autoModerationRules: Collection<Snowflake, AutoModerationRule>;
+  public entries: Collection<Snowflake, GuildAuditLogsEntry<Event>>;
+  public toJSON(): unknown;
+}
 
-    // عند اختيار سيرفر من القائمة
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('dev_guilds_menu_') && interaction.values[0].startsWith('dev_select_guild_')) {
-      const parts = interaction.values[0].split('_');
-      const guildId = parts[3];
-      const page = parts[4];
-      const guild = client.guilds.cache.get(guildId);
-      if (!guild) {
-        await interaction.update({ content: 'تعذر العثور على السيرفر.', components: [], embeds: [] });
-        return;
-      }
-      try {
-        // جلب معلومات السيرفر
-        const owner = await guild.fetchOwner().catch(() => null);
-        const memberCount = guild.memberCount;
-        const botStatus = guild.members.me ? (guild.members.me.presence ? guild.members.me.presence.status : 'غير معروف') : 'غير معروف';
-        const iconURL = guild.iconURL({ dynamic: true, size: 256 }) || undefined;
-        let invite = null;
-        try {
-          invite = await guild.invites.fetch().then(invites => invites.first()?.url).catch(() => null);
-        } catch { invite = null; }
-        // بناء الإيمبيد
-        const embed = new EmbedBuilder()
-          .setTitle(`معلومات السيرفر: ${guild.name}`)
-          .setColor('#00ff00');
-        if (iconURL) {
-          embed.setThumbnail(iconURL).setImage(iconURL);
-        }
-        embed.addFields(
-          { name: 'الاونر', value: owner ? `<@${owner.id}>` : 'غير متوفر', inline: true },
-          { name: 'عدد الأعضاء', value: `${memberCount}`, inline: true },
-          { name: 'ايدي السيرفر', value: guild.id, inline: true },
-          { name: 'حالة البوت', value: `${getBotStatus() === 'online' ? '🟢 متصل' : '🔴 غير متصل'}`, inline: true },
-          { name: 'رابط السيرفر', value: invite || 'لا يوجد دعوة متاحة', inline: false }
-        );
-        // زر تغيير ايمبيد وزر إعادة تعيين الايمبيد
-        const changeEmbedBtn = new ButtonBuilder()
-          .setCustomId(`dev_change_embed_${guild.id}`)
-          .setLabel('تغيير ايمبيد')
-          .setStyle(ButtonStyle.Primary);
-        const resetEmbedBtn = new ButtonBuilder()
-          .setCustomId(`dev_reset_embed_${guild.id}`)
-          .setLabel('إعادة تعيين الايمبيد')
-          .setStyle(ButtonStyle.Secondary);
-        const row = new ActionRowBuilder().addComponents(changeEmbedBtn, resetEmbedBtn);
-        await interaction.update({ embeds: [embed], components: [row] });
-      } catch (err) {
-        console.error('Dev Guild Info Error:', err);
-        await interaction.update({ content: `حدث خطأ غير متوقع أثناء جلب معلومات السيرفر: ${err.message || err}`, components: [], embeds: [] });
-      }
-      return;
-    }
+export class GuildAuditLogsEntry<
+  TAction extends AuditLogEvent = AuditLogEvent,
+  TActionType extends GuildAuditLogsActionType = TAction extends keyof GuildAuditLogsTypes
+    ? GuildAuditLogsTypes[TAction][1]
+    : 'All',
+  TTargetType extends GuildAuditLogsTargetType = TAction extends keyof GuildAuditLogsTypes
+    ? GuildAuditLogsTypes[TAction][0]
+    : 'Unknown',
+> {
+  private constructor(guild: Guild, data: RawGuildAuditLogEntryData, logs?: GuildAuditLogs);
+  public static Targets: GuildAuditLogsTargets;
+  public action: TAction;
+  public actionType: TActionType;
+  public changes: AuditLogChange[];
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public executorId: Snowflake | null;
+  public executor: User | PartialUser | null;
+  public extra: TAction extends keyof GuildAuditLogsEntryExtraField ? GuildAuditLogsEntryExtraField[TAction] : null;
+  public id: Snowflake;
+  public reason: string | null;
+  public targetId: Snowflake | null;
+  public target: TTargetType extends keyof GuildAuditLogsEntryTargetField<TAction>
+    ? GuildAuditLogsEntryTargetField<TAction>[TTargetType]
+    : { id: Snowflake | undefined; [x: string]: unknown } | null;
+  public targetType: TTargetType;
+  public static actionType(action: AuditLogEvent): GuildAuditLogsActionType;
+  public static targetType(target: AuditLogEvent): GuildAuditLogsTargetType;
+  public toJSON(): unknown;
+}
 
-    // عند الضغط على زر تغيير ايمبيد في معلومات السيرفر
-    if (interaction.isButton() && interaction.customId.startsWith('dev_change_embed_')) {
-      const guildId = interaction.customId.replace('dev_change_embed_', '');
-      // مودال لإدخال رابط صورة الايمبيد
-      const modal = new ModalBuilder()
-        .setCustomId(`dev_modal_embed_url_${guildId}`)
-        .setTitle('تغيير صورة الايمبيد');
-      const input = new TextInputBuilder()
-        .setCustomId('input_embed_url')
-        .setLabel('رابط صورة الايمبيد')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('ضع هنا رابط صورة الايمبيد (jpg/png/gif/webp)')
-        .setRequired(true)
-        .setMaxLength(300);
-      const row = new ActionRowBuilder().addComponents(input);
-      modal.addComponents(row);
-      await interaction.showModal(modal);
-      return;
-    }
+export class GuildBan extends Base {
+  private constructor(client: Client<true>, data: RawGuildBanData, guild: Guild);
+  public guild: Guild;
+  public user: User;
+  public get partial(): boolean;
+  public reason?: string | null;
+  public fetch(force?: boolean): Promise<GuildBan>;
+}
 
-    // عند حفظ مودال تغيير صورة الايمبيد
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('dev_modal_embed_url_')) {
-      const guildId = interaction.customId.replace('dev_modal_embed_url_', '');
-      const url = interaction.fields.getTextInputValue('input_embed_url').trim();
-      // تحقق من صحة الرابط
-      if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(url)) {
-        await interaction.reply({ content: '❌ الرابط المدخل ليس صورة صالحة (يجب أن ينتهي بـ jpg/png/gif/webp)', ephemeral: true });
-        return;
-      }
-      // حفظ الرابط في إعدادات السيرفر
-      if (!guildSettings[guildId]) guildSettings[guildId] = {};
-      guildSettings[guildId].customEmbedImage = url;
-      saveGuildSettings();
-      await interaction.reply({ content: '✅ تم تغيير صورة الايمبيد بنجاح لجميع أوامر السيرفر!', ephemeral: true });
-      return;
-    }
+export abstract class GuildChannel extends BaseChannel {
+  public constructor(guild: Guild, data?: RawGuildChannelData, client?: Client<true>, immediatePatch?: boolean);
+  private memberPermissions(member: GuildMember, checkAdmin: boolean): Readonly<PermissionsBitField>;
+  private rolePermissions(role: Role, checkAdmin: boolean): Readonly<PermissionsBitField>;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public get deletable(): boolean;
+  public flags: Readonly<ChannelFlagsBitField>;
+  public guild: Guild;
+  public guildId: Snowflake;
+  public get manageable(): boolean;
+  public get members(): Collection<Snowflake, GuildMember>;
+  public name: string;
+  public get parent(): CategoryChannel | null;
+  public parentId: Snowflake | null;
+  public permissionOverwrites: PermissionOverwriteManager;
+  public get permissionsLocked(): boolean | null;
+  public get position(): number;
+  public rawPosition: number;
+  public type: GuildChannelTypes;
+  public get viewable(): boolean;
+  public clone(options?: GuildChannelCloneOptions): Promise<this>;
+  public delete(reason?: string): Promise<this>;
+  public edit(options: GuildChannelEditOptions): Promise<this>;
+  public equals(channel: GuildChannel): boolean;
+  public lockPermissions(): Promise<this>;
+  public permissionsFor(memberOrRole: GuildMember | Role, checkAdmin?: boolean): Readonly<PermissionsBitField>;
+  public permissionsFor(
+    memberOrRole: GuildMemberResolvable | RoleResolvable,
+    checkAdmin?: boolean,
+  ): Readonly<PermissionsBitField> | null;
+  public setName(name: string, reason?: string): Promise<this>;
+  public setParent(channel: CategoryChannelResolvable | null, options?: SetParentOptions): Promise<this>;
+  public setPosition(position: number, options?: SetChannelPositionOptions): Promise<this>;
+  public isTextBased(): this is GuildBasedChannel & TextBasedChannel;
+  public toString(): ChannelMention;
+}
 
-    // معالجة أمر /المطور
-    if (interaction.isChatInputCommand() && interaction.commandName === 'المطور') {
-      // تحقق من أن المستخدم مطور مصرح له
-      if (!isDeveloper(interaction.user.id)) {
-        await interaction.reply({ 
-          content: '❌ هذا الأمر مخصص فقط للمطورين المصرح لهم.', 
-          ephemeral: true 
-        });
-        return;
-      }
-      const customImage = guildSettings[interaction.guildId]?.customEmbedImage || 'https://media.discordapp.net/attachments/1388450262628176034/1396257833506443375/image.png?ex=687d6df0&is=687c1c70&hm=111158be2d0bb467417eff40ae5788bd1200cb333942e37dbe281653754dd614&=&format=webp&quality=lossless';
-      const embed = new EmbedBuilder()
-        .setTitle('بطاقة الهوية')
-        .setDescription('اضغط على القائمة أدناه لاختيار إجراء المطور.')
-        .setImage(customImage)
-        .setColor('#00ff00');
-      // قائمة منسدلة بخيار تغيير ايمبيد
-      const menuOptions = [
-        { label: 'تغيير ايمبيد', value: 'change_embed' },
-        { label: 'إيقاف | تشغيل البوت', value: 'toggle_bot_status' }
-      ];
-      const devMenu = new StringSelectMenuBuilder()
-        .setCustomId('dev_menu')
-        .setPlaceholder('اختر إجراء...')
-        .addOptions(addResetOption(menuOptions));
-      const row = new ActionRowBuilder().addComponents(devMenu);
-      try {
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      } catch (error) {
-        if (error.code === 10062) {
-          // التفاعل انتهت صلاحيته، إرسال رسالة جديدة
-          await interaction.followUp({ 
-            content: '✅ تم فتح قائمة المطور بنجاح!', 
-            ephemeral: true 
-          });
-        } else {
-          console.error('خطأ في إرسال التفاعل:', error);
-        }
-      }
-      return;
-    }
-    // عند الضغط على زر إيقاف | تشغيل البوت من معلومات السيرفر
-    if (interaction.isButton() && interaction.customId.startsWith('toggle_bot_status_')) {
-      // تحقق من أن المستخدم مطور مصرح له
-      if (!isDeveloper(interaction.user.id)) {
-        await interaction.reply({ 
-          content: '❌ هذا الأمر مخصص فقط للمطورين المصرح لهم.', 
-          ephemeral: true 
-        });
-        return;
-      }
-      const guildId = interaction.customId.replace('toggle_bot_status_', '');
-      const guild = client.guilds.cache.get(guildId);
-      
-      if (!guild) {
-        await interaction.reply({ content: '❌ لم يتم العثور على السيرفر.', ephemeral: true });
-        return;
-      }
-      
-      const newStatus = await toggleBotStatus();
-      
-      // تحديث معلومات السيرفر
-      const memberCount = guild.memberCount;
-      const owner = await guild.fetchOwner().catch(() => null);
-      const invite = await guild.invites.fetch().then(invites => invites.first()?.url).catch(() => null);
-      
-      const embed = new EmbedBuilder()
-        .setTitle(`معلومات السيرفر: ${guild.name}`)
-        .setDescription(`معلومات مفصلة عن السيرفر وحالة البوت`)
-        .setColor(newStatus === 'online' ? '#00ff00' : '#ff0000')
-        .setThumbnail(guild.iconURL({ dynamic: true }))
-        .addFields(
-          { name: 'الاونر', value: owner ? `<@${owner.id}>` : 'غير متوفر', inline: true },
-          { name: 'عدد الأعضاء', value: `${memberCount}`, inline: true },
-          { name: 'ايدي السيرفر', value: guild.id, inline: true },
-          { name: 'حالة البوت', value: `${newStatus === 'online' ? '🟢 متصل' : '🔴 غير متصل'}`, inline: true },
-          { name: 'رابط السيرفر', value: invite || 'لا يوجد دعوة متاحة', inline: false }
-        );
-      
-      // إضافة رسالة تحذير إذا كان البوت متوقف
-      if (newStatus === 'offline') {
-        embed.addFields(
-          { name: '⚠️ تحذير', value: 'البوت متوقف حالياً. لن يتم الرد على أي أوامر أخرى حتى يتم تشغيله مرة أخرى.', inline: false }
-        );
-      }
-      
-      // تحديث الزر
-      const toggleButton = new ButtonBuilder()
-        .setCustomId(`toggle_bot_status_${guildId}`)
-        .setLabel(newStatus === 'online' ? 'إيقاف البوت' : 'تشغيل البوت')
-        .setStyle(newStatus === 'online' ? ButtonStyle.Danger : ButtonStyle.Success);
-      
-      const row = new ActionRowBuilder().addComponents(toggleButton);
-      const components = addResetButton([row]);
-      
-      // إرسال إشعار خاص لجميع المطورين المصرح لهم
-      console.log('🔔 بدء إرسال الإشعارات للمطورين...');
-      console.log('📋 قائمة المطورين:', DEVELOPER_IDS);
-      
-      try {
-        for (const developerId of DEVELOPER_IDS) {
-          try {
-            console.log(`📤 محاولة إرسال إشعار للمطور: ${developerId}`);
-            const developer = await client.users.fetch(developerId);
-            
-            if (developer) {
-              console.log(`✅ تم العثور على المطور: ${developer.username} (${developer.id})`);
-              
-              if (developer.id !== interaction.user.id) { // لا ترسل للمطور الذي قام بالتغيير
-                const notificationEmbed = new EmbedBuilder()
-                  .setTitle(`🔧 تم تغيير حالة البوت`)
-                  .setDescription(`**تم ${newStatus === 'online' ? 'تشغيل' : 'إيقاف'} بوت ال ام دي تي**`)
-                  .addFields(
-                    { name: '👤 المطور', value: `<@${interaction.user.id}>`, inline: true },
-                    { name: '🏠 السيرفر', value: guild.name, inline: true },
-                    { name: '🆔 ايدي السيرفر', value: guild.id, inline: true },
-                    { name: '📊 عدد الأعضاء', value: `${guild.memberCount}`, inline: true },
-                    { name: '⏰ الوقت', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false }
-                  )
-                  .setColor(newStatus === 'online' ? '#00ff00' : '#ff0000')
-                  .setThumbnail(guild.iconURL({ dynamic: true }))
-                  .setTimestamp();
-                
-                await developer.send({ embeds: [notificationEmbed] });
-                console.log(`✅ تم إرسال إشعار بنجاح للمطور: ${developer.username}`);
-              } else {
-                console.log(`⏭️ تخطي إرسال إشعار للمطور الذي قام بالتغيير: ${developer.username}`);
-              }
-            } else {
-              console.log(`❌ لم يتم العثور على المطور: ${developerId}`);
-            }
-          } catch (e) { 
-            console.log(`❌ فشل إرسال إشعار للمطور ${developerId}:`, e.message);
-          }
-        }
-        console.log('✅ انتهى إرسال الإشعارات');
-      } catch (e) { 
-        console.error('❌ خطأ في إرسال الإشعارات:', e);
-      }
-      
-      try {
-        await interaction.reply({ embeds: [embed], components: components, ephemeral: true });
-      } catch (error) {
-        if (error.code === 10062) {
-          // التفاعل انتهت صلاحيته، إرسال رسالة جديدة
-          await interaction.followUp({ 
-            content: `✅ تم ${newStatus === 'online' ? 'تشغيل' : 'إيقاف'} البوت بنجاح!`, 
-            ephemeral: true 
-          });
-        } else {
-          console.error('خطأ في إرسال التفاعل:', error);
-        }
-      }
-      return;
-    }
+export class GuildEmoji extends BaseGuildEmoji {
+  private constructor(client: Client<true>, data: RawGuildEmojiData, guild: Guild);
+  private _roles: Snowflake[];
 
-    // عند الضغط على زر عرض الإحصائيات
-    if (interaction.isButton() && interaction.customId === 'show_bot_stats') {
-      const totalGuilds = client.guilds.cache.size;
-      const totalUsers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
-      const totalIdentities = identities.length;
-      const totalPendingRequests = pendingRequests.length;
-      
-      const statsEmbed = new EmbedBuilder()
-        .setTitle('📊 إحصائيات البوت')
-        .setDescription('إحصائيات عامة للبوت')
-        .setColor('#0099ff')
-        .addFields(
-          { name: 'عدد السيرفرات', value: `${totalGuilds}`, inline: true },
-          { name: 'عدد الأعضاء', value: `${totalUsers.toLocaleString()}`, inline: true },
-          { name: 'الهويات المقبولة', value: `${totalIdentities}`, inline: true },
-          { name: 'الطلبات المعلقة', value: `${totalPendingRequests}`, inline: true },
-          { name: 'حالة البوت', value: `${getBotStatus() === 'online' ? '🟢 متصل' : '🔴 غير متصل'}`, inline: true },
-          { name: 'وقت التشغيل', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }
-        )
-        .setTimestamp();
-      
-      await interaction.reply({ embeds: [statsEmbed], ephemeral: true });
-      return;
-    }
+  public get deletable(): boolean;
+  public guild: Guild;
+  public author: User | null;
+  public get roles(): GuildEmojiRoleManager;
+  public delete(reason?: string): Promise<GuildEmoji>;
+  public edit(options: GuildEmojiEditOptions): Promise<GuildEmoji>;
+  public equals(other: GuildEmoji | unknown): boolean;
+  public fetchAuthor(): Promise<User>;
+  public setName(name: string, reason?: string): Promise<GuildEmoji>;
+}
 
-    // عند الضغط على زر إعادة تعيين الايمبيد في معلومات السيرفر
-    if (interaction.isButton() && interaction.customId.startsWith('dev_reset_embed_')) {
-      const guildId = interaction.customId.replace('dev_reset_embed_', '');
-      if (guildSettings[guildId] && guildSettings[guildId].customEmbedImage) {
-        delete guildSettings[guildId].customEmbedImage;
-        saveGuildSettings();
-        await interaction.reply({ content: '✅ تم إعادة تعيين صورة الايمبيد إلى الافتراضية لهذا السيرفر!', ephemeral: true });
-      } else {
-        await interaction.reply({ content: '❗️ لا يوجد صورة مخصصة حالياً لهذا السيرفر.', ephemeral: true });
-      }
-      return;
-    }
-    
-    // معالج زر حذف الطلب المعلق للكود العسكري
-    if (interaction.isButton() && interaction.customId.startsWith('delete_pending_military_code_')) {
-      const requestId = interaction.customId.replace('delete_pending_military_code_', '');
-      const guildId = interaction.guildId;
-      
-      // البحث عن الطلب المعلق
-      const pendingRequest = pendingMilitaryCodeRequests.find(req => 
-        req.requestId === requestId && req.guildId === guildId
-      );
-      
-      if (!pendingRequest) {
-        await interaction.reply({ content: '❌ لم يتم العثور على الطلب المعلق.', ephemeral: true });
-        return;
-      }
-      
-      // حذف الطلب من القائمة المعلقة
-      pendingMilitaryCodeRequests = pendingMilitaryCodeRequests.filter(req => req.requestId !== requestId);
-      saveAllData();
-      
-      // إرسال لوق في روم اللوق
-      const logChannelId = guildSettings[guildId]?.logChannelId;
-      if (logChannelId) {
-        try {
-          const logChannel = interaction.guild.channels.cache.get(logChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setTitle('🗑️ تم حذف طلب كود عسكري معلق')
-              .setDescription(`**المستخدم:** <@${pendingRequest.userId}> (${pendingRequest.username})\n**الاسم:** ${pendingRequest.fullName}\n**الكود:** \`${pendingRequest.code}\`\n**تم الحذف من قبل:** ${interaction.user}\n**معرف الطلب:** ${requestId}`)
-              .setColor('#ff6b35')
-              .setTimestamp();
-            
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        } catch (e) { /* تجاهل الخطأ */ }
-      }
-      
-      // إرسال رسالة للشخص في الخاص
-      try {
-        const user = await client.users.fetch(pendingRequest.userId);
-        const deleteEmbed = new EmbedBuilder()
-          .setTitle('🗑️ تم حذف طلب الكود العسكري')
-          .setDescription(`**مرحباً ${user.username}!**\n\nتم حذف طلب الكود العسكري المعلق الخاص بك.\n\n**الكود:** \`${pendingRequest.code}\`\n**تم الحذف من قبل:** ${interaction.user}\n\nيمكنك تقديم طلب كود عسكري جديد مرة أخرى.`)
-          .setColor('#ff6b35')
-          .setTimestamp();
-        await user.send({ embeds: [deleteEmbed] });
-      } catch (err) { /* تجاهل الخطأ */ }
-      
-      await interaction.reply({ content: '✅ تم حذف الطلب المعلق بنجاح! يمكن للعسكري تقديم طلب جديد.', ephemeral: true });
-      return;
-    }
+export type GuildMemberFlagsString = keyof typeof GuildMemberFlags;
 
-    // معالج زر تأكيد إضافة النقاط
-    if (interaction.isButton() && interaction.customId.startsWith('confirm_add_points_')) {
-      const parts = interaction.customId.replace('confirm_add_points_', '').split('_');
-      const userId = parts[0];
-      const pointsToAdd = parseInt(parts[1]);
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const currentPoints = getMilitaryPoints(userId, guildId);
-        
-        // إضافة النقاط
-        addMilitaryPoints(userId, guildId, pointsToAdd);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('✅ تم إضافة النقاط بنجاح')
-          .setDescription('**تم إضافة النقاط رسمياً!**')
-          .setColor('#00ff00')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '⭐ **النقاط**', value: `**النقاط السابقة:** \`${currentPoints} نقطة\`\n**النقاط المضافة:** \`+${pointsToAdd} نقطة\`\n**النقاط الإجمالية الجديدة:** \`${currentPoints + pointsToAdd} نقطة\``, inline: false },
-            { name: '👮 **تم الإضافة بواسطة**', value: `${interaction.user}`, inline: false }
-          )
-          .setTimestamp();
-        
-        await interaction.update({ embeds: [embed], components: [] });
-        
-        // إرسال لوق في روم اللوق
-        const logChannelId = guildSettings[guildId]?.logChannelId;
-        if (logChannelId) {
-          try {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('➕ تم إضافة نقاط عسكرية')
-                .setDescription(`**المستخدم:** <@${userId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**النقاط المضافة:** +${pointsToAdd} نقطة\n**النقاط الإجمالية:** ${currentPoints + pointsToAdd} نقطة\n**تم الإضافة بواسطة:** ${interaction.user}`)
-                .setColor('#00ff00')
-                .setTimestamp();
-              
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          } catch (e) { /* تجاهل الخطأ */ }
-        }
-        
-        // إرسال رسالة للشخص في الخاص
-        try {
-          const userEmbed = new EmbedBuilder()
-            .setTitle('⭐ تم إضافة نقاط عسكرية لك!')
-            .setDescription(`**مرحباً ${targetUser.username}!**\n\nتم إضافة نقاط عسكرية لحسابك!\n\n**النقاط المضافة:** +${pointsToAdd} نقطة\n**النقاط الإجمالية الجديدة:** ${currentPoints + pointsToAdd} نقطة\n**تم الإضافة بواسطة:** ${interaction.user}`)
-            .setColor('#00ff00')
-            .setTimestamp();
-          await targetUser.send({ embeds: [userEmbed] });
-        } catch (err) { /* تجاهل الخطأ */ }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في إضافة النقاط.', ephemeral: true });
-      }
-      return;
-    }
+export type GuildMemberFlagsResolvable = BitFieldResolvable<GuildMemberFlagsString, number>;
 
-    // معالج زر إلغاء إضافة النقاط
-    if (interaction.isButton() && interaction.customId === 'cancel_add_points') {
-      const embed = new EmbedBuilder()
-        .setTitle('❌ تم إلغاء العملية')
-        .setDescription('تم إلغاء إضافة النقاط العسكرية.')
-        .setColor('#ff0000')
-        .setTimestamp();
-      
-      await interaction.update({ embeds: [embed], components: [] });
-      return;
-    }
+export class GuildMemberFlagsBitField extends BitField<GuildMemberFlagsString> {
+  public static Flags: GuildMemberFlags;
+  public static resolve(bit?: BitFieldResolvable<GuildMemberFlagsString, GuildMemberFlags>): number;
+}
 
-    // معالج زر تأكيد خصم النقاط
-    if (interaction.isButton() && interaction.customId.startsWith('confirm_remove_points_')) {
-      const parts = interaction.customId.replace('confirm_remove_points_', '').split('_');
-      const userId = parts[0];
-      const pointsToRemove = parseInt(parts[1]);
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const currentPoints = getMilitaryPoints(userId, guildId);
-        
-        // خصم النقاط
-        removeMilitaryPoints(userId, guildId, pointsToRemove);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('✅ تم خصم النقاط بنجاح')
-          .setDescription('**تم خصم النقاط رسمياً!**')
-          .setColor('#ff9900')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '⭐ **النقاط**', value: `**النقاط السابقة:** \`${currentPoints} نقطة\`\n**النقاط المخصومة:** \`-${pointsToRemove} نقطة\`\n**النقاط المتبقية:** \`${currentPoints - pointsToRemove} نقطة\``, inline: false },
-            { name: '👮 **تم الخصم بواسطة**', value: `${interaction.user}`, inline: false }
-          )
-          .setTimestamp();
-        
-        await interaction.update({ embeds: [embed], components: [] });
-        
-        // إرسال لوق في روم اللوق
-        const logChannelId = guildSettings[guildId]?.logChannelId;
-        if (logChannelId) {
-          try {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('➖ تم خصم نقاط عسكرية')
-                .setDescription(`**المستخدم:** <@${userId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**النقاط المخصومة:** -${pointsToRemove} نقطة\n**النقاط المتبقية:** ${currentPoints - pointsToRemove} نقطة\n**تم الخصم بواسطة:** ${interaction.user}`)
-                .setColor('#ff9900')
-                .setTimestamp();
-              
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          } catch (e) { /* تجاهل الخطأ */ }
-        }
-        
-        // إرسال رسالة للشخص في الخاص
-        try {
-          const userEmbed = new EmbedBuilder()
-            .setTitle('⚠️ تم خصم نقاط عسكرية منك!')
-            .setDescription(`**مرحباً ${targetUser.username}!**\n\nتم خصم نقاط عسكرية من حسابك!\n\n**النقاط المخصومة:** -${pointsToRemove} نقطة\n**النقاط المتبقية:** ${currentPoints - pointsToRemove} نقطة\n**تم الخصم بواسطة:** ${interaction.user}`)
-            .setColor('#ff9900')
-            .setTimestamp();
-          await targetUser.send({ embeds: [userEmbed] });
-        } catch (err) { /* تجاهل الخطأ */ }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في خصم النقاط.', ephemeral: true });
-      }
-      return;
-    }
+export interface GuildMember extends PartialTextBasedChannelFields<false> {}
+export class GuildMember extends Base {
+  private constructor(client: Client<true>, data: RawGuildMemberData, guild: Guild);
+  private _roles: Snowflake[];
+  public avatar: string | null;
+  public avatarDecorationData: AvatarDecorationData | null;
+  public banner: string | null;
+  public get bannable(): boolean;
+  public get dmChannel(): DMChannel | null;
+  public get displayColor(): number;
+  public get displayHexColor(): HexColorString;
+  public get displayName(): string;
+  public guild: Guild;
+  public get id(): Snowflake;
+  public pending: boolean;
+  public get communicationDisabledUntil(): Date | null;
+  public communicationDisabledUntilTimestamp: number | null;
+  public flags: Readonly<GuildMemberFlagsBitField>;
+  public get joinedAt(): Date | null;
+  public joinedTimestamp: number | null;
+  public get kickable(): boolean;
+  public get manageable(): boolean;
+  public get moderatable(): boolean;
+  public nickname: string | null;
+  public get partial(): false;
+  public get permissions(): Readonly<PermissionsBitField>;
+  public get premiumSince(): Date | null;
+  public premiumSinceTimestamp: number | null;
+  public get presence(): Presence | null;
+  public get roles(): GuildMemberRoleManager;
+  public user: User;
+  public get voice(): VoiceState;
+  public avatarURL(options?: ImageURLOptions): string | null;
+  public avatarDecorationURL(): string | null;
+  public bannerURL(options?: ImageURLOptions): string | null;
+  public ban(options?: BanOptions): Promise<GuildMember>;
+  public disableCommunicationUntil(timeout: DateResolvable | null, reason?: string): Promise<GuildMember>;
+  public timeout(timeout: number | null, reason?: string): Promise<GuildMember>;
+  public fetch(force?: boolean): Promise<GuildMember>;
+  public createDM(force?: boolean): Promise<DMChannel>;
+  public deleteDM(): Promise<DMChannel>;
+  public displayAvatarURL(options?: ImageURLOptions): string;
+  public displayBannerURL(options?: ImageURLOptions): string | null;
+  public displayAvatarDecorationURL(): string | null;
+  public edit(options: GuildMemberEditOptions): Promise<GuildMember>;
+  public isCommunicationDisabled(): this is GuildMember & {
+    communicationDisabledUntilTimestamp: number;
+    readonly communicationDisabledUntil: Date;
+  };
+  public kick(reason?: string): Promise<GuildMember>;
+  public permissionsIn(channel: GuildChannelResolvable): Readonly<PermissionsBitField>;
+  public setFlags(flags: GuildMemberFlagsResolvable, reason?: string): Promise<GuildMember>;
+  public setNickname(nickname: string | null, reason?: string): Promise<GuildMember>;
+  public toJSON(): unknown;
+  public toString(): UserMention;
+  public valueOf(): string;
+}
 
-    // معالج زر إلغاء خصم النقاط
-    if (interaction.isButton() && interaction.customId === 'cancel_remove_points') {
-      const embed = new EmbedBuilder()
-        .setTitle('❌ تم إلغاء العملية')
-        .setDescription('تم إلغاء خصم النقاط العسكرية.')
-        .setColor('#ff0000')
-        .setTimestamp();
-      
-      await interaction.update({ embeds: [embed], components: [] });
-      return;
-    }
+export class GuildOnboarding extends Base {
+  private constructor(client: Client, data: RESTGetAPIGuildOnboardingResult);
+  public get guild(): Guild;
+  public guildId: Snowflake;
+  public prompts: Collection<Snowflake, GuildOnboardingPrompt>;
+  public defaultChannels: Collection<Snowflake, GuildChannel>;
+  public enabled: boolean;
+  public mode: GuildOnboardingMode;
+}
 
-    // معالج مودال إدارة الأكواد العسكرية
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_manage_military_codes') {
-      const searchTerm = interaction.fields.getTextInputValue('input_search_military_code');
-      const guildId = interaction.guildId;
-      
-      // البحث عن الهوية بالاسم أو الرقم الوطني
-      const foundIdentity = identities.find(id => 
-        id.guildId === guildId && 
-        (id.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-         id.nationalId === searchTerm)
-      );
-      
-      if (!foundIdentity) {
-        await interaction.reply({ content: '❌ لم يتم العثور على شخص بهذا الاسم أو الرقم الوطني.', ephemeral: true });
-        return;
-      }
-      
-      const userId = foundIdentity.userId;
-      const militaryCode = getMilitaryCode(userId, guildId);
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const militaryUser = getMilitaryUser(userId, guildId);
-        const points = getMilitaryPoints(userId, guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('🔐 معلومات الكود العسكري')
-          .setDescription('**معلومات العسكري المطلوب:**')
-          .setColor('#1e3a8a')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${foundIdentity.fullName}\n**الرقم الوطني:** ${foundIdentity.nationalId}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '🎖️ **المعلومات العسكرية**', value: `**الرتبة:** ${militaryUser?.rank || 'عسكري'}\n**النقاط العسكرية:** ${points} نقطة`, inline: false },
-            { name: '🔐 **الكود العسكري**', value: militaryCode ? `\`${militaryCode}\`` : '**لا يوجد كود عسكري**', inline: false }
-          )
-          .setTimestamp();
-        
-        const buttons = [];
-        
-        // زر تعديل الكود العسكري (فقط إذا كان لديه كود)
-        if (militaryCode) {
-          const editButton = new ButtonBuilder()
-            .setCustomId(`edit_military_code_${userId}`)
-            .setLabel('✏️ تعديل الكود العسكري')
-            .setStyle(ButtonStyle.Primary);
-          buttons.push(editButton);
-        }
-        
-        // زر إضافة رتبة عسكرية
-        const rankButton = new ButtonBuilder()
-          .setCustomId(`add_military_rank_${userId}`)
-          .setLabel('🎖️ إضافة رتبة عسكرية')
-          .setStyle(ButtonStyle.Secondary);
-        buttons.push(rankButton);
-        
-        // زر إضافة تحذير عسكري
-        const warningButton = new ButtonBuilder()
-          .setCustomId(`add_military_warning_${userId}`)
-          .setLabel('🚨 إضافة تحذير عسكري')
-          .setStyle(ButtonStyle.Danger);
-        buttons.push(warningButton);
-        
-        // زر استعلام تحذيرات العسكري
-        const viewWarningsButton = new ButtonBuilder()
-          .setCustomId(`view_military_warnings_${userId}`)
-          .setLabel('📋 استعلام تحذيرات العسكري')
-          .setStyle(ButtonStyle.Primary);
-        buttons.push(viewWarningsButton);
-        
-        // زر إرسال تنبيه
-        const warnButton = new ButtonBuilder()
-          .setCustomId(`send_military_warning_${userId}`)
-          .setLabel('⚠️ إرسال تنبيه')
-          .setStyle(ButtonStyle.Danger);
-        buttons.push(warnButton);
-        
-        const row = new ActionRowBuilder().addComponents(buttons);
-        
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
+export class GuildOnboardingPrompt extends Base {
+  private constructor(client: Client, data: APIGuildOnboardingPrompt, guildId: Snowflake);
+  public id: Snowflake;
+  public get guild(): Guild;
+  public guildId: Snowflake;
+  public options: Collection<Snowflake, GuildOnboardingPromptOption>;
+  public title: string;
+  public singleSelect: boolean;
+  public required: boolean;
+  public inOnboarding: boolean;
+  public type: GuildOnboardingPromptType;
+}
 
-    // معالج مودال تعديل الكود العسكري
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_edit_military_code_')) {
-      const userId = interaction.customId.replace('modal_edit_military_code_', '');
-      const newCode = interaction.fields.getTextInputValue('input_new_military_code');
-      const guildId = interaction.guildId;
-      
-      if (!newCode || newCode.trim() === '') {
-        await interaction.reply({ content: '❌ يرجى إدخال كود عسكري صحيح.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const oldCode = getMilitaryCode(userId, guildId);
-        
-        // تحديث الكود العسكري
-        setMilitaryCode(userId, guildId, newCode);
-        
-        // تحديث الكود في militaryUsers أيضاً
-        if (militaryUsers[userId]) {
-          militaryUsers[userId].code = newCode;
-          militaryUsers[userId].lastUpdate = new Date().toISOString();
-          saveAllData();
-        }
-        
-        // تحديث الصورة في روم مباشرة العسكر
-        await updateMilitaryPageImage(guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('✅ تم تعديل الكود العسكري بنجاح')
-          .setDescription('**تم تحديث الكود العسكري رسمياً!**')
-          .setColor('#00ff00')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '🔐 **الكود العسكري**', value: `**الكود القديم:** \`${oldCode || 'غير محدد'}\`\n**الكود الجديد:** \`${newCode}\``, inline: false },
-            { name: '👮 **تم التعديل بواسطة**', value: `${interaction.user}`, inline: false }
-          )
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        
-        // إرسال لوق في روم اللوق
-        const logChannelId = guildSettings[guildId]?.logChannelId;
-        if (logChannelId) {
-          try {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('✏️ تم تعديل كود عسكري')
-                .setDescription(`**المستخدم:** <@${userId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الكود القديم:** \`${oldCode || 'غير محدد'}\`\n**الكود الجديد:** \`${newCode}\`\n**تم التعديل بواسطة:** ${interaction.user}`)
-                .setColor('#00ff00')
-                .setTimestamp();
-              
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          } catch (e) { /* تجاهل الخطأ */ }
-        }
-        
-        // إرسال رسالة للشخص في الخاص
-        try {
-          const userEmbed = new EmbedBuilder()
-            .setTitle('✏️ تم تعديل كودك العسكري!')
-            .setDescription(`**مرحباً ${targetUser.username}!**\n\nتم تعديل كودك العسكري من قبل المسؤول!\n\n**الكود الجديد:** \`${newCode}\`\n**تم التعديل بواسطة:** ${interaction.user}`)
-            .setColor('#00ff00')
-            .setTimestamp();
-          await targetUser.send({ embeds: [userEmbed] });
-        } catch (err) { /* تجاهل الخطأ */ }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في تعديل الكود العسكري.', ephemeral: true });
-      }
-      return;
-    }
+export class GuildOnboardingPromptOption extends Base {
+  private constructor(client: Client, data: APIGuildOnboardingPromptOption, guildId: Snowflake);
+  private _emoji: APIPartialEmoji;
 
-    // معالج مودال إرسال تنبيه عسكري
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_send_military_warning_')) {
-      const userId = interaction.customId.replace('modal_send_military_warning_', '');
-      const warningMessage = interaction.fields.getTextInputValue('input_warning_message');
-      const guildId = interaction.guildId;
-      
-      if (!warningMessage || warningMessage.trim() === '') {
-        await interaction.reply({ content: '❌ يرجى إدخال رسالة تنبيه صحيحة.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('⚠️ تم إرسال التنبيه العسكري بنجاح')
-          .setDescription('**تم إرسال التنبيه للعسكري!**')
-          .setColor('#ff9900')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '⚠️ **رسالة التنبيه**', value: warningMessage, inline: false },
-            { name: '👮 **تم الإرسال بواسطة**', value: `${interaction.user}`, inline: false }
-          )
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        
-        // إرسال لوق في روم اللوق
-        const logChannelId = guildSettings[guildId]?.logChannelId;
-        if (logChannelId) {
-          try {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('⚠️ تم إرسال تنبيه عسكري')
-                .setDescription(`**المستخدم:** <@${userId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**رسالة التنبيه:** ${warningMessage}\n**تم الإرسال بواسطة:** ${interaction.user}`)
-                .setColor('#ff9900')
-                .setTimestamp();
-              
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          } catch (e) { /* تجاهل الخطأ */ }
-        }
-        
-        // إرسال رسالة للشخص في الخاص
-        try {
-          const userEmbed = new EmbedBuilder()
-            .setTitle('⚠️ لديك تنبيه عسكري!')
-            .setDescription(`**مرحباً ${targetUser.username}!**\n\nلديك تنبيه عسكري من المسؤول!\n\n**المسؤول:** ${interaction.user}\n**سبب التنبيه:** ${warningMessage}`)
-            .setColor('#ff9900')
-            .setTimestamp();
-          await targetUser.send({ embeds: [userEmbed] });
-        } catch (err) { /* تجاهل الخطأ */ }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في إرسال التنبيه.', ephemeral: true });
-      }
-      return;
-    }
+  public id: Snowflake;
+  public get emoji(): Emoji | GuildEmoji | null;
+  public get guild(): Guild;
+  public guildId: Snowflake;
+  public channels: Collection<Snowflake, GuildChannel>;
+  public roles: Collection<Snowflake, Role>;
+  public title: string;
+  public description: string | null;
+}
 
-    // معالج مودال إضافة رتبة عسكرية
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_add_military_rank_')) {
-      const userId = interaction.customId.replace('modal_add_military_rank_', '');
-      const newRank = interaction.fields.getTextInputValue('input_military_rank');
-      const guildId = interaction.guildId;
-      
-      if (!newRank || newRank.trim() === '') {
-        await interaction.reply({ content: '❌ يرجى إدخال رتبة عسكرية صحيحة.', ephemeral: true });
-        return;
-      }
-      
-      if (newRank.length > 15) {
-        await interaction.reply({ content: '❌ يجب أن تكون الرتبة العسكرية 15 حرف كحد أقصى.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const currentUser = getMilitaryUser(userId, guildId);
-        const oldRank = currentUser?.rank || 'عسكري';
-        
-        // تحديث الرتبة العسكرية
-        addOrUpdateMilitaryUser(userId, guildId, {
-          fullName: identity?.fullName || targetUser.username,
-          code: getMilitaryCode(userId, guildId) || '',
-          rank: newRank,
-          status: currentUser?.status || 'out',
-          lastUpdate: Date.now()
-        });
-        
-        // التأكد من حفظ الرتبة العسكرية
-        if (militaryUsers[userId]) {
-          militaryUsers[userId].rank = newRank;
-          saveAllData();
-        }
-        
-        // تحديث الصورة في روم مباشرة العسكر
-        await updateMilitaryPageImage(guildId);
-        
-        const embed = new EmbedBuilder()
-          .setTitle('🎖️ تم إضافة الرتبة العسكرية بنجاح')
-          .setDescription('**تم تحديث الرتبة العسكرية رسمياً!**')
-          .setColor('#00ff00')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '🎖️ **الرتبة العسكرية**', value: `**الرتبة القديمة:** ${oldRank}\n**الرتبة الجديدة:** ${newRank}`, inline: false },
-            { name: '👮 **تم الإضافة بواسطة**', value: `${interaction.user}`, inline: false }
-          )
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        
-        // إرسال لوق في روم اللوق
-        const logChannelId = guildSettings[guildId]?.logChannelId;
-        if (logChannelId) {
-          try {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('🎖️ تم إضافة رتبة عسكرية')
-                .setDescription(`**المستخدم:** <@${userId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرتبة القديمة:** ${oldRank}\n**الرتبة الجديدة:** ${newRank}\n**تم الإضافة بواسطة:** ${interaction.user}`)
-                .setColor('#00ff00')
-                .setTimestamp();
-              
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          } catch (e) { /* تجاهل الخطأ */ }
-        }
-        
-        // إرسال رسالة للشخص في الخاص
-        try {
-          const userEmbed = new EmbedBuilder()
-            .setTitle('🎖️ تم إضافة رتبة عسكرية لك!')
-            .setDescription(`**مرحباً ${targetUser.username}!**\n\nتم إضافة رتبة عسكرية لحسابك!\n\n**الرتبة الجديدة:** ${newRank}\n**تم الإضافة بواسطة:** ${interaction.user}`)
-            .setColor('#00ff00')
-            .setTimestamp();
-          await targetUser.send({ embeds: [userEmbed] });
-        } catch (err) { /* تجاهل الخطأ */ }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في إضافة الرتبة العسكرية.', ephemeral: true });
-      }
-      return;
-    }
+export class GuildPreview extends Base {
+  private constructor(client: Client<true>, data: RawGuildPreviewData);
+  public approximateMemberCount: number;
+  public approximatePresenceCount: number;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public description: string | null;
+  public discoverySplash: string | null;
+  public emojis: Collection<Snowflake, GuildPreviewEmoji>;
+  public stickers: Collection<Snowflake, Sticker>;
+  public features: `${GuildFeature}`[];
+  public icon: string | null;
+  public id: Snowflake;
+  public name: string;
+  public splash: string | null;
+  public discoverySplashURL(options?: ImageURLOptions): string | null;
+  public iconURL(options?: ImageURLOptions): string | null;
+  public splashURL(options?: ImageURLOptions): string | null;
+  public fetch(): Promise<GuildPreview>;
+  public toJSON(): unknown;
+  public toString(): string;
+}
 
-    // معالج مودال إضافة تحذير عسكري
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('modal_add_military_warning_')) {
-      const userId = interaction.customId.replace('modal_add_military_warning_', '');
-      const warningNumber = interaction.fields.getTextInputValue('input_warning_number');
-      const warningReason = interaction.fields.getTextInputValue('input_warning_reason');
-      const guildId = interaction.guildId;
-      
-      if (!warningNumber || !warningReason || warningNumber.trim() === '' || warningReason.trim() === '') {
-        await interaction.reply({ content: '❌ يرجى إدخال جميع البيانات المطلوبة.', ephemeral: true });
-        return;
-      }
-      
-      // التحقق من رقم التحذير
-      const validNumbers = ['1', '2', '3', '4', '5'];
-      if (!validNumbers.includes(warningNumber.trim())) {
-        await interaction.reply({ content: '❌ رقم التحذير يجب أن يكون 1 أو 2 أو 3 أو 4 أو 5.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const adminIdentity = identities.find(id => id.userId === interaction.user.id && id.guildId === guildId);
-        const adminRank = getMilitaryUser(interaction.user.id, guildId)?.rank || 'مسؤول';
-        
-        // إضافة التحذير
-        const warning = addMilitaryWarning(
-          userId, 
-          guildId, 
-          warningNumber.trim(), 
-          warningReason.trim(), 
-          interaction.user.id, 
-          adminIdentity?.fullName || interaction.user.username,
-          adminRank
-        );
-        
-        const embed = new EmbedBuilder()
-          .setTitle('🚨 تم إضافة التحذير العسكري بنجاح')
-          .setDescription('**تم إضافة التحذير العسكري رسمياً!**')
-          .setColor('#ff0000')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-            { name: '🚨 **التحذير العسكري**', value: `**رقم التحذير:** ${warningNumber}\n**سبب التحذير:** ${warningReason}`, inline: false },
-            { name: '👮 **تم الإضافة بواسطة**', value: `${interaction.user} (${adminRank})`, inline: false }
-          )
-          .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        
-        // إرسال لوق في روم اللوق
-        const logChannelId = guildSettings[guildId]?.logChannelId;
-        if (logChannelId) {
-          try {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('🚨 تم إضافة تحذير عسكري')
-                .setDescription(`**المستخدم:** <@${userId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**رقم التحذير:** ${warningNumber}\n**سبب التحذير:** ${warningReason}\n**تم الإضافة بواسطة:** ${interaction.user} (${adminRank})`)
-                .setColor('#ff0000')
-                .setTimestamp();
-              
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          } catch (e) { /* تجاهل الخطأ */ }
-        }
-        
-        // إرسال رسالة للشخص في الخاص
-        try {
-          const userEmbed = new EmbedBuilder()
-            .setTitle('🚨 تم إعطاؤك تحذير عسكري!')
-            .setDescription(`**مرحباً ${targetUser.username}!**\n\nلقد تم إعطاؤك تحذير عسكري!\n\n**رقم التحذير:** ${warningNumber}\n**سبب التحذير:** ${warningReason}\n**من قبل:** ${adminRank} ${interaction.user}`)
-            .setColor('#ff0000')
-            .setTimestamp();
-          await targetUser.send({ embeds: [userEmbed] });
-        } catch (err) { /* تجاهل الخطأ */ }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في إضافة التحذير العسكري.', ephemeral: true });
-      }
-      return;
-    }
+export class GuildScheduledEvent<Status extends GuildScheduledEventStatus = GuildScheduledEventStatus> extends Base {
+  private constructor(client: Client<true>, data: RawGuildScheduledEventData);
+  public id: Snowflake;
+  public guildId: Snowflake;
+  public channelId: Snowflake | null;
+  public creatorId: Snowflake | null;
+  public name: string;
+  public description: string | null;
+  public scheduledStartTimestamp: number | null;
+  public scheduledEndTimestamp: number | null;
+  public privacyLevel: GuildScheduledEventPrivacyLevel;
+  public status: Status;
+  public entityType: GuildScheduledEventEntityType;
+  public entityId: Snowflake | null;
+  public entityMetadata: GuildScheduledEventEntityMetadata | null;
+  public userCount: number | null;
+  public creator: User | null;
+  public recurrenceRule: GuildScheduledEventRecurrenceRule | null;
+  public get createdTimestamp(): number;
+  public get createdAt(): Date;
+  public get scheduledStartAt(): Date | null;
+  public get scheduledEndAt(): Date | null;
+  public get channel(): VoiceChannel | StageChannel | null;
+  public get guild(): Guild | null;
+  public get url(): string;
+  public image: string | null;
+  public get partial(): false;
+  public coverImageURL(options?: Readonly<BaseImageURLOptions>): string | null;
+  public createInviteURL(options?: GuildScheduledEventInviteURLCreateOptions): Promise<string>;
+  public edit<AcceptableStatus extends GuildScheduledEventSetStatusArg<Status>>(
+    options: GuildScheduledEventEditOptions<Status, AcceptableStatus>,
+  ): Promise<GuildScheduledEvent<AcceptableStatus>>;
+  public fetch(force?: boolean): Promise<GuildScheduledEvent<Status>>;
+  public delete(): Promise<GuildScheduledEvent<Status>>;
+  public setName(name: string, reason?: string): Promise<GuildScheduledEvent<Status>>;
+  public setScheduledStartTime(
+    scheduledStartTime: DateResolvable,
+    reason?: string,
+  ): Promise<GuildScheduledEvent<Status>>;
+  public setScheduledEndTime(scheduledEndTime: DateResolvable, reason?: string): Promise<GuildScheduledEvent<Status>>;
+  public setDescription(description: string, reason?: string): Promise<GuildScheduledEvent<Status>>;
+  public setStatus<AcceptableStatus extends GuildScheduledEventSetStatusArg<Status>>(
+    status: AcceptableStatus,
+    reason?: string,
+  ): Promise<GuildScheduledEvent<AcceptableStatus>>;
+  public setLocation(location: string, reason?: string): Promise<GuildScheduledEvent<Status>>;
+  public fetchSubscribers<Options extends FetchGuildScheduledEventSubscribersOptions>(
+    options?: Options,
+  ): Promise<GuildScheduledEventManagerFetchSubscribersResult<Options>>;
+  public toString(): string;
+  public isActive(): this is GuildScheduledEvent<GuildScheduledEventStatus.Active>;
+  public isCanceled(): this is GuildScheduledEvent<GuildScheduledEventStatus.Canceled>;
+  public isCompleted(): this is GuildScheduledEvent<GuildScheduledEventStatus.Completed>;
+  public isScheduled(): this is GuildScheduledEvent<GuildScheduledEventStatus.Scheduled>;
+}
 
-    // معالج زر تعديل الكود العسكري
-    if (interaction.isButton() && interaction.customId.startsWith('edit_military_code_')) {
-      const userId = interaction.customId.replace('edit_military_code_', '');
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const currentCode = getMilitaryCode(userId, guildId);
-        
-        const modal = new ModalBuilder()
-          .setCustomId(`modal_edit_military_code_${userId}`)
-          .setTitle('تعديل الكود العسكري');
-        
-        const codeInput = new TextInputBuilder()
-          .setCustomId('input_new_military_code')
-          .setLabel('الكود العسكري الجديد')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب الكود العسكري الجديد')
-          .setValue(currentCode || '')
-          .setRequired(true);
-        
-        const row = new ActionRowBuilder().addComponents(codeInput);
-        modal.addComponents(row);
-        
-        await interaction.showModal(modal);
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
+export interface GuildScheduledEventRecurrenceRule {
+  startTimestamp: number;
+  get startAt(): Date;
+  endTimestamp: number | null;
+  get endAt(): Date | null;
+  frequency: GuildScheduledEventRecurrenceRuleFrequency;
+  interval: number;
+  byWeekday: readonly GuildScheduledEventRecurrenceRuleWeekday[] | null;
+  byNWeekday: readonly GuildScheduledEventRecurrenceRuleNWeekday[] | null;
+  byMonth: readonly GuildScheduledEventRecurrenceRuleMonth[] | null;
+  byMonthDay: readonly number[] | null;
+  byYearDay: readonly number[] | null;
+  count: number | null;
+}
 
-    // معالج زر إضافة رتبة عسكرية
-    if (interaction.isButton() && interaction.customId.startsWith('add_military_rank_')) {
-      const userId = interaction.customId.replace('add_military_rank_', '');
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const currentRank = getMilitaryUser(userId, guildId)?.rank || 'عسكري';
-        
-        const modal = new ModalBuilder()
-          .setCustomId(`modal_add_military_rank_${userId}`)
-          .setTitle('إضافة رتبة عسكرية');
-        
-        const rankInput = new TextInputBuilder()
-          .setCustomId('input_military_rank')
-          .setLabel('اسم الرتبة العسكرية')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('اكتب اسم الرتبة العسكرية (15 حرف كحد أقصى)')
-          .setValue(currentRank)
-          .setMaxLength(15)
-          .setRequired(true);
-        
-        const row = new ActionRowBuilder().addComponents(rankInput);
-        modal.addComponents(row);
-        
-        await interaction.showModal(modal);
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
+export interface GuildScheduledEventRecurrenceRuleNWeekday {
+  n: number;
+  day: GuildScheduledEventRecurrenceRuleWeekday;
+}
 
-    // معالج زر إضافة تحذير عسكري
-    if (interaction.isButton() && interaction.customId.startsWith('add_military_warning_')) {
-      const userId = interaction.customId.replace('add_military_warning_', '');
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        
-        const modal = new ModalBuilder()
-          .setCustomId(`modal_add_military_warning_${userId}`)
-          .setTitle('إضافة تحذير عسكري');
-        
-        const warningNumberInput = new TextInputBuilder()
-          .setCustomId('input_warning_number')
-          .setLabel('رقم التحذير')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('1 | 2 | 3 | 4 | 5')
-          .setRequired(true);
-        
-        const warningReasonInput = new TextInputBuilder()
-          .setCustomId('input_warning_reason')
-          .setLabel('سبب التحذير')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('اكتب سبب التحذير')
-          .setRequired(true);
-        
-        const row1 = new ActionRowBuilder().addComponents(warningNumberInput);
-        const row2 = new ActionRowBuilder().addComponents(warningReasonInput);
-        modal.addComponents(row1, row2);
-        
-        await interaction.showModal(modal);
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
+export class GuildTemplate extends Base {
+  private constructor(client: Client<true>, data: RawGuildTemplateData);
+  public createdTimestamp: number;
+  public updatedTimestamp: number;
+  public get url(): string;
+  public code: string;
+  public name: string;
+  public description: string | null;
+  public usageCount: number;
+  public creator: User;
+  public creatorId: Snowflake;
+  public get createdAt(): Date;
+  public get updatedAt(): Date;
+  public get guild(): Guild | null;
+  public guildId: Snowflake;
+  public serializedGuild: APITemplateSerializedSourceGuild;
+  public unSynced: boolean | null;
+  public createGuild(name: string, icon?: BufferResolvable | Base64Resolvable): Promise<Guild>;
+  public delete(): Promise<GuildTemplate>;
+  public edit(options?: GuildTemplateEditOptions): Promise<GuildTemplate>;
+  public sync(): Promise<GuildTemplate>;
+  public static GuildTemplatesPattern: RegExp;
+}
 
-    // معالج زر استعلام تحذيرات العسكري
-    if (interaction.isButton() && interaction.customId.startsWith('view_military_warnings_')) {
-      const userId = interaction.customId.replace('view_military_warnings_', '');
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        const warnings = getMilitaryWarnings(userId, guildId);
-        
-        if (warnings.length === 0) {
-          const embed = new EmbedBuilder()
-            .setTitle('📋 تحذيرات العسكري')
-            .setDescription(`**لا توجد تحذيرات عسكرية للعسكري:**\n\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`)
-            .setColor('#00ff00')
-            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-            .setTimestamp();
-          
-          await interaction.reply({ embeds: [embed], ephemeral: true });
-          return;
-        }
-        
-        const embed = new EmbedBuilder()
-          .setTitle('📋 تحذيرات العسكري')
-          .setDescription(`**تحذيرات العسكري:**\n\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}\n\n**عدد التحذيرات:** ${warnings.length}`)
-          .setColor('#ff9900')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        
-        // إضافة تفاصيل كل تحذير
-        warnings.forEach((warning, index) => {
-          let evidenceText = '❌ غير موجود';
-          if (warning.evidence) {
-            evidenceText = `[رابط الدليل](${warning.evidence})`;
-          }
-          embed.addFields({
-            name: `🚨 التحذير رقم ${warning.warningNumber}`,
-            value: `**التاريخ:** <t:${Math.floor(new Date(warning.date).getTime() / 1000)}:F>\n**السبب:** ${warning.reason}\n**من قبل:** ${warning.adminName} (${warning.adminRank})\n**الدليل:** ${evidenceText}`,
-            inline: false
-          });
-        });
-        
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
+export class GuildPreviewEmoji extends BaseGuildEmoji {
+  private constructor(client: Client<true>, data: RawGuildEmojiData, guild: GuildPreview);
+  public guild: GuildPreview;
+  public roles: Snowflake[];
+}
 
-    // معالج زر إرسال تنبيه عسكري
-    if (interaction.isButton() && interaction.customId.startsWith('send_military_warning_')) {
-      const userId = interaction.customId.replace('send_military_warning_', '');
-      const guildId = interaction.guildId;
-      
-      try {
-        const targetUser = await client.users.fetch(userId);
-        const identity = identities.find(id => id.userId === userId && id.guildId === guildId);
-        
-        const modal = new ModalBuilder()
-          .setCustomId(`modal_send_military_warning_${userId}`)
-          .setTitle('إرسال تنبيه عسكري');
-        
-        const warningInput = new TextInputBuilder()
-          .setCustomId('input_warning_message')
-          .setLabel('رسالة التنبيه')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('اكتب رسالة التنبيه للعسكري')
-          .setRequired(true);
-        
-        const row = new ActionRowBuilder().addComponents(warningInput);
-        modal.addComponents(row);
-        
-        await interaction.showModal(modal);
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في جلب معلومات المستخدم.', ephemeral: true });
-      }
-      return;
-    }
+export class Integration extends Base {
+  private constructor(client: Client<true>, data: RawIntegrationData, guild: Guild);
+  public account: IntegrationAccount;
+  public application: IntegrationApplication | null;
+  public enabled: boolean | null;
+  public expireBehavior: IntegrationExpireBehavior | null;
+  public expireGracePeriod: number | null;
+  public guild: Guild;
+  public id: Snowflake | string;
+  public name: string;
+  public role: Role | null;
+  public enableEmoticons: boolean | null;
+  public get roles(): Collection<Snowflake, Role>;
+  public scopes: OAuth2Scopes[];
+  public get syncedAt(): Date | null;
+  public syncedTimestamp: number | null;
+  public syncing: boolean | null;
+  public type: IntegrationType;
+  public user: User | null;
+  public subscriberCount: number | null;
+  public revoked: boolean | null;
+  public delete(reason?: string): Promise<Integration>;
+}
 
-    // معالج زر إضافة دليل تحذير
-    if (interaction.isButton() && interaction.customId === 'add_warning_evidence') {
-      const modal = new ModalBuilder()
-        .setCustomId('modal_add_warning_evidence')
-        .setTitle('إضافة دليل تحذير');
-      
-      const warningIdInput = new TextInputBuilder()
-        .setCustomId('input_warning_id')
-        .setLabel('معرف التحذير')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('اكتب معرف التحذير')
-        .setRequired(true);
-      
-      const evidenceUrlInput = new TextInputBuilder()
-        .setCustomId('input_evidence_url')
-        .setLabel('رابط صورة الدليل')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('ضع رابط صورة الدليل هنا')
-        .setRequired(true);
-      
-      const row1 = new ActionRowBuilder().addComponents(warningIdInput);
-      const row2 = new ActionRowBuilder().addComponents(evidenceUrlInput);
-      modal.addComponents(row1, row2);
-      
-      await interaction.showModal(modal);
-      return;
-    }
+export class IntegrationApplication extends Application {
+  private constructor(client: Client<true>, data: RawIntegrationApplicationData);
+  public bot: User | null;
+  public termsOfServiceURL: string | null;
+  public privacyPolicyURL: string | null;
+  public rpcOrigins: string[];
+  public hook: boolean | null;
+  public cover: string | null;
+  public verifyKey: string | null;
+}
 
-    // معالج زر حذف تحذير
-    if (interaction.isButton() && interaction.customId === 'remove_warning') {
-      const modal = new ModalBuilder()
-        .setCustomId('modal_remove_warning')
-        .setTitle('حذف تحذير');
-      
-      const warningIdInput = new TextInputBuilder()
-        .setCustomId('input_warning_id_to_remove')
-        .setLabel('معرف التحذير')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('اكتب معرف التحذير المراد حذفه')
-        .setRequired(true);
-      
-      const removalReasonInput = new TextInputBuilder()
-        .setCustomId('input_removal_reason')
-        .setLabel('سبب إزالة التحذير')
-        .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder('اكتب سبب إزالة التحذير')
-        .setRequired(true);
-      
-      const row1 = new ActionRowBuilder().addComponents(warningIdInput);
-      const row2 = new ActionRowBuilder().addComponents(removalReasonInput);
-      modal.addComponents(row1, row2);
-      
-      await interaction.showModal(modal);
-      return;
-    }
+export type GatewayIntentsString = keyof typeof GatewayIntentBits;
 
-    // معالج مودال إضافة دليل تحذير
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_add_warning_evidence') {
-      const warningId = interaction.fields.getTextInputValue('input_warning_id');
-      const evidenceUrl = interaction.fields.getTextInputValue('input_evidence_url');
-      const guildId = interaction.guildId;
-      
-      if (!warningId || !evidenceUrl || warningId.trim() === '' || evidenceUrl.trim() === '') {
-        await interaction.reply({ content: '❌ يرجى إدخال جميع البيانات المطلوبة.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        // البحث عن التحذير في جميع التحذيرات
-        let foundWarning = null;
-        let foundUserId = null;
-        
-        if (militaryWarnings[guildId]) {
-          Object.entries(militaryWarnings[guildId]).forEach(([userId, warnings]) => {
-            const warning = warnings.find(w => w.id === warningId);
-            if (warning) {
-              foundWarning = warning;
-              foundUserId = userId;
-            }
-          });
-        }
-        
-        if (!foundWarning) {
-          await interaction.reply({ content: '❌ لم يتم العثور على التحذير المحدد.', ephemeral: true });
-          return;
-        }
-        
-        // إضافة الدليل
-        const success = addWarningEvidence(warningId, foundUserId, guildId, evidenceUrl.trim());
-        
-        if (success) {
-          const targetUser = await client.users.fetch(foundUserId);
-          const identity = identities.find(id => id.userId === foundUserId && id.guildId === guildId);
-          
-          const embed = new EmbedBuilder()
-            .setTitle('✅ تم إضافة دليل التحذير بنجاح')
-            .setDescription('**تم إضافة دليل التحذير رسمياً!**')
-            .setColor('#00ff00')
-            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-            .addFields(
-              { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-              { name: '🚨 **التحذير**', value: `**رقم التحذير:** ${foundWarning.warningNumber}\n**السبب:** ${foundWarning.reason}`, inline: false },
-              { name: '🔗 **الدليل**', value: `**الرابط:** ${evidenceUrl.trim()}`, inline: false },
-              { name: '👮 **تم الإضافة بواسطة**', value: `${interaction.user}`, inline: false }
-            )
-            .setTimestamp();
-          
-          await interaction.reply({ embeds: [embed], ephemeral: true });
-          
-          // إرسال لوق في روم اللوق
-          const logChannelId = guildSettings[guildId]?.logChannelId;
-          if (logChannelId) {
-            try {
-              const logChannel = interaction.guild.channels.cache.get(logChannelId);
-              if (logChannel) {
-                const logEmbed = new EmbedBuilder()
-                  .setTitle('🔗 تم إضافة دليل تحذير عسكري')
-                  .setDescription(`**المستخدم:** <@${foundUserId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**رقم التحذير:** ${foundWarning.warningNumber}\n**سبب التحذير:** ${foundWarning.reason}\n**رابط الدليل:** ${evidenceUrl.trim()}\n**تم الإضافة بواسطة:** ${interaction.user}`)
-                  .setColor('#00ff00')
-                  .setTimestamp();
-                
-                await logChannel.send({ embeds: [logEmbed] });
-              }
-            } catch (e) { /* تجاهل الخطأ */ }
-          }
-          
-          // إرسال رسالة للشخص في الخاص
-          try {
-            const userEmbed = new EmbedBuilder()
-              .setTitle('🔗 تم إضافة دليل لتحذيرك العسكري!')
-              .setDescription(`**مرحباً ${targetUser.username}!**\n\nتم إضافة دليل لتحذيرك العسكري!\n\n**رقم التحذير:** ${foundWarning.warningNumber}\n**سبب التحذير:** ${foundWarning.reason}\n**رابط الدليل:** ${evidenceUrl.trim()}\n**تم الإضافة بواسطة:** ${interaction.user}`)
-              .setColor('#00ff00')
-              .setTimestamp();
-            await targetUser.send({ embeds: [userEmbed] });
-          } catch (err) { /* تجاهل الخطأ */ }
-          
-        } else {
-          await interaction.reply({ content: '❌ فشل في إضافة دليل التحذير.', ephemeral: true });
-        }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في إضافة دليل التحذير.', ephemeral: true });
-      }
-      return;
-    }
+export class IntentsBitField extends BitField<GatewayIntentsString> {
+  public static Flags: typeof GatewayIntentBits;
+  public static resolve(bit?: BitFieldResolvable<GatewayIntentsString, number>): number;
+}
 
-    // معالج مودال البحث عن تحذيرات العسكري
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_manage_military_warnings') {
-      const searchValue = interaction.fields.getTextInputValue('input_search_military_warnings').trim();
-      const guildId = interaction.guildId;
-      
-      if (!searchValue) {
-        await interaction.reply({ content: '❌ يرجى إدخال اسم الشخص أو الرقم الوطني.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        // البحث عن الشخص بالاسم أو الرقم الوطني
-        let foundIdentity = null;
-        if (/^\d+$/.test(searchValue)) {
-          // البحث بالرقم الوطني
-          foundIdentity = identities.find(id => id.nationalId === searchValue && id.guildId === guildId);
-        } else {
-          // البحث بالاسم الكامل
-          foundIdentity = identities.find(id => id.fullName === searchValue && id.guildId === guildId);
-        }
-        
-        if (!foundIdentity) {
-          await interaction.reply({ content: '❌ لم يتم العثور على شخص بهذا الاسم أو الرقم الوطني.', ephemeral: true });
-          return;
-        }
-        
-        const targetUser = await client.users.fetch(foundIdentity.userId);
-        const warnings = getAllMilitaryWarnings(foundIdentity.userId, guildId);
-        
-        if (warnings.length === 0) {
-          const embed = new EmbedBuilder()
-            .setTitle('📋 تحذيرات العسكري')
-            .setDescription(`**لا توجد تحذيرات عسكرية للشخص:**\n\n**الاسم:** ${foundIdentity.fullName}\n**الرقم الوطني:** ${foundIdentity.nationalId}\n**المستخدم:** ${targetUser}`)
-            .setColor('#00ff00')
-            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-            .setTimestamp();
-          
-          await interaction.reply({ embeds: [embed], ephemeral: true });
-          return;
-        }
-        
-        // ترتيب التحذيرات حسب التاريخ (الأحدث أولاً)
-        warnings.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        const embed = new EmbedBuilder()
-          .setTitle('📋 تحذيرات العسكري')
-          .setDescription(`**تحذيرات العسكري:**\n\n**الاسم:** ${foundIdentity.fullName}\n**الرقم الوطني:** ${foundIdentity.nationalId}\n**المستخدم:** ${targetUser}\n\n**عدد التحذيرات:** ${warnings.length}`)
-          .setColor('#ff9900')
-          .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-          .setTimestamp();
-        
-        // إضافة تفاصيل كل تحذير
-        warnings.forEach((warning, index) => {
-          embed.addFields({
-            name: `🚨 التحذير رقم ${warning.warningNumber} - المعرف: ${warning.id} (${warning.removed ? 'محذوف' : 'نشط'})`,
-            value: `**التاريخ:** <t:${Math.floor(new Date(warning.date).getTime() / 1000)}:F>\n**السبب:** ${warning.reason}\n**من قبل:** ${warning.adminName} (${warning.adminRank})\n**الدليل:** ${warning.evidence ? '✅ موجود' : '❌ غير موجود'}${warning.removed ? `\n**سبب الحذف:** ${warning.removalReason}\n**تاريخ الحذف:** <t:${Math.floor(new Date(warning.removalDate).getTime() / 1000)}:F>\n**تم الحذف بواسطة:** ${warning.removalAdminName}` : ''}`,
-            inline: false
-          });
-        });
-        
-        // إضافة أزرار للتحكم
-        const buttons = [];
-        
-        // زر إضافة دليل تحذير (فقط للتحذيرات النشطة)
-        const activeWarnings = warnings.filter(w => !w.removed);
-        if (activeWarnings.length > 0) {
-          const addEvidenceButton = new ButtonBuilder()
-            .setCustomId('add_warning_evidence')
-            .setLabel('➕ إضافة دليل تحذير')
-            .setStyle(ButtonStyle.Success);
-          buttons.push(addEvidenceButton);
-        }
-        
-        // زر حذف تحذير (فقط للتحذيرات النشطة)
-        if (activeWarnings.length > 0) {
-          const removeWarningButton = new ButtonBuilder()
-            .setCustomId('remove_warning')
-            .setLabel('🗑️ حذف تحذير')
-            .setStyle(ButtonStyle.Danger);
-          buttons.push(removeWarningButton);
-        }
-        
-        if (buttons.length > 0) {
-          const row = new ActionRowBuilder().addComponents(buttons);
-          await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-        } else {
-          await interaction.reply({ embeds: [embed], ephemeral: true });
-        }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في البحث عن تحذيرات العسكري.', ephemeral: true });
-      }
-      return;
-    }
+export type CacheType = 'cached' | 'raw' | undefined;
 
-    // معالج مودال حذف تحذير
-    if (interaction.isModalSubmit() && interaction.customId === 'modal_remove_warning') {
-      const warningId = interaction.fields.getTextInputValue('input_warning_id_to_remove');
-      const removalReason = interaction.fields.getTextInputValue('input_removal_reason');
-      const guildId = interaction.guildId;
-      
-      if (!warningId || !removalReason || warningId.trim() === '' || removalReason.trim() === '') {
-        await interaction.reply({ content: '❌ يرجى إدخال جميع البيانات المطلوبة.', ephemeral: true });
-        return;
-      }
-      
-      try {
-        // البحث عن التحذير في جميع التحذيرات
-        let foundWarning = null;
-        let foundUserId = null;
-        
-        if (militaryWarnings[guildId]) {
-          Object.entries(militaryWarnings[guildId]).forEach(([userId, warnings]) => {
-            const warning = warnings.find(w => w.id === warningId);
-            if (warning) {
-              foundWarning = warning;
-              foundUserId = userId;
-            }
-          });
-        }
-        
-        if (!foundWarning) {
-          await interaction.reply({ content: '❌ لم يتم العثور على التحذير المحدد.', ephemeral: true });
-          return;
-        }
-        
-        if (foundWarning.removed) {
-          await interaction.reply({ content: '❌ هذا التحذير محذوف بالفعل.', ephemeral: true });
-          return;
-        }
-        
-        const adminIdentity = identities.find(id => id.userId === interaction.user.id && id.guildId === guildId);
-        const adminRank = getMilitaryUser(interaction.user.id, guildId)?.rank || 'مسؤول';
-        
-        // حذف التحذير
-        const success = removeMilitaryWarning(
-          warningId, 
-          foundUserId, 
-          guildId, 
-          removalReason.trim(), 
-          interaction.user.id, 
-          adminIdentity?.fullName || interaction.user.username
-        );
-        
-        if (success) {
-          const targetUser = await client.users.fetch(foundUserId);
-          const identity = identities.find(id => id.userId === foundUserId && id.guildId === guildId);
-          
-          const embed = new EmbedBuilder()
-            .setTitle('✅ تم حذف التحذير العسكري بنجاح')
-            .setDescription('**تم حذف التحذير العسكري رسمياً!**')
-            .setColor('#ff0000')
-            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
-            .addFields(
-              { name: '👤 **المعلومات الشخصية**', value: `**الاسم:** ${identity?.fullName || 'غير محدد'}\n**الرقم الوطني:** ${identity?.nationalId || 'غير محدد'}\n**المستخدم:** ${targetUser}`, inline: false },
-              { name: '🚨 **التحذير المحذوف**', value: `**رقم التحذير:** ${foundWarning.warningNumber}\n**السبب الأصلي:** ${foundWarning.reason}`, inline: false },
-              { name: '🗑️ **سبب الحذف**', value: `**السبب:** ${removalReason.trim()}`, inline: false },
-              { name: '👮 **تم الحذف بواسطة**', value: `${interaction.user} (${adminRank})`, inline: false }
-            )
-            .setTimestamp();
-          
-          await interaction.reply({ embeds: [embed], ephemeral: true });
-          
-          // إرسال لوق في روم اللوق
-          const logChannelId = guildSettings[guildId]?.logChannelId;
-          if (logChannelId) {
-            try {
-              const logChannel = interaction.guild.channels.cache.get(logChannelId);
-              if (logChannel) {
-                const logEmbed = new EmbedBuilder()
-                  .setTitle('🗑️ تم حذف تحذير عسكري')
-                  .setDescription(`**المستخدم:** <@${foundUserId}> (${targetUser.username})\n**الاسم:** ${identity?.fullName || 'غير محدد'}\n**رقم التحذير:** ${foundWarning.warningNumber}\n**سبب التحذير الأصلي:** ${foundWarning.reason}\n**سبب الحذف:** ${removalReason.trim()}\n**تم الحذف بواسطة:** ${interaction.user} (${adminRank})`)
-                  .setColor('#ff0000')
-                  .setTimestamp();
-                
-                await logChannel.send({ embeds: [logEmbed] });
-              }
-            } catch (e) { /* تجاهل الخطأ */ }
-          }
-          
-          // إرسال رسالة للشخص في الخاص
-          try {
-            const userEmbed = new EmbedBuilder()
-              .setTitle('🗑️ تم حذف تحذيرك العسكري!')
-              .setDescription(`**مرحباً ${targetUser.username}!**\n\nتم حذف تحذيرك العسكري!\n\n**رقم التحذير:** ${foundWarning.warningNumber}\n**سبب التحذير الأصلي:** ${foundWarning.reason}\n**سبب الحذف:** ${removalReason.trim()}\n**تم الحذف بواسطة:** ${adminRank} ${interaction.user}`)
-              .setColor('#ff0000')
-              .setTimestamp();
-            await targetUser.send({ embeds: [userEmbed] });
-          } catch (err) { /* تجاهل الخطأ */ }
-          
-        } else {
-          await interaction.reply({ content: '❌ فشل في حذف التحذير.', ephemeral: true });
-        }
-        
-      } catch (e) {
-        await interaction.reply({ content: '❌ خطأ في حذف التحذير.', ephemeral: true });
-      }
-      return;
-    }
+export type CacheTypeReducer<
+  State extends CacheType,
+  CachedType,
+  RawType = CachedType,
+  PresentType = CachedType | RawType,
+  Fallback = PresentType | null,
+> = [State] extends ['cached']
+  ? CachedType
+  : [State] extends ['raw']
+    ? RawType
+    : [State] extends ['raw' | 'cached']
+      ? PresentType
+      : Fallback;
 
-    // معالج خيار إعادة تعيين الصفحة (للأوامر التي تبدأ بـ /)
-    if (interaction.isStringSelectMenu() && interaction.values[0] === 'reset_page') {
-      await interaction.deferUpdate();
-      return;
-    }
-  } catch (e) {
-    console.error('خطأ في التعامل مع التفاعلات:', e);
-  }
-});
-client.login(config.DISCORD_TOKEN);
+export type Interaction<Cached extends CacheType = CacheType> =
+  | ChatInputCommandInteraction<Cached>
+  | MessageContextMenuCommandInteraction<Cached>
+  | UserContextMenuCommandInteraction<Cached>
+  | PrimaryEntryPointCommandInteraction<Cached>
+  | AnySelectMenuInteraction<Cached>
+  | ButtonInteraction<Cached>
+  | AutocompleteInteraction<Cached>
+  | ModalSubmitInteraction<Cached>;
+
+export type RepliableInteraction<Cached extends CacheType = CacheType> = Exclude<
+  Interaction<Cached>,
+  AutocompleteInteraction<Cached>
+>;
+
+export class BaseInteraction<Cached extends CacheType = CacheType> extends Base {
+  // This a technique used to brand different cached types. Or else we'll get `never` errors on typeguard checks.
+  private readonly _cacheType: Cached;
+  protected constructor(client: Client<true>, data: RawInteractionData);
+  public applicationId: Snowflake;
+  public authorizingIntegrationOwners: APIAuthorizingIntegrationOwnersMap;
+  public get channel(): CacheTypeReducer<
+    Cached,
+    GuildTextBasedChannel | null,
+    GuildTextBasedChannel | null,
+    GuildTextBasedChannel | null,
+    TextBasedChannel | null
+  >;
+  public channelId: Snowflake | null;
+  public context: InteractionContextType | null;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public get guild(): CacheTypeReducer<Cached, Guild, null>;
+  public guildId: CacheTypeReducer<Cached, Snowflake>;
+  public id: Snowflake;
+  public member: CacheTypeReducer<Cached, GuildMember, APIInteractionGuildMember>;
+  public readonly token: string;
+  public type: InteractionType;
+  public user: User;
+  public version: number;
+  public appPermissions: Readonly<PermissionsBitField>;
+  public memberPermissions: CacheTypeReducer<Cached, Readonly<PermissionsBitField>>;
+  public locale: Locale;
+  public guildLocale: CacheTypeReducer<Cached, Locale>;
+  public entitlements: Collection<Snowflake, Entitlement>;
+  public attachmentSizeLimit: number;
+  public inGuild(): this is BaseInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is BaseInteraction<'cached'>;
+  public inRawGuild(): this is BaseInteraction<'raw'>;
+  public isButton(): this is ButtonInteraction<Cached>;
+  public isAutocomplete(): this is AutocompleteInteraction<Cached>;
+  public isChatInputCommand(): this is ChatInputCommandInteraction<Cached>;
+  public isCommand(): this is CommandInteraction<Cached>;
+  public isContextMenuCommand(): this is ContextMenuCommandInteraction<Cached>;
+  public isPrimaryEntryPointCommand(): this is PrimaryEntryPointCommandInteraction<Cached>;
+  public isMessageComponent(): this is MessageComponentInteraction<Cached>;
+  public isMessageContextMenuCommand(): this is MessageContextMenuCommandInteraction<Cached>;
+  public isModalSubmit(): this is ModalSubmitInteraction<Cached>;
+  public isUserContextMenuCommand(): this is UserContextMenuCommandInteraction<Cached>;
+  /** @deprecated Use {@link BaseInteraction.isStringSelectMenu} instead. */
+  public isSelectMenu(): this is StringSelectMenuInteraction<Cached>;
+  public isAnySelectMenu(): this is AnySelectMenuInteraction<Cached>;
+  public isStringSelectMenu(): this is StringSelectMenuInteraction<Cached>;
+  public isUserSelectMenu(): this is UserSelectMenuInteraction<Cached>;
+  public isRoleSelectMenu(): this is RoleSelectMenuInteraction<Cached>;
+  public isMentionableSelectMenu(): this is MentionableSelectMenuInteraction<Cached>;
+  public isChannelSelectMenu(): this is ChannelSelectMenuInteraction<Cached>;
+  public isRepliable(): this is RepliableInteraction<Cached>;
+}
+
+export class InteractionCallback {
+  private constructor(client: Client<true>, data: RESTAPIInteractionCallbackObject);
+  public activityInstanceId: string | null;
+  public readonly client: Client<true>;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public id: Snowflake;
+  public responseMessageEphemeral: boolean | null;
+  public responseMessageId: Snowflake | null;
+  public responseMessageLoading: boolean | null;
+  public type: InteractionType;
+}
+
+export class InteractionCallbackResponse {
+  private constructor(client: Client<true>, data: RESTPostAPIInteractionCallbackWithResponseResult);
+  public readonly client: Client<true>;
+  public interaction: InteractionCallback;
+  public resource: InteractionCallbackResource | null;
+}
+
+export class InteractionCallbackResource {
+  private constructor(client: Client<true>, data: RESTAPIInteractionCallbackResourceObject);
+  public activityInstance: RESTAPIInteractionCallbackActivityInstanceResource | null;
+  public message: Message | null;
+  public type: InteractionResponseType;
+}
+
+export class InteractionCollector<Interaction extends CollectedInteraction> extends Collector<
+  Snowflake,
+  Interaction,
+  [Collection<Snowflake, Interaction>]
+> {
+  public constructor(client: Client<true>, options?: InteractionCollectorOptions<Interaction>);
+  private _handleMessageDeletion(message: Message): void;
+  private _handleChannelDeletion(channel: NonThreadGuildBasedChannel): void;
+  private _handleGuildDeletion(guild: Guild): void;
+
+  public channelId: Snowflake | null;
+  public messageInteractionId: Snowflake | null;
+  public componentType: ComponentType | null;
+  public guildId: Snowflake | null;
+  public interactionType: InteractionType | null;
+  public messageId: Snowflake | null;
+  public options: InteractionCollectorOptions<Interaction>;
+  public total: number;
+  public users: Collection<Snowflake, User>;
+
+  public collect(interaction: Interaction): Snowflake;
+  public empty(): void;
+  public dispose(interaction: Interaction): Snowflake;
+  public on(event: 'collect' | 'dispose' | 'ignore', listener: (interaction: Interaction) => void): this;
+  public on(
+    event: 'end',
+    listener: (collected: ReadonlyCollection<Snowflake, Interaction>, reason: string) => void,
+  ): this;
+  public on(event: string, listener: (...args: any[]) => void): this;
+
+  public once(event: 'collect' | 'dispose' | 'ignore', listener: (interaction: Interaction) => void): this;
+  public once(
+    event: 'end',
+    listener: (collected: ReadonlyCollection<Snowflake, Interaction>, reason: string) => void,
+  ): this;
+  public once(event: string, listener: (...args: any[]) => void): this;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface InteractionWebhook extends PartialWebhookFields {}
+export class InteractionWebhook {
+  public constructor(client: Client<true>, id: Snowflake, token: string);
+  public readonly client: Client<true>;
+  public token: string;
+  public send(options: string | MessagePayload | InteractionReplyOptions): Promise<Message>;
+  public editMessage(
+    message: MessageResolvable | '@original',
+    options: string | MessagePayload | WebhookMessageEditOptions,
+  ): Promise<Message>;
+  public fetchMessage(message: Snowflake | '@original'): Promise<Message>;
+}
+
+export class Invite extends Base {
+  private constructor(client: Client<true>, data: RawInviteData);
+  public channel: NonThreadGuildBasedChannel | PartialGroupDMChannel | null;
+  public channelId: Snowflake | null;
+  public code: string;
+  public get deletable(): boolean;
+  public get createdAt(): Date | null;
+  public createdTimestamp: number | null;
+  public get expiresAt(): Date | null;
+  public get expiresTimestamp(): number | null;
+  public guild: InviteGuild | Guild | null;
+  public get inviter(): User | null;
+  public inviterId: Snowflake | null;
+  public maxAge: number | null;
+  public maxUses: number | null;
+  public memberCount: number;
+  public presenceCount: number;
+  public targetApplication: IntegrationApplication | null;
+  public targetUser: User | null;
+  public targetType: InviteTargetType | null;
+  public temporary: boolean | null;
+  public type: InviteType;
+  public get url(): string;
+  public uses: number | null;
+  public delete(reason?: string): Promise<Invite>;
+  public toJSON(): unknown;
+  public toString(): string;
+  public static InvitesPattern: RegExp;
+  /** @deprecated Public Stage Instances don't exist anymore  */
+  public stageInstance: InviteStageInstance | null;
+  public guildScheduledEvent: GuildScheduledEvent | null;
+}
+
+/** @deprecated Public Stage Instances don't exist anymore */
+export class InviteStageInstance extends Base {
+  private constructor(client: Client<true>, data: RawInviteStageInstance, channelId: Snowflake, guildId: Snowflake);
+  public channelId: Snowflake;
+  public guildId: Snowflake;
+  public members: Collection<Snowflake, GuildMember>;
+  public topic: string;
+  public participantCount: number;
+  public speakerCount: number;
+  public get channel(): StageChannel | null;
+  public get guild(): Guild | null;
+}
+
+export class InviteGuild extends AnonymousGuild {
+  private constructor(client: Client<true>, data: RawInviteGuildData);
+  public welcomeScreen: WelcomeScreen | null;
+}
+
+export class LimitedCollection<Key, Value> extends Collection<Key, Value> {
+  public constructor(options?: LimitedCollectionOptions<Key, Value>, iterable?: Iterable<readonly [Key, Value]>);
+  public maxSize: number;
+  public keepOverLimit: ((value: Value, key: Key, collection: this) => boolean) | null;
+}
+
+export interface MediaGalleryComponentData extends BaseComponentData {
+  items: readonly MediaGalleryItemData[];
+}
+export class MediaGalleryComponent extends Component<APIMediaGalleryComponent> {
+  private constructor(data: APIMediaGalleryComponent);
+  public readonly items: MediaGalleryItem[];
+}
+
+export interface MediaGalleryItemData {
+  media: UnfurledMediaItemData;
+  description?: string;
+  spoiler?: boolean;
+}
+export class MediaGalleryItem {
+  private constructor(data: APIMediaGalleryItem);
+  public readonly data: APIMediaGalleryItem;
+  public readonly media: UnfurledMediaItem;
+  public get description(): string | null;
+  public get spoiler(): boolean;
+}
+
+export interface MessageCall {
+  get endedAt(): Date | null;
+  endedTimestamp: number | null;
+  participants: readonly Snowflake[];
+}
+
+export type MessageComponentType =
+  | ComponentType.Button
+  | ComponentType.ChannelSelect
+  | ComponentType.MentionableSelect
+  | ComponentType.RoleSelect
+  | ComponentType.StringSelect
+  | ComponentType.UserSelect;
+
+export interface MessageCollectorOptionsParams<
+  ComponentType extends MessageComponentType,
+  Cached extends boolean = boolean,
+> extends MessageComponentCollectorOptions<MappedInteractionTypes<Cached>[ComponentType]> {
+  componentType?: ComponentType;
+}
+
+export interface MessageChannelCollectorOptionsParams<
+  ComponentType extends MessageComponentType,
+  Cached extends boolean = boolean,
+> extends MessageChannelComponentCollectorOptions<MappedInteractionTypes<Cached>[ComponentType]> {
+  componentType?: ComponentType;
+}
+
+export interface AwaitMessageCollectorOptionsParams<
+  ComponentType extends MessageComponentType,
+  Cached extends boolean = boolean,
+> extends Pick<
+    InteractionCollectorOptions<MappedInteractionTypes<Cached>[ComponentType]>,
+    keyof AwaitMessageComponentOptions<any>
+  > {
+  componentType?: ComponentType;
+}
+
+export interface StringMappedInteractionTypes<Cached extends CacheType = CacheType> {
+  Button: ButtonInteraction<Cached>;
+  StringSelectMenu: StringSelectMenuInteraction<Cached>;
+  UserSelectMenu: UserSelectMenuInteraction<Cached>;
+  RoleSelectMenu: RoleSelectMenuInteraction<Cached>;
+  MentionableSelectMenu: MentionableSelectMenuInteraction<Cached>;
+  ChannelSelectMenu: ChannelSelectMenuInteraction<Cached>;
+  ActionRow: MessageComponentInteraction<Cached>;
+}
+
+export type WrapBooleanCache<Cached extends boolean> = If<Cached, 'cached', CacheType>;
+
+export interface MappedInteractionTypes<Cached extends boolean = boolean> {
+  [ComponentType.Button]: ButtonInteraction<WrapBooleanCache<Cached>>;
+  [ComponentType.StringSelect]: StringSelectMenuInteraction<WrapBooleanCache<Cached>>;
+  [ComponentType.UserSelect]: UserSelectMenuInteraction<WrapBooleanCache<Cached>>;
+  [ComponentType.RoleSelect]: RoleSelectMenuInteraction<WrapBooleanCache<Cached>>;
+  [ComponentType.MentionableSelect]: MentionableSelectMenuInteraction<WrapBooleanCache<Cached>>;
+  [ComponentType.ChannelSelect]: ChannelSelectMenuInteraction<WrapBooleanCache<Cached>>;
+}
+
+export class Message<InGuild extends boolean = boolean> extends Base {
+  private readonly _cacheType: InGuild;
+  private constructor(client: Client<true>, data: RawMessageData);
+  private _patch(data: RawPartialMessageData | RawMessageData): void;
+
+  public activity: MessageActivity | null;
+  public applicationId: Snowflake | null;
+  public attachments: Collection<Snowflake, Attachment>;
+  public author: User;
+  public get bulkDeletable(): boolean;
+  public get channel(): If<InGuild, GuildTextBasedChannel, TextBasedChannel>;
+  public channelId: Snowflake;
+  public get cleanContent(): string;
+  public components: TopLevelComponent[];
+  public content: string;
+  public get createdAt(): Date;
+  public createdTimestamp: number;
+  public get crosspostable(): boolean;
+  public get deletable(): boolean;
+  public get editable(): boolean;
+  public get editedAt(): Date | null;
+  public editedTimestamp: number | null;
+  public embeds: Embed[];
+  public groupActivityApplication: ClientApplication | null;
+  public guildId: If<InGuild, Snowflake>;
+  public get guild(): If<InGuild, Guild>;
+  public get hasThread(): boolean;
+  public id: Snowflake;
+  /** @deprecated Use {@link Message.interactionMetadata} instead. */
+  public interaction: MessageInteraction | null;
+  public interactionMetadata: MessageInteractionMetadata | null;
+  public get member(): GuildMember | null;
+  public mentions: MessageMentions<InGuild>;
+  public nonce: string | number | null;
+  public get partial(): false;
+  public get pinnable(): boolean;
+  public pinned: boolean;
+  public reactions: ReactionManager;
+  public stickers: Collection<Snowflake, Sticker>;
+  public position: number | null;
+  public roleSubscriptionData: RoleSubscriptionData | null;
+  public resolved: CommandInteractionResolvedData | null;
+  public system: boolean;
+  public get thread(): AnyThreadChannel | null;
+  public tts: boolean;
+  public poll: Poll | null;
+  public call: MessageCall | null;
+  public type: MessageType;
+  public get url(): string;
+  public webhookId: Snowflake | null;
+  public flags: Readonly<MessageFlagsBitField>;
+  public reference: MessageReference | null;
+  public messageSnapshots: Collection<Snowflake, MessageSnapshot>;
+  public awaitMessageComponent<ComponentType extends MessageComponentType>(
+    options?: AwaitMessageCollectorOptionsParams<ComponentType, InGuild>,
+  ): Promise<MappedInteractionTypes<InGuild>[ComponentType]>;
+  public awaitReactions(options?: AwaitReactionsOptions): Promise<Collection<Snowflake | string, MessageReaction>>;
+  public createReactionCollector(options?: ReactionCollectorOptions): ReactionCollector;
+  public createMessageComponentCollector<ComponentType extends MessageComponentType>(
+    options?: MessageCollectorOptionsParams<ComponentType, InGuild>,
+  ): InteractionCollector<MappedInteractionTypes<InGuild>[ComponentType]>;
+  public delete(): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public edit(
+    content: string | MessageEditOptions | MessagePayload,
+  ): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public equals(message: Message, rawData: unknown): boolean;
+  public fetchReference(): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public fetchWebhook(): Promise<Webhook>;
+  public crosspost(): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public fetch(force?: boolean): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public pin(reason?: string): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public react(emoji: EmojiIdentifierResolvable): Promise<MessageReaction>;
+  public removeAttachments(): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public reply(
+    options: string | MessagePayload | MessageReplyOptions,
+  ): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public forward(channel: Exclude<TextBasedChannelResolvable, PartialGroupDMChannel>): Promise<Message>;
+  public resolveComponent(customId: string): MessageActionRowComponent | null;
+  public startThread(options: StartThreadOptions): Promise<PublicThreadChannel<false>>;
+  public suppressEmbeds(suppress?: boolean): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public toJSON(): unknown;
+  public toString(): string;
+  public unpin(reason?: string): Promise<OmitPartialGroupDMChannel<Message<InGuild>>>;
+  public inGuild(): this is Message<true>;
+}
+
+export class AttachmentBuilder {
+  public constructor(attachment: BufferResolvable | Stream, data?: AttachmentData);
+  public attachment: BufferResolvable | Stream;
+  public description: string | null;
+  public name: string | null;
+  public get spoiler(): boolean;
+  public setDescription(description: string): this;
+  public setFile(attachment: BufferResolvable | Stream, name?: string): this;
+  public setName(name: string): this;
+  public setSpoiler(spoiler?: boolean): this;
+  public toJSON(): unknown;
+  public static from(other: JSONEncodable<AttachmentPayload>): AttachmentBuilder;
+}
+
+export class Attachment {
+  private constructor(data: APIAttachment);
+  private attachment: BufferResolvable | Stream;
+  public contentType: string | null;
+  public description: string | null;
+  public duration: number | null;
+  public ephemeral: boolean;
+  public flags: AttachmentFlagsBitField;
+  public height: number | null;
+  public id: Snowflake;
+  public name: string;
+  public proxyURL: string;
+  public size: number;
+  public get spoiler(): boolean;
+  public title: string | null;
+  public url: string;
+  public waveform: string | null;
+  public width: number | null;
+  public toJSON(): unknown;
+}
+
+export type AttachmentFlagsString = keyof typeof AttachmentFlags;
+
+export class AttachmentFlagsBitField extends BitField<AttachmentFlagsString> {
+  public static Flags: Record<AttachmentFlagsString, number>;
+  public static resolve(bit?: BitFieldResolvable<AttachmentFlagsString, number>): number;
+}
+
+export class MessageCollector extends Collector<Snowflake, Message, [Collection<Snowflake, Message>]> {
+  public constructor(channel: TextBasedChannel, options?: MessageCollectorOptions);
+  private _handleChannelDeletion(channel: NonThreadGuildBasedChannel): void;
+  private _handleGuildDeletion(guild: Guild): void;
+
+  public channel: TextBasedChannel;
+  public options: MessageCollectorOptions;
+  public received: number;
+
+  public collect(message: Message): Snowflake | null;
+  public dispose(message: Message): Snowflake | null;
+}
+
+export class MessageComponentInteraction<Cached extends CacheType = CacheType> extends BaseInteraction<Cached> {
+  protected constructor(client: Client<true>, data: RawMessageComponentInteractionData);
+  public type: InteractionType.MessageComponent;
+  public get component(): CacheTypeReducer<
+    Cached,
+    MessageActionRowComponent,
+    APIComponentInMessageActionRow,
+    MessageActionRowComponent | APIComponentInMessageActionRow,
+    MessageActionRowComponent | APIComponentInMessageActionRow
+  >;
+  public componentType: MessageComponentType;
+  public customId: string;
+  public channelId: Snowflake;
+  public deferred: boolean;
+  public ephemeral: boolean | null;
+  public message: Message<BooleanCache<Cached>>;
+  public replied: boolean;
+  public webhook: InteractionWebhook;
+  public inGuild(): this is MessageComponentInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is MessageComponentInteraction<'cached'>;
+  public inRawGuild(): this is MessageComponentInteraction<'raw'>;
+  public deferReply(
+    options: InteractionDeferReplyOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public deferReply(
+    options: InteractionDeferReplyOptions & { fetchReply: true },
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public deferReply(options?: InteractionDeferReplyOptions): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public deferUpdate(
+    options: InteractionDeferUpdateOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public deferUpdate(
+    options: InteractionDeferUpdateOptions & { fetchReply: true },
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public deferUpdate(options?: InteractionDeferUpdateOptions): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public deleteReply(message?: MessageResolvable | '@original'): Promise<void>;
+  public editReply(
+    options: string | MessagePayload | InteractionEditReplyOptions,
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public fetchReply(message?: Snowflake | '@original'): Promise<Message<BooleanCache<Cached>>>;
+  public followUp(options: string | MessagePayload | InteractionReplyOptions): Promise<Message<BooleanCache<Cached>>>;
+  public reply(options: InteractionReplyOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public reply(options: InteractionReplyOptions & { fetchReply: true }): Promise<Message<BooleanCache<Cached>>>;
+  public reply(
+    options: string | MessagePayload | InteractionReplyOptions,
+  ): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public update(options: InteractionUpdateOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public update(options: InteractionUpdateOptions & { fetchReply: true }): Promise<Message<BooleanCache<Cached>>>;
+  public update(
+    options: string | MessagePayload | InteractionUpdateOptions,
+  ): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public launchActivity(options: LaunchActivityOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  public launchActivity(options?: LaunchActivityOptions & { withResponse?: false }): Promise<undefined>;
+  public launchActivity(options?: LaunchActivityOptions): Promise<InteractionCallbackResponse | undefined>;
+  public showModal(
+    modal:
+      | JSONEncodable<APIModalInteractionResponseCallbackData>
+      | ModalComponentData
+      | APIModalInteractionResponseCallbackData,
+    options: ShowModalOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  public showModal(
+    modal:
+      | JSONEncodable<APIModalInteractionResponseCallbackData>
+      | ModalComponentData
+      | APIModalInteractionResponseCallbackData,
+    options?: ShowModalOptions,
+  ): Promise<undefined>;
+  public showModal(
+    modal:
+      | JSONEncodable<APIModalInteractionResponseCallbackData>
+      | ModalComponentData
+      | APIModalInteractionResponseCallbackData,
+    options?: ShowModalOptions,
+  ): Promise<undefined>;
+  /** @deprecated Sending a premium-style button is the new Discord behaviour. */
+  public sendPremiumRequired(): Promise<void>;
+  public awaitModalSubmit(
+    options: AwaitModalSubmitOptions<ModalSubmitInteraction>,
+  ): Promise<ModalSubmitInteraction<Cached>>;
+}
+
+export class MessageContextMenuCommandInteraction<
+  Cached extends CacheType = CacheType,
+> extends ContextMenuCommandInteraction<Cached> {
+  public commandType: ApplicationCommandType.Message;
+  public options: Omit<
+    CommandInteractionOptionResolver<Cached>,
+    | 'getFocused'
+    | 'getMentionable'
+    | 'getRole'
+    | 'getUser'
+    | 'getNumber'
+    | 'getAttachment'
+    | 'getInteger'
+    | 'getString'
+    | 'getChannel'
+    | 'getBoolean'
+    | 'getSubcommandGroup'
+    | 'getSubcommand'
+  >;
+  public get targetMessage(): NonNullable<CommandInteractionOption<Cached>['message']>;
+  public inGuild(): this is MessageContextMenuCommandInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is MessageContextMenuCommandInteraction<'cached'>;
+  public inRawGuild(): this is MessageContextMenuCommandInteraction<'raw'>;
+}
+
+export type MessageFlagsString = keyof typeof MessageFlags;
+
+export class MessageFlagsBitField extends BitField<MessageFlagsString> {
+  public static Flags: typeof MessageFlags;
+  public static resolve(bit?: MessageFlagsResolvable): number;
+}
+
+export type MessageFlagsResolvable = BitFieldResolvable<MessageFlagsString, number>;
+
+export class MessageMentions<InGuild extends boolean = boolean> {
+  private constructor(
+    message: Message,
+    users: readonly APIUser[] | ReadonlyCollection<Snowflake, User>,
+    roles: readonly Snowflake[] | ReadonlyCollection<Snowflake, Role>,
+    everyone: boolean,
+    repliedUser?: APIUser | User,
+  );
+  private _channels: Collection<Snowflake, Channel> | null;
+  private readonly _content: string;
+  private _members: Collection<Snowflake, GuildMember> | null;
+  private _parsedUsers: Collection<Snowflake, User> | null;
+
+  public get channels(): Collection<Snowflake, Channel>;
+  public readonly client: Client;
+  public everyone: boolean;
+  public readonly guild: If<InGuild, Guild>;
+  public has(data: UserResolvable | RoleResolvable | ChannelResolvable, options?: MessageMentionsHasOptions): boolean;
+  public get members(): If<InGuild, Collection<Snowflake, GuildMember>>;
+  public get parsedUsers(): Collection<Snowflake, User>;
+  public repliedUser: User | null;
+  public roles: Collection<Snowflake, Role>;
+  public users: Collection<Snowflake, User>;
+  public crosspostedChannels: Collection<Snowflake, CrosspostedChannel>;
+  public toJSON(): unknown;
+
+  private static GlobalChannelsPattern: RegExp;
+  private static GlobalUsersPattern: RegExp;
+  public static ChannelsPattern: typeof FormattingPatterns.Channel;
+  public static EveryonePattern: RegExp;
+  public static RolesPattern: typeof FormattingPatterns.Role;
+  public static UsersPattern: typeof FormattingPatterns.User;
+}
+
+export type MessagePayloadOption =
+  | MessageCreateOptions
+  | MessageEditOptions
+  | WebhookMessageCreateOptions
+  | WebhookMessageEditOptions
+  | InteractionReplyOptions
+  | InteractionUpdateOptions;
+
+export class MessagePayload {
+  public constructor(target: MessageTarget, options: MessagePayloadOption);
+  public body: RawMessagePayloadData | null;
+  public get isUser(): boolean;
+  public get isWebhook(): boolean;
+  public get isMessage(): boolean;
+  public get isMessageManager(): boolean;
+  /** @deprecated This will no longer serve a purpose in the next major version. */
+  public get isInteraction(): boolean;
+  public files: RawFile[] | null;
+  public options: MessagePayloadOption;
+  public target: MessageTarget;
+
+  public static create(
+    target: MessageTarget,
+    options: string | MessagePayloadOption,
+    extra?: MessagePayloadOption,
+  ): MessagePayload;
+  public static resolveFile(
+    fileLike: BufferResolvable | Stream | AttachmentPayload | JSONEncodable<AttachmentPayload>,
+  ): Promise<RawFile>;
+
+  public makeContent(): string | undefined;
+  public resolveBody(): this;
+  public resolveFiles(): Promise<this>;
+}
+
+export class MessageReaction {
+  private constructor(client: Client<true>, data: RawMessageReactionData, message: Message);
+  private _emoji: GuildEmoji | ReactionEmoji | ApplicationEmoji;
+
+  public burstColors: string[] | null;
+  public readonly client: Client<true>;
+  public count: number;
+  public countDetails: ReactionCountDetailsData;
+  public get emoji(): GuildEmoji | ReactionEmoji | ApplicationEmoji;
+  public me: boolean;
+  public meBurst: boolean;
+  public message: Message | PartialMessage;
+  public get partial(): false;
+  public users: ReactionUserManager;
+  public react(): Promise<MessageReaction>;
+  public remove(): Promise<MessageReaction>;
+  public fetch(): Promise<MessageReaction>;
+  public toJSON(): unknown;
+  public valueOf(): Snowflake | string;
+}
+
+export interface MessageReactionEventDetails {
+  type: ReactionType;
+  burst: boolean;
+}
+
+export interface ModalComponentData {
+  customId: string;
+  title: string;
+  components: readonly (
+    | JSONEncodable<APIActionRowComponent<APIComponentInModalActionRow>>
+    | ActionRowData<ModalActionRowComponentData>
+  )[];
+}
+
+export interface BaseModalData {
+  customId: string;
+  type: ComponentType;
+}
+
+export interface TextInputModalData extends BaseModalData {
+  type: ComponentType.TextInput;
+  value: string;
+}
+
+export interface ActionRowModalData {
+  type: ComponentType.ActionRow;
+  components: readonly TextInputModalData[];
+}
+
+export class ModalSubmitFields {
+  private constructor(components: readonly (readonly ModalActionRowComponent[])[]);
+  public components: ActionRowModalData[];
+  public fields: Collection<string, ModalActionRowComponent>;
+  public getField<Type extends ComponentType>(customId: string, type: Type): { type: Type } & TextInputModalData;
+  public getField(customId: string, type?: ComponentType): TextInputModalData;
+  public getTextInputValue(customId: string): string;
+}
+
+export interface ModalMessageModalSubmitInteraction<Cached extends CacheType = CacheType>
+  extends ModalSubmitInteraction<Cached> {
+  message: Message<BooleanCache<Cached>>;
+  channelId: Snowflake;
+  update(options: InteractionUpdateOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  update(options: InteractionUpdateOptions & { fetchReply: true }): Promise<Message>;
+  update(
+    options: string | MessagePayload | InteractionUpdateOptions,
+  ): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  inGuild(): this is ModalMessageModalSubmitInteraction<'raw' | 'cached'>;
+  inCachedGuild(): this is ModalMessageModalSubmitInteraction<'cached'>;
+  inRawGuild(): this is ModalMessageModalSubmitInteraction<'raw'>;
+}
+
+export class ModalSubmitInteraction<Cached extends CacheType = CacheType> extends BaseInteraction<Cached> {
+  private constructor(client: Client<true>, data: APIModalSubmitInteraction);
+  public type: InteractionType.ModalSubmit;
+  public readonly customId: string;
+  public readonly components: ActionRowModalData[];
+  public readonly fields: ModalSubmitFields;
+  public deferred: boolean;
+  public ephemeral: boolean | null;
+  public message: Message<BooleanCache<Cached>> | null;
+  public replied: boolean;
+  public readonly webhook: InteractionWebhook;
+  public reply(options: InteractionReplyOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public reply(options: InteractionReplyOptions & { fetchReply: true }): Promise<Message<BooleanCache<Cached>>>;
+  public reply(
+    options: string | MessagePayload | InteractionReplyOptions,
+  ): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public deleteReply(message?: MessageResolvable | '@original'): Promise<void>;
+  public editReply(
+    options: string | MessagePayload | InteractionEditReplyOptions,
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public deferReply(
+    options: InteractionDeferReplyOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public deferReply(
+    options: InteractionDeferReplyOptions & { fetchReply: true },
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public deferReply(options?: InteractionDeferReplyOptions): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  public fetchReply(message?: Snowflake | '@original'): Promise<Message<BooleanCache<Cached>>>;
+  public followUp(options: string | MessagePayload | InteractionReplyOptions): Promise<Message<BooleanCache<Cached>>>;
+  public deferUpdate(
+    options: InteractionDeferUpdateOptions & { withResponse: true },
+  ): Promise<InteractionCallbackResponse>;
+  /** @deprecated `fetchReply` is deprecated. Use `withResponse` instead or fetch the response after using the method. */
+  public deferUpdate(
+    options: InteractionDeferUpdateOptions & { fetchReply: true },
+  ): Promise<Message<BooleanCache<Cached>>>;
+  public deferUpdate(options?: InteractionDeferUpdateOptions): Promise<InteractionResponse<BooleanCache<Cached>>>;
+  /** @deprecated Sending a premium-style button is the new Discord behaviour. */
+  public sendPremiumRequired(): Promise<void>;
+  public launchActivity(options: LaunchActivityOptions & { withResponse: true }): Promise<InteractionCallbackResponse>;
+  public launchActivity(options?: LaunchActivityOptions & { withResponse?: false }): Promise<undefined>;
+  public launchActivity(options?: LaunchActivityOptions): Promise<InteractionCallbackResponse | undefined>;
+  public inGuild(): this is ModalSubmitInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is ModalSubmitInteraction<'cached'>;
+  public inRawGuild(): this is ModalSubmitInteraction<'raw'>;
+  public isFromMessage(): this is ModalMessageModalSubmitInteraction<Cached>;
+}
+
+export class NewsChannel extends BaseGuildTextChannel {
+  public threads: GuildTextThreadManager<AllowedThreadTypeForNewsChannel>;
+  public type: ChannelType.GuildAnnouncement;
+  public addFollower(channel: TextChannelResolvable, reason?: string): Promise<NewsChannel>;
+}
+
+export type NewsChannelResolvable = NewsChannel | Snowflake;
+
+export class OAuth2Guild extends BaseGuild {
+  private constructor(client: Client<true>, data: RawOAuth2GuildData);
+  public owner: boolean;
+  public permissions: Readonly<PermissionsBitField>;
+}
+
+export interface PartialGroupDMChannel
+  extends Omit<
+    TextBasedChannelFields<false, false>,
+    | 'bulkDelete'
+    | 'send'
+    | 'sendTyping'
+    | 'createMessageCollector'
+    | 'awaitMessages'
+    | 'fetchWebhooks'
+    | 'createWebhook'
+    | 'setRateLimitPerUser'
+    | 'setNSFW'
+  > {}
+export class PartialGroupDMChannel extends BaseChannel {
+  private constructor(client: Client<true>, data: RawPartialGroupDMChannelData);
+  public type: ChannelType.GroupDM;
+  public flags: null;
+  public name: string | null;
+  public icon: string | null;
+  public recipients: PartialRecipient[];
+  public ownerId: Snowflake | null;
+  public iconURL(options?: ImageURLOptions): string | null;
+  public fetchOwner(options?: BaseFetchOptions): Promise<User>;
+  public toString(): ChannelMention;
+}
+
+export interface GuildForumTagEmoji {
+  id: Snowflake | null;
+  name: string | null;
+}
+
+export interface GuildForumTag {
+  id: Snowflake;
+  name: string;
+  moderated: boolean;
+  emoji: GuildForumTagEmoji | null;
+}
+
+export interface GuildForumTagData extends Partial<GuildForumTag> {
+  name: string;
+}
+
+export interface DefaultReactionEmoji {
+  id: Snowflake | null;
+  name: string | null;
+}
+
+export interface ThreadOnlyChannel
+  extends Omit<
+    TextBasedChannelFields,
+    | 'send'
+    | 'lastMessage'
+    | 'lastPinAt'
+    | 'bulkDelete'
+    | 'sendTyping'
+    | 'createMessageCollector'
+    | 'awaitMessages'
+    | 'createMessageComponentCollector'
+    | 'awaitMessageComponent'
+    | 'messages'
+  > {}
+export abstract class ThreadOnlyChannel extends GuildChannel {
+  public type: ChannelType.GuildForum | ChannelType.GuildMedia;
+  public threads: GuildForumThreadManager;
+  public availableTags: GuildForumTag[];
+  public defaultReactionEmoji: DefaultReactionEmoji | null;
+  public defaultThreadRateLimitPerUser: number | null;
+  public rateLimitPerUser: number | null;
+  public defaultAutoArchiveDuration: ThreadAutoArchiveDuration | null;
+  public nsfw: boolean;
+  public topic: string | null;
+  public defaultSortOrder: SortOrderType | null;
+  public setAvailableTags(tags: readonly GuildForumTagData[], reason?: string): Promise<this>;
+  public setDefaultReactionEmoji(emojiId: DefaultReactionEmoji | null, reason?: string): Promise<this>;
+  public setDefaultThreadRateLimitPerUser(rateLimit: number, reason?: string): Promise<this>;
+  public createInvite(options?: InviteCreateOptions): Promise<Invite>;
+  public fetchInvites(cache?: boolean): Promise<Collection<string, Invite>>;
+  public setDefaultAutoArchiveDuration(
+    defaultAutoArchiveDuration: ThreadAutoArchiveDuration,
+    reason?: string,
+  ): Promise<this>;
+  public setTopic(topic: string | null, reason?: string): Promise<this>;
+  public setDefaultSortOrder(defaultSortOrder: SortOrderType | null, reason?: string): Promise<this>;
+}
+
+export class ForumChannel extends ThreadOnlyChannel {
+  public type: ChannelType.GuildForum;
+  public defaultForumLayout: ForumLayoutType;
+  public setDefaultForumLayout(defaultForumLayout: ForumLayoutType, reason?: string): Promise<this>;
+}
+
+export class MediaChannel extends ThreadOnlyChannel {
+  public type: ChannelType.GuildMedia;
+}
+
+export class PermissionOverwrites extends Base {
+  private constructor(client: Client<true>, data: RawPermissionOverwriteData, channel: NonThreadGuildBasedChannel);
+  public allow: Readonly<PermissionsBitField>;
+  public readonly channel: NonThreadGuildBasedChannel;
+  public deny: Readonly<PermissionsBitField>;
+  public id: Snowflake;
+  public type: OverwriteType;
+  public edit(options: PermissionOverwriteOptions, reason?: string): Promise<PermissionOverwrites>;
+  public delete(reason?: string): Promise<PermissionOverwrites>;
+  public toJSON(): unknown;
+  public static resolveOverwriteOptions(
+    options: PermissionOverwriteOptions,
+    initialPermissions: { allow?: PermissionResolvable; deny?: PermissionResolvable },
+  ): ResolvedOverwriteOptions;
+  public static resolve(overwrite: OverwriteResolvable, guild: Guild): APIOverwrite;
+}
+
+export type PermissionsString = keyof typeof PermissionFlagsBits;
+
+export class PermissionsBitField extends BitField<PermissionsString, bigint> {
+  public any(permission: PermissionResolvable, checkAdmin?: boolean): boolean;
+  public has(permission: PermissionResolvable, checkAdmin?: boolean): boolean;
+  public missing(bits: BitFieldResolvable<PermissionsString, bigint>, checkAdmin?: boolean): PermissionsString[];
+  public serialize(checkAdmin?: boolean): Record<PermissionsString, boolean>;
+  public toArray(): PermissionsString[];
+
+  public static All: bigint;
+  public static Default: bigint;
+  public static StageModerator: bigint;
+  public static Flags: typeof PermissionFlagsBits;
+  public static resolve(permission?: PermissionResolvable): bigint;
+}
+
+export class Presence extends Base {
+  protected constructor(client: Client<true>, data?: RawPresenceData);
+  public activities: Activity[];
+  public clientStatus: ClientPresenceStatusData | null;
+  public guild: Guild | null;
+  public get member(): GuildMember | null;
+  public status: PresenceStatus;
+  public get user(): User | null;
+  public userId: Snowflake;
+  public equals(presence: Presence): boolean;
+}
+
+export interface PollQuestionMedia {
+  text: string;
+}
+
+export class Poll extends Base {
+  private constructor(client: Client<true>, data: APIPoll, message: Message);
+  public readonly message: Message;
+  public question: PollQuestionMedia;
+  public answers: Collection<number, PollAnswer>;
+  public expiresTimestamp: number;
+  public get expiresAt(): Date;
+  public allowMultiselect: boolean;
+  public layoutType: PollLayoutType;
+  public resultsFinalized: boolean;
+  public end(): Promise<Message>;
+}
+
+export interface BaseFetchPollAnswerVotersOptions {
+  after?: Snowflake;
+  limit?: number;
+}
+
+export class PollAnswer extends Base {
+  private constructor(client: Client<true>, data: APIPollAnswer & { count?: number }, poll: Poll);
+  private _emoji: APIPartialEmoji | null;
+  public readonly poll: Poll;
+  public id: number;
+  public text: string | null;
+  public voteCount: number;
+  public get emoji(): GuildEmoji | Emoji | null;
+  public fetchVoters(options?: BaseFetchPollAnswerVotersOptions): Promise<Collection<Snowflake, User>>;
+}
+
+export class ReactionCollector extends Collector<Snowflake | string, MessageReaction, [User]> {
+  public constructor(message: Message, options?: ReactionCollectorOptions);
+  private _handleChannelDeletion(channel: NonThreadGuildBasedChannel): void;
+  private _handleGuildDeletion(guild: Guild): void;
+  private _handleMessageDeletion(message: Message): void;
+
+  public message: Message;
+  public options: ReactionCollectorOptions;
+  public total: number;
+  public users: Collection<Snowflake, User>;
+
+  public static key(reaction: MessageReaction): Snowflake | string;
+
+  public collect(reaction: MessageReaction, user: User): Snowflake | string | null;
+  public dispose(reaction: MessageReaction, user: User): Snowflake | string | null;
+  public empty(): void;
+
+  public on(
+    event: 'collect' | 'dispose' | 'remove' | 'ignore',
+    listener: (reaction: MessageReaction, user: User) => void,
+  ): this;
+  public on(
+    event: 'end',
+    listener: (collected: ReadonlyCollection<Snowflake, MessageReaction>, reason: string) => void,
+  ): this;
+  public on(event: string, listener: (...args: any[]) => void): this;
+
+  public once(
+    event: 'collect' | 'dispose' | 'remove' | 'ignore',
+    listener: (reaction: MessageReaction, user: User) => void,
+  ): this;
+  public once(
+    event: 'end',
+    listener: (collected: ReadonlyCollection<Snowflake, MessageReaction>, reason: string) => void,
+  ): this;
+  public once(event: string, listener: (...args: any[]) => void): this;
+}
+
+export class ReactionEmoji extends Emoji {
+  private constructor(reaction: MessageReaction, emoji: RawReactionEmojiData);
+  public reaction: MessageReaction;
+  public toJSON(): unknown;
+}
+
+export class RichPresenceAssets {
+  private constructor(activity: Activity, assets: RawRichPresenceAssets);
+  public readonly activity: Activity;
+  public largeImage: Snowflake | null;
+  public largeText: string | null;
+  public smallImage: Snowflake | null;
+  public smallText: string | null;
+  public largeImageURL(options?: ImageURLOptions): string | null;
+  public smallImageURL(options?: ImageURLOptions): string | null;
+}
+
+export class Role extends Base {
+  private constructor(client: Client<true>, data: RawRoleData, guild: Guild);
+  public color: number;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public get editable(): boolean;
+  public flags: RoleFlagsBitField;
+  public guild: Guild;
+  public get hexColor(): HexColorString;
+  public hoist: boolean;
+  public id: Snowflake;
+  public managed: boolean;
+  public get members(): Collection<Snowflake, GuildMember>;
+  public mentionable: boolean;
+  public name: string;
+  public permissions: Readonly<PermissionsBitField>;
+  public get position(): number;
+  public rawPosition: number;
+  public tags: RoleTagData | null;
+  public comparePositionTo(role: RoleResolvable): number;
+  public icon: string | null;
+  public unicodeEmoji: string | null;
+  public delete(reason?: string): Promise<Role>;
+  public edit(options: RoleEditOptions): Promise<Role>;
+  public equals(role: Role): boolean;
+  public iconURL(options?: ImageURLOptions): string | null;
+  public permissionsIn(
+    channel: NonThreadGuildBasedChannel | Snowflake,
+    checkAdmin?: boolean,
+  ): Readonly<PermissionsBitField>;
+  public setColor(color: ColorResolvable, reason?: string): Promise<Role>;
+  public setHoist(hoist?: boolean, reason?: string): Promise<Role>;
+  public setMentionable(mentionable?: boolean, reason?: string): Promise<Role>;
+  public setName(name: string, reason?: string): Promise<Role>;
+  public setPermissions(permissions: PermissionResolvable, reason?: string): Promise<Role>;
+  public setIcon(icon: BufferResolvable | Base64Resolvable | EmojiResolvable | null, reason?: string): Promise<Role>;
+  public setPosition(position: number, options?: SetRolePositionOptions): Promise<Role>;
+  public setUnicodeEmoji(unicodeEmoji: string | null, reason?: string): Promise<Role>;
+  public toJSON(): unknown;
+  public toString(): RoleMention;
+}
+
+export type RoleFlagsString = keyof typeof RoleFlags;
+
+export class RoleFlagsBitField extends BitField<RoleFlagsString> {
+  public static Flags: typeof RoleFlags;
+  public static resolve(bit?: BitFieldResolvable<RoleFlagsString, number>): number;
+}
+
+export interface SectionComponentData extends BaseComponentData {
+  accessory: ButtonComponentData | ThumbnailComponentData;
+  components: readonly TextDisplayComponentData[];
+}
+
+export class SectionComponent<
+  AccessoryType extends ButtonComponent | ThumbnailComponent = ButtonComponent | ThumbnailComponent,
+> extends Component<APISectionComponent> {
+  private constructor(data: APISectionComponent);
+  public readonly accessory: AccessoryType;
+  public readonly components: TextDisplayComponent[];
+  public toJSON(): APISectionComponent;
+}
+
+export class StringSelectMenuInteraction<
+  Cached extends CacheType = CacheType,
+> extends MessageComponentInteraction<Cached> {
+  public constructor(client: Client<true>, data: APIMessageStringSelectInteractionData);
+  public get component(): CacheTypeReducer<
+    Cached,
+    StringSelectMenuComponent,
+    APIStringSelectComponent,
+    StringSelectMenuComponent | APIStringSelectComponent,
+    StringSelectMenuComponent | APIStringSelectComponent
+  >;
+  public componentType: ComponentType.StringSelect;
+  public values: string[];
+  public inGuild(): this is StringSelectMenuInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is StringSelectMenuInteraction<'cached'>;
+  public inRawGuild(): this is StringSelectMenuInteraction<'raw'>;
+}
+
+export {
+  /** @deprecated Use {@link StringSelectMenuInteraction} instead */
+  StringSelectMenuInteraction as SelectMenuInteraction,
+};
+
+export class UserSelectMenuInteraction<
+  Cached extends CacheType = CacheType,
+> extends MessageComponentInteraction<Cached> {
+  public constructor(client: Client<true>, data: APIMessageUserSelectInteractionData);
+  public get component(): CacheTypeReducer<
+    Cached,
+    UserSelectMenuComponent,
+    APIUserSelectComponent,
+    UserSelectMenuComponent | APIUserSelectComponent,
+    UserSelectMenuComponent | APIUserSelectComponent
+  >;
+  public componentType: ComponentType.UserSelect;
+  public values: Snowflake[];
+  public users: Collection<Snowflake, User>;
+  public members: Collection<
+    Snowflake,
+    CacheTypeReducer<Cached, GuildMember, APIGuildMember, GuildMember | APIGuildMember, GuildMember | APIGuildMember>
+  >;
+  public inGuild(): this is UserSelectMenuInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is UserSelectMenuInteraction<'cached'>;
+  public inRawGuild(): this is UserSelectMenuInteraction<'raw'>;
+}
+
+export class RoleSelectMenuInteraction<
+  Cached extends CacheType = CacheType,
+> extends MessageComponentInteraction<Cached> {
+  public constructor(client: Client<true>, data: APIMessageRoleSelectInteractionData);
+  public get component(): CacheTypeReducer<
+    Cached,
+    RoleSelectMenuComponent,
+    APIRoleSelectComponent,
+    RoleSelectMenuComponent | APIRoleSelectComponent,
+    RoleSelectMenuComponent | APIRoleSelectComponent
+  >;
+  public componentType: ComponentType.RoleSelect;
+  public values: Snowflake[];
+  public roles: Collection<Snowflake, CacheTypeReducer<Cached, Role, APIRole, Role | APIRole, Role | APIRole>>;
+  public inGuild(): this is RoleSelectMenuInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is RoleSelectMenuInteraction<'cached'>;
+  public inRawGuild(): this is RoleSelectMenuInteraction<'raw'>;
+}
+
+export class MentionableSelectMenuInteraction<
+  Cached extends CacheType = CacheType,
+> extends MessageComponentInteraction<Cached> {
+  public constructor(client: Client<true>, data: APIMessageMentionableSelectInteractionData);
+  public get component(): CacheTypeReducer<
+    Cached,
+    MentionableSelectMenuComponent,
+    APIMentionableSelectComponent,
+    MentionableSelectMenuComponent | APIMentionableSelectComponent,
+    MentionableSelectMenuComponent | APIMentionableSelectComponent
+  >;
+  public componentType: ComponentType.MentionableSelect;
+  public values: Snowflake[];
+  public users: Collection<Snowflake, User>;
+  public members: Collection<
+    Snowflake,
+    CacheTypeReducer<Cached, GuildMember, APIGuildMember, GuildMember | APIGuildMember, GuildMember | APIGuildMember>
+  >;
+  public roles: Collection<Snowflake, CacheTypeReducer<Cached, Role, APIRole, Role | APIRole, Role | APIRole>>;
+  public inGuild(): this is MentionableSelectMenuInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is MentionableSelectMenuInteraction<'cached'>;
+  public inRawGuild(): this is MentionableSelectMenuInteraction<'raw'>;
+}
+
+export class ChannelSelectMenuInteraction<
+  Cached extends CacheType = CacheType,
+> extends MessageComponentInteraction<Cached> {
+  public constructor(client: Client<true>, data: APIMessageChannelSelectInteractionData);
+  public get component(): CacheTypeReducer<
+    Cached,
+    ChannelSelectMenuComponent,
+    APIChannelSelectComponent,
+    ChannelSelectMenuComponent | APIChannelSelectComponent,
+    ChannelSelectMenuComponent | APIChannelSelectComponent
+  >;
+  public componentType: ComponentType.ChannelSelect;
+  public values: Snowflake[];
+  public channels: Collection<
+    Snowflake,
+    CacheTypeReducer<Cached, Channel, APIChannel, Channel | APIChannel, Channel | APIChannel>
+  >;
+  public inGuild(): this is ChannelSelectMenuInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is ChannelSelectMenuInteraction<'cached'>;
+  public inRawGuild(): this is ChannelSelectMenuInteraction<'raw'>;
+}
+
+// Ideally this should be named SelectMenuInteraction, but that's the name of the "old" StringSelectMenuInteraction, meaning
+// the type name is reserved as a re-export to prevent a breaking change from being made, as such:
+// TODO: Rename this to SelectMenuInteraction in the next major
+export type AnySelectMenuInteraction<Cached extends CacheType = CacheType> =
+  | StringSelectMenuInteraction<Cached>
+  | UserSelectMenuInteraction<Cached>
+  | RoleSelectMenuInteraction<Cached>
+  | MentionableSelectMenuInteraction<Cached>
+  | ChannelSelectMenuInteraction<Cached>;
+
+export type SelectMenuType = APISelectMenuComponent['type'];
+
+export interface SeparatorComponentData extends BaseComponentData {
+  spacing?: SeparatorSpacingSize;
+  divider?: boolean;
+}
+export class SeparatorComponent extends Component<APISeparatorComponent> {
+  private constructor(data: APISeparatorComponent);
+  public get spacing(): SeparatorSpacingSize;
+  public get divider(): boolean;
+}
+
+export interface ShardEventTypes {
+  death: [process: ChildProcess | Worker];
+  disconnect: [];
+  error: [error: Error];
+  message: [message: any];
+  ready: [];
+  reconnecting: [];
+  resume: [];
+  spawn: [process: ChildProcess | Worker];
+}
+
+export class Shard extends EventEmitter {
+  private constructor(manager: ShardingManager, id: number);
+  private _evals: Map<string, Promise<unknown>>;
+  private _exitListener: (...args: any[]) => void;
+  private _fetches: Map<string, Promise<unknown>>;
+  private _handleExit(respawn?: boolean, timeout?: number): void;
+  private _handleMessage(message: unknown): void;
+  private incrementMaxListeners(emitter: EventEmitter | ChildProcess): void;
+  private decrementMaxListeners(emitter: EventEmitter | ChildProcess): void;
+
+  public args: string[];
+  public execArgv: string[];
+  public env: unknown;
+  public id: number;
+  public manager: ShardingManager;
+  public process: ChildProcess | null;
+  public ready: boolean;
+  public silent: boolean;
+  public worker: Worker | null;
+  public eval(script: string): Promise<unknown>;
+  public eval<Result>(fn: (client: Client) => Result): Promise<Result>;
+  public eval<Result, Context>(
+    fn: (client: Client<true>, context: Serialized<Context>) => Result,
+    context: Context,
+  ): Promise<Result>;
+  public fetchClientValue(prop: string): Promise<unknown>;
+  public kill(): void;
+  public respawn(options?: { delay?: number; timeout?: number }): Promise<ChildProcess>;
+  public send(message: unknown): Promise<Shard>;
+  public spawn(timeout?: number): Promise<ChildProcess>;
+
+  public on<Event extends keyof ShardEventTypes>(
+    event: Event,
+    listener: (...args: ShardEventTypes[Event]) => void,
+  ): this;
+
+  public once<Event extends keyof ShardEventTypes>(
+    event: Event,
+    listener: (...args: ShardEventTypes[Event]) => void,
+  ): this;
+}
+
+export class ShardClientUtil {
+  private constructor(client: Client<true>, mode: ShardingManagerMode);
+  private _handleMessage(message: unknown): void;
+  private _respond(type: string, message: unknown): void;
+  private incrementMaxListeners(emitter: EventEmitter | ChildProcess): void;
+  private decrementMaxListeners(emitter: EventEmitter | ChildProcess): void;
+
+  public client: Client;
+  public get count(): number;
+  public get ids(): number[];
+  public mode: ShardingManagerMode;
+  public parentPort: MessagePort | null;
+  public broadcastEval<Result>(fn: (client: Client) => Awaitable<Result>): Promise<Serialized<Result>[]>;
+  public broadcastEval<Result>(
+    fn: (client: Client) => Awaitable<Result>,
+    options: { shard: number },
+  ): Promise<Serialized<Result>>;
+  public broadcastEval<Result, Context>(
+    fn: (client: Client<true>, context: Serialized<Context>) => Awaitable<Result>,
+    options: { context: Context },
+  ): Promise<Serialized<Result>[]>;
+  public broadcastEval<Result, Context>(
+    fn: (client: Client<true>, context: Serialized<Context>) => Awaitable<Result>,
+    options: { context: Context; shard: number },
+  ): Promise<Serialized<Result>>;
+  public fetchClientValues(prop: string): Promise<unknown[]>;
+  public fetchClientValues(prop: string, shard: number): Promise<unknown>;
+  public respawnAll(options?: MultipleShardRespawnOptions): Promise<void>;
+  public send(message: unknown): Promise<void>;
+
+  public static singleton(client: Client<true>, mode: ShardingManagerMode): ShardClientUtil;
+  public static shardIdForGuildId(guildId: Snowflake, shardCount: number): number;
+}
+
+export class ShardingManager extends EventEmitter {
+  public constructor(file: string, options?: ShardingManagerOptions);
+  private _performOnShards(method: string, args: readonly unknown[]): Promise<unknown[]>;
+  private _performOnShards(method: string, args: readonly unknown[], shard: number): Promise<unknown>;
+
+  public file: string;
+  public respawn: boolean;
+  public silent: boolean;
+  public shardArgs: string[];
+  public shards: Collection<number, Shard>;
+  public token: string | null;
+  public totalShards: number | 'auto';
+  public shardList: number[] | 'auto';
+  public broadcast(message: unknown): Promise<Shard[]>;
+  public broadcastEval<Result>(fn: (client: Client) => Awaitable<Result>): Promise<Serialized<Result>[]>;
+  public broadcastEval<Result>(
+    fn: (client: Client) => Awaitable<Result>,
+    options: { shard: number },
+  ): Promise<Serialized<Result>>;
+  public broadcastEval<Result, Context>(
+    fn: (client: Client<true>, context: Serialized<Context>) => Awaitable<Result>,
+    options: { context: Context },
+  ): Promise<Serialized<Result>[]>;
+  public broadcastEval<Result, Context>(
+    fn: (client: Client<true>, context: Serialized<Context>) => Awaitable<Result>,
+    options: { context: Context; shard: number },
+  ): Promise<Serialized<Result>>;
+  public createShard(id: number): Shard;
+  public fetchClientValues(prop: string): Promise<unknown[]>;
+  public fetchClientValues(prop: string, shard: number): Promise<unknown>;
+  public respawnAll(options?: MultipleShardRespawnOptions): Promise<Collection<number, Shard>>;
+  public spawn(options?: MultipleShardSpawnOptions): Promise<Collection<number, Shard>>;
+
+  public on(event: 'shardCreate', listener: (shard: Shard) => void): this;
+
+  public once(event: 'shardCreate', listener: (shard: Shard) => void): this;
+}
+
+export interface FetchRecommendedShardCountOptions {
+  guildsPerShard?: number;
+  multipleOf?: number;
+}
+
+export {
+  DiscordSnowflake as SnowflakeUtil,
+  SnowflakeGenerateOptions,
+  DeconstructedSnowflake,
+} from '@sapphire/snowflake';
+
+export class SKU extends Base {
+  private constructor(client: Client<true>, data: APISKU);
+  public id: Snowflake;
+  public type: SKUType;
+  public applicationId: Snowflake;
+  public name: string;
+  public slug: string;
+  public flags: Readonly<SKUFlagsBitField>;
+}
+
+export type SKUFlagsString = keyof typeof SKUFlags;
+
+export class SKUFlagsBitField extends BitField<SKUFlagsString> {
+  public static FLAGS: typeof SKUFlags;
+  public static resolve(bit?: BitFieldResolvable<SKUFlagsString, number>): number;
+}
+
+export class Subscription extends Base {
+  private constructor(client: Client<true>, data: APISubscription);
+  public id: Snowflake;
+  public userId: Snowflake;
+  public skuIds: Snowflake[];
+  public entitlementIds: Snowflake[];
+  public renewalSkuIds: Snowflake[] | null;
+  public currentPeriodStartTimestamp: number;
+  public currentPeriodEndTimestamp: number;
+  public status: SubscriptionStatus;
+  public canceledTimestamp: number | null;
+  public country: string | null;
+  public get canceledAt(): Date | null;
+  public get currentPeriodStartAt(): Date;
+  public get currentPeriodEndAt(): Date;
+}
+
+export class StageChannel extends BaseGuildVoiceChannel {
+  public get stageInstance(): StageInstance | null;
+  public topic: string | null;
+  public type: ChannelType.GuildStageVoice;
+  public createStageInstance(options: StageInstanceCreateOptions): Promise<StageInstance>;
+  public setTopic(topic: string): Promise<StageChannel>;
+}
+
+export class DirectoryChannel extends BaseChannel {
+  public flags: Readonly<ChannelFlagsBitField>;
+  public guild: InviteGuild;
+  public guildId: Snowflake;
+  public name: string;
+  public toString(): ChannelMention;
+}
+
+export class StageInstance extends Base {
+  private constructor(client: Client<true>, data: RawStageInstanceData, channel: StageChannel);
+  public id: Snowflake;
+  public guildId: Snowflake;
+  public channelId: Snowflake;
+  public topic: string;
+  public privacyLevel: StageInstancePrivacyLevel;
+  /** @deprecated See https://github.com/discord/discord-api-docs/pull/4296 for more information */
+  public discoverableDisabled: boolean | null;
+  public guildScheduledEventId?: Snowflake;
+  public get channel(): StageChannel | null;
+  public get guild(): Guild | null;
+  public get guildScheduledEvent(): GuildScheduledEvent | null;
+  public edit(options: StageInstanceEditOptions): Promise<StageInstance>;
+  public delete(): Promise<StageInstance>;
+  public setTopic(topic: string): Promise<StageInstance>;
+  public get createdTimestamp(): number;
+  public get createdAt(): Date;
+}
+
+export class Sticker extends Base {
+  private constructor(client: Client<true>, data: RawStickerData);
+  public get createdTimestamp(): number;
+  public get createdAt(): Date;
+  public available: boolean | null;
+  public description: string | null;
+  public format: StickerFormatType;
+  public get guild(): Guild | null;
+  public guildId: Snowflake | null;
+  public id: Snowflake;
+  public name: string;
+  public packId: Snowflake | null;
+  public get partial(): boolean;
+  public sortValue: number | null;
+  public tags: string | null;
+  public type: StickerType | null;
+  public user: User | null;
+  public get url(): string;
+  public fetch(): Promise<Sticker>;
+  public fetchPack(): Promise<StickerPack | null>;
+  public fetchUser(): Promise<User | null>;
+  public edit(options?: GuildStickerEditOptions): Promise<Sticker>;
+  public delete(reason?: string): Promise<Sticker>;
+  public equals(other: Sticker | unknown): boolean;
+}
+
+export class StickerPack extends Base {
+  private constructor(client: Client<true>, data: RawStickerPackData);
+  public get createdTimestamp(): number;
+  public get createdAt(): Date;
+  public bannerId: Snowflake | null;
+  public get coverSticker(): Sticker | null;
+  public coverStickerId: Snowflake | null;
+  public description: string;
+  public id: Snowflake;
+  public name: string;
+  public skuId: Snowflake;
+  public stickers: Collection<Snowflake, Sticker>;
+  public bannerURL(options?: ImageURLOptions): string | null;
+}
+
+export class Sweepers {
+  public constructor(client: Client<true>, options: SweeperOptions);
+  public readonly client: Client;
+  public intervals: Record<SweeperKey, NodeJS.Timeout | null>;
+  public options: SweeperOptions;
+
+  public sweepApplicationCommands(
+    filter: CollectionSweepFilter<
+      SweeperDefinitions['applicationCommands'][0],
+      SweeperDefinitions['applicationCommands'][1]
+    >,
+  ): number;
+  public sweepAutoModerationRules(
+    filter: CollectionSweepFilter<
+      SweeperDefinitions['autoModerationRules'][0],
+      SweeperDefinitions['autoModerationRules'][1]
+    >,
+  ): number;
+  public sweepBans(filter: CollectionSweepFilter<SweeperDefinitions['bans'][0], SweeperDefinitions['bans'][1]>): number;
+  public sweepEmojis(
+    filter: CollectionSweepFilter<SweeperDefinitions['emojis'][0], SweeperDefinitions['emojis'][1]>,
+  ): number;
+  public sweepEntitlements(
+    filter: CollectionSweepFilter<SweeperDefinitions['entitlements'][0], SweeperDefinitions['entitlements'][1]>,
+  ): number;
+  public sweepInvites(
+    filter: CollectionSweepFilter<SweeperDefinitions['invites'][0], SweeperDefinitions['invites'][1]>,
+  ): number;
+  public sweepGuildMembers(
+    filter: CollectionSweepFilter<SweeperDefinitions['guildMembers'][0], SweeperDefinitions['guildMembers'][1]>,
+  ): number;
+  public sweepMessages(
+    filter: CollectionSweepFilter<SweeperDefinitions['messages'][0], SweeperDefinitions['messages'][1]>,
+  ): number;
+  public sweepPresences(
+    filter: CollectionSweepFilter<SweeperDefinitions['presences'][0], SweeperDefinitions['presences'][1]>,
+  ): number;
+  public sweepReactions(
+    filter: CollectionSweepFilter<SweeperDefinitions['reactions'][0], SweeperDefinitions['reactions'][1]>,
+  ): number;
+  public sweepStageInstances(
+    filter: CollectionSweepFilter<SweeperDefinitions['stageInstances'][0], SweeperDefinitions['stageInstances'][1]>,
+  ): number;
+  public sweepStickers(
+    filter: CollectionSweepFilter<SweeperDefinitions['stickers'][0], SweeperDefinitions['stickers'][1]>,
+  ): number;
+  public sweepThreadMembers(
+    filter: CollectionSweepFilter<SweeperDefinitions['threadMembers'][0], SweeperDefinitions['threadMembers'][1]>,
+  ): number;
+  public sweepThreads(
+    filter: CollectionSweepFilter<SweeperDefinitions['threads'][0], SweeperDefinitions['threads'][1]>,
+  ): number;
+  public sweepUsers(
+    filter: CollectionSweepFilter<SweeperDefinitions['users'][0], SweeperDefinitions['users'][1]>,
+  ): number;
+  public sweepVoiceStates(
+    filter: CollectionSweepFilter<SweeperDefinitions['voiceStates'][0], SweeperDefinitions['voiceStates'][1]>,
+  ): number;
+
+  public static archivedThreadSweepFilter(
+    lifetime?: number,
+  ): GlobalSweepFilter<SweeperDefinitions['threads'][0], SweeperDefinitions['threads'][1]>;
+  public static expiredInviteSweepFilter(
+    lifetime?: number,
+  ): GlobalSweepFilter<SweeperDefinitions['invites'][0], SweeperDefinitions['invites'][1]>;
+  public static filterByLifetime<Key, Value>(
+    options?: LifetimeFilterOptions<Key, Value>,
+  ): GlobalSweepFilter<Key, Value>;
+  public static outdatedMessageSweepFilter(
+    lifetime?: number,
+  ): GlobalSweepFilter<SweeperDefinitions['messages'][0], SweeperDefinitions['messages'][1]>;
+}
+
+export type SystemChannelFlagsString = keyof typeof GuildSystemChannelFlags;
+
+export class SystemChannelFlagsBitField extends BitField<SystemChannelFlagsString> {
+  public static Flags: typeof GuildSystemChannelFlags;
+  public static resolve(bit?: BitFieldResolvable<SystemChannelFlagsString, number>): number;
+}
+
+export class Team extends Base {
+  private constructor(client: Client<true>, data: RawTeamData);
+  public id: Snowflake;
+  public name: string;
+  public icon: string | null;
+  public ownerId: Snowflake | null;
+  public members: Collection<Snowflake, TeamMember>;
+  public get owner(): TeamMember | null;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+
+  public iconURL(options?: ImageURLOptions): string | null;
+  public toJSON(): unknown;
+  public toString(): string;
+}
+
+export class TeamMember extends Base {
+  private constructor(team: Team, data: RawTeamMemberData);
+  public team: Team;
+  public get id(): Snowflake;
+  /** @deprecated Use {@link TeamMember.role} instead. */
+  public permissions: string[];
+  public membershipState: TeamMemberMembershipState;
+  public user: User;
+  public role: TeamMemberRole;
+
+  public toString(): UserMention;
+}
+
+export class TextChannel extends BaseGuildTextChannel {
+  public rateLimitPerUser: number;
+  public threads: GuildTextThreadManager<AllowedThreadTypeForTextChannel>;
+  public type: ChannelType.GuildText;
+}
+
+export interface TextDisplayComponentData extends BaseComponentData {
+  content: string;
+}
+
+export class TextDisplayComponent extends Component<APITextDisplayComponent> {
+  private constructor(data: APITextDisplayComponent);
+  public readonly content: string;
+}
+
+export type ForumThreadChannel = PublicThreadChannel<true>;
+export type TextThreadChannel = PublicThreadChannel<false> | PrivateThreadChannel;
+export type AnyThreadChannel = TextThreadChannel | ForumThreadChannel;
+
+export interface PublicThreadChannel<Forum extends boolean = boolean> extends ThreadChannel<Forum> {
+  type: ChannelType.PublicThread | ChannelType.AnnouncementThread;
+}
+
+export interface PrivateThreadChannel extends ThreadChannel<false> {
+  get createdTimestamp(): number;
+  get createdAt(): Date;
+  type: ChannelType.PrivateThread;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface ThreadChannel<ThreadOnly extends boolean = boolean>
+  extends Omit<TextBasedChannelFields<true>, 'fetchWebhooks' | 'createWebhook' | 'setNSFW'> {}
+export class ThreadChannel<ThreadOnly extends boolean = boolean> extends BaseChannel {
+  private constructor(guild: Guild, data?: RawThreadChannelData, client?: Client<true>);
+  public archived: boolean | null;
+  public get archivedAt(): Date | null;
+  public archiveTimestamp: number | null;
+  public get createdAt(): Date | null;
+  private _createdTimestamp: number | null;
+  public get createdTimestamp(): number | null;
+  public autoArchiveDuration: ThreadAutoArchiveDuration | null;
+  public get editable(): boolean;
+  public flags: Readonly<ChannelFlagsBitField>;
+  public guild: Guild;
+  public guildId: Snowflake;
+  public get guildMembers(): Collection<Snowflake, GuildMember>;
+  public invitable: boolean | null;
+  public get joinable(): boolean;
+  public get joined(): boolean;
+  public locked: boolean | null;
+  public get manageable(): boolean;
+  public get viewable(): boolean;
+  public get sendable(): boolean;
+  public memberCount: number | null;
+  public messageCount: number | null;
+  public appliedTags: Snowflake[];
+  public totalMessageSent: number | null;
+  public members: ThreadMemberManager;
+  public name: string;
+  public ownerId: Snowflake;
+  public get parent(): If<ThreadOnly, ForumChannel | MediaChannel, TextChannel | NewsChannel> | null;
+  public parentId: Snowflake | null;
+  public rateLimitPerUser: number | null;
+  public type: ThreadChannelType;
+  public get unarchivable(): boolean;
+  public delete(reason?: string): Promise<this>;
+  public edit(options: ThreadEditOptions): Promise<this>;
+  public join(): Promise<this>;
+  public leave(): Promise<this>;
+  public permissionsFor(memberOrRole: GuildMember | Role, checkAdmin?: boolean): Readonly<PermissionsBitField>;
+  public permissionsFor(
+    memberOrRole: GuildMemberResolvable | RoleResolvable,
+    checkAdmin?: boolean,
+  ): Readonly<PermissionsBitField> | null;
+  public fetchOwner(options?: FetchThreadOwnerOptions): Promise<ThreadMember | null>;
+  public fetchStarterMessage(options?: BaseFetchOptions): Promise<Message<true> | null>;
+  public setArchived(archived?: boolean, reason?: string): Promise<this>;
+  public setAutoArchiveDuration(autoArchiveDuration: ThreadAutoArchiveDuration, reason?: string): Promise<this>;
+  public setInvitable(invitable?: boolean, reason?: string): Promise<this>;
+  public setLocked(locked?: boolean, reason?: string): Promise<this>;
+  public setName(name: string, reason?: string): Promise<this>;
+  // The following 3 methods can only be run on forum threads.
+  public setAppliedTags(appliedTags: readonly Snowflake[], reason?: string): Promise<If<ThreadOnly, this, never>>;
+  public pin(reason?: string): Promise<If<ThreadOnly, this, never>>;
+  public unpin(reason?: string): Promise<If<ThreadOnly, this, never>>;
+  public toString(): ChannelMention;
+}
+
+export class ThreadMember<HasMemberData extends boolean = boolean> extends Base {
+  private constructor(thread: ThreadChannel, data: RawThreadMemberData, extra?: unknown);
+  public flags: ThreadMemberFlagsBitField;
+  private member: If<HasMemberData, GuildMember>;
+  public get guildMember(): HasMemberData extends true ? GuildMember : GuildMember | null;
+  public id: Snowflake;
+  public get joinedAt(): Date | null;
+  public joinedTimestamp: number | null;
+  public get manageable(): boolean;
+  public thread: AnyThreadChannel;
+  public get user(): User | null;
+  public get partial(): false;
+  /* tslint:disable:unified-signatures */
+  public remove(): Promise<ThreadMember>;
+  /** @deprecated The `reason` parameter is deprecated as Discord does not parse them. */
+  public remove(reason?: string): Promise<ThreadMember>;
+  /* tslint:enable:unified-signatures */
+}
+
+export type ThreadMemberFlagsString = keyof typeof ThreadMemberFlags;
+
+export class ThreadMemberFlagsBitField extends BitField<ThreadMemberFlagsString> {
+  public static Flags: typeof ThreadMemberFlags;
+  public static resolve(bit?: BitFieldResolvable<ThreadMemberFlagsString, number>): number;
+}
+
+export interface ThumbnailComponentData extends BaseComponentData {
+  media: UnfurledMediaItemData;
+  description?: string;
+  spoiler?: boolean;
+}
+
+export class ThumbnailComponent extends Component<APIThumbnailComponent> {
+  private constructor(data: APIThumbnailComponent);
+  public readonly media: UnfurledMediaItem;
+  public get description(): string | null;
+  public get spoiler(): boolean;
+}
+
+export class Typing extends Base {
+  private constructor(channel: TextBasedChannel, user: PartialUser, data?: RawTypingData);
+  public channel: TextBasedChannel;
+  public user: User | PartialUser;
+  public startedTimestamp: number;
+  public get startedAt(): Date;
+  public get guild(): Guild | null;
+  public get member(): GuildMember | null;
+  public inGuild(): this is this & {
+    channel: TextChannel | NewsChannel | ThreadChannel;
+    get guild(): Guild;
+  };
+}
+
+export interface AvatarDecorationData {
+  asset: string;
+  skuId: Snowflake;
+}
+
+export interface UnfurledMediaItemData {
+  url: string;
+}
+
+export class UnfurledMediaItem {
+  private constructor(data: APIUnfurledMediaItem);
+  public readonly data: APIUnfurledMediaItem;
+  public get url(): string;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface User extends PartialTextBasedChannelFields<false> {}
+export class User extends Base {
+  protected constructor(client: Client<true>, data: RawUserData);
+  private _equals(user: APIUser): boolean;
+
+  public accentColor: number | null | undefined;
+  public avatar: string | null;
+  /** @deprecated Use {@link User.avatarDecorationData} instead */
+  public avatarDecoration: string | null;
+  public avatarDecorationData: AvatarDecorationData | null;
+  public banner: string | null | undefined;
+  public bot: boolean;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public discriminator: string;
+  public get displayName(): string;
+  public get defaultAvatarURL(): string;
+  public get dmChannel(): DMChannel | null;
+  public flags: Readonly<UserFlagsBitField> | null;
+  public globalName: string | null;
+  public get hexAccentColor(): HexColorString | null | undefined;
+  public id: Snowflake;
+  public get partial(): false;
+  public system: boolean;
+  public get tag(): string;
+  public username: string;
+  public avatarURL(options?: ImageURLOptions): string | null;
+  public avatarDecorationURL(options?: BaseImageURLOptions): string | null;
+  public bannerURL(options?: ImageURLOptions): string | null | undefined;
+  public createDM(force?: boolean): Promise<DMChannel>;
+  public deleteDM(): Promise<DMChannel>;
+  public displayAvatarURL(options?: ImageURLOptions): string;
+  public equals(user: User): boolean;
+  public fetch(force?: boolean): Promise<User>;
+  /** @deprecated This method is deprecated and will be removed in the next major version. Flags may still be retrieved via {@link User.fetch} */
+  public fetchFlags(force?: boolean): Promise<UserFlagsBitField>;
+  public toString(): UserMention;
+}
+
+export class UserContextMenuCommandInteraction<
+  Cached extends CacheType = CacheType,
+> extends ContextMenuCommandInteraction<Cached> {
+  public commandType: ApplicationCommandType.User;
+  public options: Omit<
+    CommandInteractionOptionResolver<Cached>,
+    | 'getMessage'
+    | 'getFocused'
+    | 'getMentionable'
+    | 'getRole'
+    | 'getNumber'
+    | 'getAttachment'
+    | 'getInteger'
+    | 'getString'
+    | 'getChannel'
+    | 'getBoolean'
+    | 'getSubcommandGroup'
+    | 'getSubcommand'
+  >;
+  public get targetUser(): User;
+  public get targetMember(): CacheTypeReducer<Cached, GuildMember, APIInteractionGuildMember> | null;
+  public inGuild(): this is UserContextMenuCommandInteraction<'raw' | 'cached'>;
+  public inCachedGuild(): this is UserContextMenuCommandInteraction<'cached'>;
+  public inRawGuild(): this is UserContextMenuCommandInteraction<'raw'>;
+}
+
+export type UserFlagsString = keyof typeof UserFlags;
+
+export class UserFlagsBitField extends BitField<UserFlagsString> {
+  public static Flags: typeof UserFlags;
+  public static resolve(bit?: BitFieldResolvable<UserFlagsString, number>): number;
+}
+
+/** @internal */
+export function basename(path: string, ext?: string): string;
+export function cleanContent(str: string, channel: TextBasedChannel): string;
+export function discordSort<Key, Value extends { rawPosition: number; id: Snowflake }>(
+  collection: ReadonlyCollection<Key, Value>,
+): Collection<Key, Value>;
+export function cleanCodeBlockContent(text: string): string;
+export function fetchRecommendedShardCount(token: string, options?: FetchRecommendedShardCountOptions): Promise<number>;
+export function flatten(obj: unknown, ...props: Record<string, boolean | string>[]): unknown;
+/** @internal */
+export function makeError(obj: MakeErrorOptions): Error;
+/** @internal */
+export function makePlainError(err: Error): MakeErrorOptions;
+/** @internal */
+export function moveElementInArray(
+  // eslint-disable-next-line no-restricted-syntax
+  array: unknown[],
+  element: unknown,
+  newIndex: number,
+  offset?: boolean,
+): number;
+export function parseEmoji(text: string): PartialEmoji | null;
+export function resolveColor(color: ColorResolvable): number;
+/** @internal */
+export function resolvePartialEmoji(emoji: Snowflake): PartialEmojiOnlyId;
+/** @internal */
+export function resolvePartialEmoji(emoji: Emoji | EmojiIdentifierResolvable): PartialEmoji | null;
+export function verifyString(data: string, error?: typeof Error, errorMessage?: string, allowEmpty?: boolean): string;
+/** @internal */
+export function setPosition<Item extends Channel | Role>(
+  item: Item,
+  position: number,
+  relative: boolean,
+  sorted: ReadonlyCollection<Snowflake, Item>,
+  client: Client<true>,
+  route: string,
+  reason?: string,
+): Promise<{ id: Snowflake; position: number }[]>;
+export function parseWebhookURL(url: string): WebhookClientDataIdWithToken | null;
+/** @internal */
+export function transformResolved<Cached extends CacheType>(
+  supportingData: SupportingInteractionResolvedData,
+  data?: Extract<
+    APIApplicationCommandInteractionData,
+    APIChatInputApplicationCommandInteractionData | APIContextMenuInteractionData
+  >['resolved'],
+): CommandInteractionResolvedData<Cached>;
+export function resolveSKUId(resolvable: SKUResolvable): Snowflake | null;
+
+/** @internal */
+export interface CreateChannelOptions {
+  allowFromUnknownGuild?: boolean;
+}
+
+/** @internal */
+export function createChannel(
+  client: Client<true>,
+  data: APIChannel,
+  guild?: Guild,
+  extras?: CreateChannelOptions,
+): Channel;
+
+/** @deprecated This class is redundant as all methods of the class can be imported from discord.js directly. */
+export class Formatters extends null {
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static blockQuote: typeof blockQuote;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static bold: typeof bold;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static channelMention: typeof channelMention;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static codeBlock: typeof codeBlock;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static formatEmoji: typeof formatEmoji;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static hideLinkEmbed: typeof hideLinkEmbed;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static hyperlink: typeof hyperlink;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static inlineCode: typeof inlineCode;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static italic: typeof italic;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static quote: typeof quote;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static roleMention: typeof roleMention;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static spoiler: typeof spoiler;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static strikethrough: typeof strikethrough;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static time: typeof time;
+  /** @deprecated Import this property directly from discord.js instead. */
+  public static TimestampStyles: typeof TimestampStyles;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static underscore: typeof underscore;
+  /** @deprecated Import this method directly from discord.js instead. */
+  public static userMention: typeof userMention;
+}
+
+export type ComponentData =
+  | MessageActionRowComponentData
+  | ModalActionRowComponentData
+  | ComponentInContainerData
+  | ContainerComponentData
+  | ThumbnailComponentData;
+
+export interface SendSoundboardSoundOptions {
+  soundId: Snowflake;
+  guildId?: Snowflake;
+}
+
+export class VoiceChannel extends BaseGuildVoiceChannel {
+  public get speakable(): boolean;
+  public type: ChannelType.GuildVoice;
+  public sendSoundboardSound(sound: SoundboardSound | SendSoundboardSoundOptions): Promise<void>;
+}
+
+export class VoiceChannelEffect {
+  private constructor(data: GatewayVoiceChannelEffectSendDispatchData, guild: Guild);
+  public guild: Guild;
+  public channelId: Snowflake;
+  public userId: Snowflake;
+  public emoji: Emoji | null;
+  public animationType: VoiceChannelEffectSendAnimationType | null;
+  public animationId: number | null;
+  public soundId: Snowflake | number | null;
+  public soundVolume: number | null;
+  public get channel(): VoiceChannel | null;
+  public get soundboardSound(): GuildSoundboardSound | null;
+}
+
+export class VoiceRegion {
+  private constructor(data: RawVoiceRegionData);
+  public custom: boolean;
+  public deprecated: boolean;
+  public id: string;
+  public name: string;
+  public optimal: boolean;
+  public toJSON(): unknown;
+}
+
+export class VoiceState extends Base {
+  private constructor(guild: Guild, data: RawVoiceStateData);
+  public get channel(): VoiceBasedChannel | null;
+  public channelId: Snowflake | null;
+  public get deaf(): boolean | null;
+  public guild: Guild;
+  public id: Snowflake;
+  public get member(): GuildMember | null;
+  public get mute(): boolean | null;
+  public selfDeaf: boolean | null;
+  public selfMute: boolean | null;
+  public serverDeaf: boolean | null;
+  public serverMute: boolean | null;
+  public sessionId: string | null;
+  public streaming: boolean | null;
+  public selfVideo: boolean | null;
+  public suppress: boolean | null;
+  public requestToSpeakTimestamp: number | null;
+
+  public setDeaf(deaf?: boolean, reason?: string): Promise<GuildMember>;
+  public setMute(mute?: boolean, reason?: string): Promise<GuildMember>;
+  public disconnect(reason?: string): Promise<GuildMember>;
+  public setChannel(channel: GuildVoiceChannelResolvable | null, reason?: string): Promise<GuildMember>;
+  public setRequestToSpeak(request?: boolean): Promise<this>;
+  public setSuppressed(suppressed?: boolean): Promise<this>;
+  public edit(options: VoiceStateEditOptions): Promise<this>;
+  public fetch(force?: boolean): Promise<VoiceState>;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface Webhook<Type extends WebhookType = WebhookType> extends WebhookFields {}
+export class Webhook<Type extends WebhookType = WebhookType> {
+  private constructor(client: Client<true>, data?: RawWebhookData);
+  public avatar: string | null;
+  public avatarURL(options?: ImageURLOptions): string | null;
+  public channelId: Snowflake;
+  public readonly client: Client;
+  public guildId: Snowflake;
+  public name: string;
+  public owner: Type extends WebhookType.Incoming ? User | APIUser | null : User | APIUser;
+  public sourceGuild: Type extends WebhookType.ChannelFollower ? Guild | APIPartialGuild : null;
+  public sourceChannel: Type extends WebhookType.ChannelFollower ? NewsChannel | APIPartialChannel : null;
+  public token: Type extends WebhookType.Incoming
+    ? string
+    : Type extends WebhookType.ChannelFollower
+      ? null
+      : string | null;
+  public type: Type;
+  public applicationId: Type extends WebhookType.Application ? Snowflake : null;
+  public get channel(): TextChannel | VoiceChannel | NewsChannel | StageChannel | ForumChannel | MediaChannel | null;
+  public isUserCreated(): this is Webhook<WebhookType.Incoming> & {
+    owner: User | APIUser;
+  };
+  public isApplicationCreated(): this is Webhook<WebhookType.Application>;
+  public isIncoming(): this is Webhook<WebhookType.Incoming>;
+  public isChannelFollower(): this is Webhook<WebhookType.ChannelFollower>;
+
+  public editMessage(
+    message: MessageResolvable,
+    options: string | MessagePayload | WebhookMessageEditOptions,
+  ): Promise<Message>;
+  public fetchMessage(message: Snowflake, options?: WebhookFetchMessageOptions): Promise<Message>;
+  public send(options: string | MessagePayload | WebhookMessageCreateOptions): Promise<Message>;
+}
+
+// tslint:disable-next-line no-empty-interface
+export interface WebhookClient extends WebhookFields, BaseClient {}
+export class WebhookClient extends BaseClient {
+  public constructor(data: WebhookClientData, options?: WebhookClientOptions);
+  public readonly client: this;
+  public options: WebhookClientOptions;
+  public token: string;
+  public editMessage(
+    message: MessageResolvable,
+    options: string | MessagePayload | WebhookMessageEditOptions,
+  ): Promise<APIMessage>;
+  public fetchMessage(message: Snowflake, options?: WebhookFetchMessageOptions): Promise<APIMessage>;
+  public send(options: string | MessagePayload | WebhookMessageCreateOptions): Promise<APIMessage>;
+}
+
+export class WebSocketManager extends EventEmitter {
+  private constructor(client: Client);
+  private readonly packetQueue: unknown[];
+  private destroyed: boolean;
+
+  public readonly client: Client;
+  public gateway: string | null;
+  public shards: Collection<number, WebSocketShard>;
+  public status: Status;
+  public get ping(): number;
+
+  public on(event: GatewayDispatchEvents, listener: (data: any, shardId: number) => void): this;
+  public once(event: GatewayDispatchEvents, listener: (data: any, shardId: number) => void): this;
+
+  private debug(messages: readonly string[], shardId?: number): void;
+  private connect(): Promise<void>;
+  private broadcast(packet: unknown): void;
+  private destroy(): Promise<void>;
+  private handlePacket(packet?: unknown, shard?: WebSocketShard): boolean;
+  private checkShardsReady(): void;
+  private triggerClientReady(): void;
+}
+
+export interface WebSocketShardEventTypes {
+  ready: [];
+  resumed: [];
+  invalidSession: [];
+  destroyed: [];
+  close: [event: CloseEvent];
+  allReady: [unavailableGuilds?: Set<Snowflake>];
+}
+
+export class WebSocketShard extends EventEmitter {
+  private constructor(manager: WebSocketManager, id: number);
+  private closeSequence: number;
+  private sessionInfo: SessionInfo | null;
+  public lastPingTimestamp: number;
+  private expectedGuilds: Set<Snowflake> | null;
+  private readyTimeout: NodeJS.Timeout | null;
+
+  public manager: WebSocketManager;
+  public id: number;
+  public status: Status;
+  public ping: number;
+
+  private debug(messages: readonly string[]): void;
+  private onReadyPacket(packet: unknown): void;
+  private gotGuild(guildId: Snowflake): void;
+  private checkReady(): void;
+  private emitClose(event?: CloseEvent): void;
+
+  public send(data: unknown, important?: boolean): void;
+
+  public on<Event extends keyof WebSocketShardEventTypes>(
+    event: Event,
+    listener: (...args: WebSocketShardEventTypes[Event]) => void,
+  ): this;
+
+  public once<Event extends keyof WebSocketShardEventTypes>(
+    event: Event,
+    listener: (...args: WebSocketShardEventTypes[Event]) => void,
+  ): this;
+}
+
+export class Widget extends Base {
+  private constructor(client: Client<true>, data: RawWidgetData);
+  private _patch(data: RawWidgetData): void;
+  public fetch(): Promise<Widget>;
+  public imageURL(style?: GuildWidgetStyle): string;
+  public id: Snowflake;
+  public name: string;
+  public instantInvite?: string;
+  public channels: Collection<Snowflake, WidgetChannel>;
+  public members: Collection<string, WidgetMember>;
+  public presenceCount: number;
+}
+
+export class WidgetMember extends Base {
+  private constructor(client: Client<true>, data: RawWidgetMemberData);
+  public id: string;
+  public username: string;
+  public discriminator: string;
+  public avatar: string | null;
+  public status: PresenceStatus;
+  public deaf: boolean | null;
+  public mute: boolean | null;
+  public selfDeaf: boolean | null;
+  public selfMute: boolean | null;
+  public suppress: boolean | null;
+  public channelId: Snowflake | null;
+  public avatarURL: string;
+  public activity: WidgetActivity | null;
+}
+
+export type SoundboardSoundResolvable = SoundboardSound | Snowflake | string;
+
+export class SoundboardSound extends Base {
+  private constructor(client: Client<true>, data: APISoundboardSound);
+  public name: string;
+  public soundId: Snowflake | string;
+  public volume: number;
+  private _emoji: Omit<APIEmoji, 'animated'> | null;
+  public guildId: Snowflake | null;
+  public available: boolean;
+  public user: User | null;
+  public get createdAt(): Date;
+  public get createdTimestamp(): number;
+  public get emoji(): Emoji | null;
+  public get guild(): Guild | null;
+  public get url(): string;
+  public edit(options?: GuildSoundboardSoundEditOptions): Promise<GuildSoundboardSound>;
+  public delete(reason?: string): Promise<GuildSoundboardSound>;
+  public equals(other: SoundboardSound | APISoundboardSound): boolean;
+}
+
+export type DefaultSoundboardSound = SoundboardSound & { get guild(): null; guildId: null; soundId: string };
+export type GuildSoundboardSound = SoundboardSound & { get guild(): Guild; guildId: Snowflake; soundId: Snowflake };
+
+export class WelcomeChannel extends Base {
+  private constructor(guild: Guild, data: RawWelcomeChannelData);
+  private _emoji: Omit<APIEmoji, 'animated'>;
+  public channelId: Snowflake;
+  public guild: Guild | InviteGuild;
+  public description: string;
+  public get channel(): TextChannel | NewsChannel | ForumChannel | MediaChannel | null;
+  public get emoji(): GuildEmoji | Emoji;
+}
+
+export class WelcomeScreen extends Base {
+  private constructor(guild: Guild, data: RawWelcomeScreenData);
+  public get enabled(): boolean;
+  public guild: Guild | InviteGuild;
+  public description: string | null;
+  public welcomeChannels: Collection<Snowflake, WelcomeChannel>;
+}
+
+//#endregion
+
+//#region Constants
+
+export type NonSystemMessageType =
+  | MessageType.Default
+  | MessageType.Reply
+  | MessageType.ChatInputCommand
+  | MessageType.ContextMenuCommand;
+
+export type UndeletableMessageType =
+  | MessageType.RecipientAdd
+  | MessageType.RecipientRemove
+  | MessageType.Call
+  | MessageType.ChannelNameChange
+  | MessageType.ChannelIconChange
+  | MessageType.ThreadStarterMessage;
+
+/** @deprecated This type will no longer be updated. Use {@link UndeletableMessageType} instead. */
+export type DeletableMessageType =
+  | MessageType.AutoModerationAction
+  | MessageType.ChannelFollowAdd
+  | MessageType.ChannelPinnedMessage
+  | MessageType.ChatInputCommand
+  | MessageType.ContextMenuCommand
+  | MessageType.Default
+  | MessageType.GuildBoost
+  | MessageType.GuildBoostTier1
+  | MessageType.GuildBoostTier2
+  | MessageType.GuildBoostTier3
+  | MessageType.GuildInviteReminder
+  | MessageType.InteractionPremiumUpsell
+  | MessageType.Reply
+  | MessageType.RoleSubscriptionPurchase
+  | MessageType.StageEnd
+  | MessageType.StageRaiseHand
+  | MessageType.StageSpeaker
+  | MessageType.StageStart
+  | MessageType.StageTopic
+  | MessageType.ThreadCreated
+  | MessageType.UserJoin;
+
+export const Constants: {
+  MaxBulkDeletableMessageAge: 1_209_600_000;
+  SweeperKeys: SweeperKey[];
+  NonSystemMessageTypes: NonSystemMessageType[];
+  TextBasedChannelTypes: TextBasedChannelTypes[];
+  SendableChannels: SendableChannelTypes[];
+  GuildTextBasedChannelTypes: GuildTextBasedChannelTypes[];
+  ThreadChannelTypes: ThreadChannelType[];
+  VoiceBasedChannelTypes: VoiceBasedChannelTypes[];
+  SelectMenuTypes: SelectMenuType[];
+  UndeletableMessageTypes: UndeletableMessageType[];
+  /** @deprecated This list will no longer be updated. Use {@link Constants.UndeletableMessageTypes} instead. */
+  DeletableMessageTypes: DeletableMessageType[];
+  StickerFormatExtensionMap: Record<StickerFormatType, ImageFormat>;
+};
+
+export const version: string;
+
+//#endregion
+
+//#region Errors
+export enum DiscordjsErrorCodes {
+  ClientInvalidOption = 'ClientInvalidOption',
+  ClientInvalidProvidedShards = 'ClientInvalidProvidedShards',
+  ClientMissingIntents = 'ClientMissingIntents',
+  ClientNotReady = 'ClientNotReady',
+
+  TokenInvalid = 'TokenInvalid',
+  TokenMissing = 'TokenMissing',
+  ApplicationCommandPermissionsTokenMissing = 'ApplicationCommandPermissionsTokenMissing',
+
+  /** @deprecated WebSocket errors are now handled in `@discordjs/ws` */
+  WSCloseRequested = 'WSCloseRequested',
+  /** @deprecated WebSocket errors are now handled in `@discordjs/ws` */
+  WSConnectionExists = 'WSConnectionExists',
+  /** @deprecated WebSocket errors are now handled in `@discordjs/ws` */
+  WSNotOpen = 'WSNotOpen',
+  /** @deprecated No longer in use */
+  ManagerDestroyed = 'ManagerDestroyed',
+
+  BitFieldInvalid = 'BitFieldInvalid',
+
+  /** @deprecated This error is now handled in `@discordjs/ws` */
+  ShardingInvalid = 'ShardingInvalid',
+  /** @deprecated This error is now handled in `@discordjs/ws` */
+  ShardingRequired = 'ShardingRequired',
+  /** @deprecated This error is now handled in `@discordjs/ws` */
+  InvalidIntents = 'InvalidIntents',
+  /** @deprecated This error is now handled in `@discordjs/ws` */
+  DisallowedIntents = 'DisallowedIntents',
+  ShardingNoShards = 'ShardingNoShards',
+  ShardingInProcess = 'ShardingInProcess',
+  ShardingInvalidEvalBroadcast = 'ShardingInvalidEvalBroadcast',
+  ShardingShardNotFound = 'ShardingShardNotFound',
+  ShardingAlreadySpawned = 'ShardingAlreadySpawned',
+  ShardingProcessExists = 'ShardingProcessExists',
+  ShardingWorkerExists = 'ShardingWorkerExists',
+  ShardingReadyTimeout = 'ShardingReadyTimeout',
+  ShardingReadyDisconnected = 'ShardingReadyDisconnected',
+  ShardingReadyDied = 'ShardingReadyDied',
+  ShardingNoChildExists = 'ShardingNoChildExists',
+  ShardingShardMiscalculation = 'ShardingShardMiscalculation',
+
+  ColorRange = 'ColorRange',
+  ColorConvert = 'ColorConvert',
+
+  InviteOptionsMissingChannel = 'InviteOptionsMissingChannel',
+
+  /** @deprecated Button validation errors are now handled in `@discordjs/builders` */
+  ButtonLabel = 'ButtonLabel',
+  /** @deprecated Button validation errors are now handled in `@discordjs/builders` */
+  ButtonURL = 'ButtonURL',
+  /** @deprecated Button validation errors are now handled in `@discordjs/builders` */
+  ButtonCustomId = 'ButtonCustomId',
+
+  /** @deprecated Select Menu validation errors are now handled in `@discordjs/builders` */
+  SelectMenuCustomId = 'SelectMenuCustomId',
+  /** @deprecated Select Menu validation errors are now handled in `@discordjs/builders` */
+  SelectMenuPlaceholder = 'SelectMenuPlaceholder',
+  /** @deprecated Select Menu validation errors are now handled in `@discordjs/builders` */
+  SelectOptionLabel = 'SelectOptionLabel',
+  /** @deprecated Select Menu validation errors are now handled in `@discordjs/builders` */
+  SelectOptionValue = 'SelectOptionValue',
+  /** @deprecated Select Menu validation errors are now handled in `@discordjs/builders` */
+  SelectOptionDescription = 'SelectOptionDescription',
+
+  InteractionCollectorError = 'InteractionCollectorError',
+
+  FileNotFound = 'FileNotFound',
+
+  /** @deprecated No longer in use */
+  UserBannerNotFetched = 'UserBannerNotFetched',
+  UserNoDMChannel = 'UserNoDMChannel',
+
+  VoiceNotStageChannel = 'VoiceNotStageChannel',
+
+  VoiceStateNotOwn = 'VoiceStateNotOwn',
+  VoiceStateInvalidType = 'VoiceStateInvalidType',
+
+  ReqResourceType = 'ReqResourceType',
+
+  /** @deprecated This error is now handled in `@discordjs/rest` */
+  ImageFormat = 'ImageFormat',
+  /** @deprecated This error is now handled in `@discordjs/rest` */
+  ImageSize = 'ImageSize',
+
+  MessageBulkDeleteType = 'MessageBulkDeleteType',
+  MessageContentType = 'MessageContentType',
+  MessageNonceRequired = 'MessageNonceRequired',
+  MessageNonceType = 'MessageNonceType',
+
+  /** @deprecated No longer in use */
+  SplitMaxLen = 'SplitMaxLen',
+
+  BanResolveId = 'BanResolveId',
+  FetchBanResolveId = 'FetchBanResolveId',
+
+  PruneDaysType = 'PruneDaysType',
+
+  GuildChannelResolve = 'GuildChannelResolve',
+  GuildVoiceChannelResolve = 'GuildVoiceChannelResolve',
+  GuildChannelOrphan = 'GuildChannelOrphan',
+  GuildChannelUnowned = 'GuildChannelUnowned',
+  GuildOwned = 'GuildOwned',
+  GuildMembersTimeout = 'GuildMembersTimeout',
+  GuildSoundboardSoundsTimeout = 'GuildSoundboardSoundsTimeout',
+  GuildUncachedMe = 'GuildUncachedMe',
+  ChannelNotCached = 'ChannelNotCached',
+  StageChannelResolve = 'StageChannelResolve',
+  GuildScheduledEventResolve = 'GuildScheduledEventResolve',
+  FetchOwnerId = 'FetchOwnerId',
+
+  InvalidType = 'InvalidType',
+  InvalidElement = 'InvalidElement',
+
+  MessageThreadParent = 'MessageThreadParent',
+  MessageExistingThread = 'MessageExistingThread',
+  ThreadInvitableType = 'ThreadInvitableType',
+
+  WebhookMessage = 'WebhookMessage',
+  WebhookTokenUnavailable = 'WebhookTokenUnavailable',
+  WebhookURLInvalid = 'WebhookURLInvalid',
+  WebhookApplication = 'WebhookApplication',
+  MessageReferenceMissing = 'MessageReferenceMissing',
+
+  EmojiType = 'EmojiType',
+  EmojiManaged = 'EmojiManaged',
+  MissingManageGuildExpressionsPermission = 'MissingManageGuildExpressionsPermission',
+  /** @deprecated Use {@link DiscordjsErrorCodes.MissingManageGuildExpressionsPermission} instead. */
+  MissingManageEmojisAndStickersPermission = 'MissingManageEmojisAndStickersPermission',
+
+  NotGuildSoundboardSound = 'NotGuildSoundboardSound',
+  NotGuildSticker = 'NotGuildSticker',
+
+  ReactionResolveUser = 'ReactionResolveUser',
+
+  /** @deprecated Not used anymore since the introduction of `GUILD_WEB_PAGE_VANITY_URL` feature */
+  VanityURL = 'VanityURL',
+
+  InviteResolveCode = 'InviteResolveCode',
+
+  InviteNotFound = 'InviteNotFound',
+
+  DeleteGroupDMChannel = 'DeleteGroupDMChannel',
+  FetchGroupDMChannel = 'FetchGroupDMChannel',
+
+  MemberFetchNonceLength = 'MemberFetchNonceLength',
+
+  GlobalCommandPermissions = 'GlobalCommandPermissions',
+  GuildUncachedEntityResolve = 'GuildUncachedEntityResolve',
+
+  InteractionAlreadyReplied = 'InteractionAlreadyReplied',
+  InteractionNotReplied = 'InteractionNotReplied',
+  /** @deprecated Not used anymore since ephemeral replies can now be deleted */
+  InteractionEphemeralReplied = 'InteractionEphemeralReplied',
+
+  CommandInteractionOptionNotFound = 'CommandInteractionOptionNotFound',
+  CommandInteractionOptionType = 'CommandInteractionOptionType',
+  CommandInteractionOptionEmpty = 'CommandInteractionOptionEmpty',
+  CommandInteractionOptionNoSubcommand = 'CommandInteractionOptionNoSubcommand',
+  CommandInteractionOptionNoSubcommandGroup = 'CommandInteractionOptionNoSubcommandGroup',
+  AutocompleteInteractionOptionNoFocusedOption = 'AutocompleteInteractionOptionNoFocusedOption',
+
+  ModalSubmitInteractionFieldNotFound = 'ModalSubmitInteractionFieldNotFound',
+  ModalSubmitInteractionFieldType = 'ModalSubmitInteractionFieldType',
+
+  InvalidMissingScopes = 'InvalidMissingScopes',
+  InvalidScopesWithPermissions = 'InvalidScopesWithPermissions',
+
+  NotImplemented = 'NotImplemented',
+
+  SweepFilterReturn = 'SweepFilterReturn',
+
+  GuildForumMessageRequired = 'GuildForumMessageRequired',
+
+  EntitlementCreateInvalidOwner = 'EntitlementCreateInvalidOwner',
+
+  BulkBanUsersOptionEmpty = 'BulkBanUsersOptionEmpty',
+
+  PollAlreadyExpired = 'PollAlreadyExpired',
+}
+
+export class DiscordjsError extends Error {
+  private constructor(code: DiscordjsErrorCodes, ...args: unknown[]);
+  public readonly code: DiscordjsErrorCodes;
+  public get name(): `Error [${DiscordjsErrorCodes}]`;
+}
+
+export class DiscordjsTypeError extends TypeError {
+  private constructor(code: DiscordjsErrorCodes, ...args: unknown[]);
+  public readonly code: DiscordjsErrorCodes;
+  public get name(): `TypeError [${DiscordjsErrorCodes}]`;
+}
+
+export class DiscordjsRangeError extends RangeError {
+  private constructor(code: DiscordjsErrorCodes, ...args: unknown[]);
+  public readonly code: DiscordjsErrorCodes;
+  public get name(): `RangeError [${DiscordjsErrorCodes}]`;
+}
+
+//#endregion
+
+//#region Managers
+
+export abstract class BaseManager {
+  protected constructor(client: Client);
+  public readonly client: Client;
+}
+
+export abstract class DataManager<Key, Holds, Resolvable> extends BaseManager {
+  protected constructor(client: Client<true>, holds: Constructable<Holds>);
+  public readonly holds: Constructable<Holds>;
+  public get cache(): Collection<Key, Holds>;
+  public resolve(resolvable: Holds): Holds;
+  public resolve(resolvable: Resolvable): Holds | null;
+  public resolveId(resolvable: Key | Holds): Key;
+  public resolveId(resolvable: Resolvable): Key | null;
+  public valueOf(): Collection<Key, Holds>;
+}
+
+export abstract class CachedManager<Key, Holds, Resolvable> extends DataManager<Key, Holds, Resolvable> {
+  protected constructor(client: Client<true>, holds: Constructable<Holds>, iterable?: Iterable<Holds>);
+  private readonly _cache: Collection<Key, Holds>;
+  private _add(data: unknown, cache?: boolean, { id, extras }?: { id: Key; extras: unknown[] }): Holds;
+}
+
+export type ApplicationCommandDataResolvable =
+  | ApplicationCommandData
+  | RESTPostAPIApplicationCommandsJSONBody
+  | JSONEncodable<RESTPostAPIApplicationCommandsJSONBody>;
+
+export class ApplicationCommandManager<
+  ApplicationCommandScope = ApplicationCommand<{ guild: GuildResolvable }>,
+  PermissionsOptionsExtras = { guild: GuildResolvable },
+  PermissionsGuildType = null,
+> extends CachedManager<Snowflake, ApplicationCommandScope, ApplicationCommandResolvable> {
+  protected constructor(client: Client<true>, iterable?: Iterable<unknown>);
+  public permissions: ApplicationCommandPermissionsManager<
+    { command?: ApplicationCommandResolvable } & PermissionsOptionsExtras,
+    { command: ApplicationCommandResolvable } & PermissionsOptionsExtras,
+    PermissionsGuildType,
+    null
+  >;
+  private commandPath({ id, guildId }: { id?: Snowflake; guildId?: Snowflake }): string;
+  public create(command: ApplicationCommandDataResolvable, guildId?: Snowflake): Promise<ApplicationCommandScope>;
+  public delete(command: ApplicationCommandResolvable, guildId?: Snowflake): Promise<ApplicationCommandScope | null>;
+  public edit(
+    command: ApplicationCommandResolvable,
+    data: Partial<ApplicationCommandDataResolvable>,
+  ): Promise<ApplicationCommandScope>;
+  public edit(
+    command: ApplicationCommandResolvable,
+    data: Partial<ApplicationCommandDataResolvable>,
+    guildId: Snowflake,
+  ): Promise<ApplicationCommand>;
+  public fetch(
+    id: Snowflake,
+    options: FetchApplicationCommandOptions & { guildId: Snowflake },
+  ): Promise<ApplicationCommand>;
+  public fetch(options: FetchApplicationCommandOptions): Promise<Collection<Snowflake, ApplicationCommandScope>>;
+  public fetch(id: Snowflake, options?: FetchApplicationCommandOptions): Promise<ApplicationCommandScope>;
+  public fetch(
+    id?: Snowflake,
+    options?: FetchApplicationCommandOptions,
+  ): Promise<Collection<Snowflake, ApplicationCommandScope>>;
+  public set(
+    commands: readonly ApplicationCommandDataResolvable[],
+  ): Promise<Collection<Snowflake, ApplicationCommandScope>>;
+  public set(
+    commands: readonly ApplicationCommandDataResolvable[],
+    guildId: Snowflake,
+  ): Promise<Collection<Snowflake, ApplicationCommand>>;
+  private static transformCommand(command: ApplicationCommandDataResolvable): RESTPostAPIApplicationCommandsJSONBody;
+}
+
+export class ApplicationCommandPermissionsManager<
+  BaseOptions,
+  FetchSingleOptions,
+  GuildType,
+  CommandIdType,
+> extends BaseManager {
+  private constructor(manager: ApplicationCommandManager | GuildApplicationCommandManager | ApplicationCommand);
+  private manager: ApplicationCommandManager | GuildApplicationCommandManager | ApplicationCommand;
+
+  public commandId: CommandIdType;
+  public guild: GuildType;
+  public guildId: Snowflake | null;
+  public add(
+    options: FetchSingleOptions & EditApplicationCommandPermissionsMixin,
+  ): Promise<ApplicationCommandPermissions[]>;
+  public has(
+    options: FetchSingleOptions & {
+      permissionId: ApplicationCommandPermissionIdResolvable;
+      permissionType?: ApplicationCommandPermissionType;
+    },
+  ): Promise<boolean>;
+  public fetch(options: FetchSingleOptions): Promise<ApplicationCommandPermissions[]>;
+  public fetch(options: BaseOptions): Promise<Collection<Snowflake, ApplicationCommandPermissions[]>>;
+  public remove(
+    options:
+      | (FetchSingleOptions & {
+          token: string;
+          channels?: readonly (GuildChannelResolvable | ChannelPermissionConstant)[];
+          roles?: readonly (RoleResolvable | RolePermissionConstant)[];
+          users: readonly UserResolvable[];
+        })
+      | (FetchSingleOptions & {
+          token: string;
+          channels?: readonly (GuildChannelResolvable | ChannelPermissionConstant)[];
+          roles: readonly (RoleResolvable | RolePermissionConstant)[];
+          users?: readonly UserResolvable[];
+        })
+      | (FetchSingleOptions & {
+          token: string;
+          channels: readonly (GuildChannelResolvable | ChannelPermissionConstant)[];
+          roles?: readonly (RoleResolvable | RolePermissionConstant)[];
+          users?: readonly UserResolvable[];
+        }),
+  ): Promise<ApplicationCommandPermissions[]>;
+  public set(
+    options: FetchSingleOptions & EditApplicationCommandPermissionsMixin,
+  ): Promise<ApplicationCommandPermissions[]>;
+  private permissionsPath(guildId: Snowflake, commandId?: Snowflake): string;
+}
+
+export class AutoModerationRuleManager extends CachedManager<
+  Snowflake,
+  AutoModerationRule,
+  AutoModerationRuleResolvable
+> {
+  private constructor(guild: Guild, iterable: unknown);
+  public guild: Guild;
+  public create(options: AutoModerationRuleCreateOptions): Promise<AutoModerationRule>;
+  public edit(
+    autoModerationRule: AutoModerationRuleResolvable,
+    options: AutoModerationRuleEditOptions,
+  ): Promise<AutoModerationRule>;
+  public fetch(options: AutoModerationRuleResolvable | FetchAutoModerationRuleOptions): Promise<AutoModerationRule>;
+  public fetch(options?: FetchAutoModerationRulesOptions): Promise<Collection<Snowflake, AutoModerationRule>>;
+  public delete(autoModerationRule: AutoModerationRuleResolvable, reason?: string): Promise<void>;
+}
+
+export class BaseGuildEmojiManager extends CachedManager<Snowflake, GuildEmoji, EmojiResolvable> {
+  protected constructor(client: Client<true>, iterable?: Iterable<RawGuildEmojiData>);
+  public resolveIdentifier(emoji: EmojiIdentifierResolvable): string | null;
+}
+
+export class CategoryChannelChildManager extends DataManager<Snowflake, CategoryChildChannel, GuildChannelResolvable> {
+  private constructor(channel: CategoryChannel);
+
+  public channel: CategoryChannel;
+  public get guild(): Guild;
+  public create<Type extends CategoryChannelType>(
+    options: CategoryCreateChannelOptions & { type: Type },
+  ): Promise<MappedChannelCategoryTypes[Type]>;
+  public create(options: CategoryCreateChannelOptions): Promise<TextChannel>;
+}
+
+export class ChannelManager extends CachedManager<Snowflake, Channel, ChannelResolvable> {
+  private constructor(client: Client<true>, iterable: Iterable<RawChannelData>);
+  public fetch(id: Snowflake, options?: FetchChannelOptions): Promise<Channel | null>;
+}
+
+export type EntitlementResolvable = Snowflake | Entitlement;
+export type SKUResolvable = Snowflake | SKU;
+export type SubscriptionResolvable = Snowflake | Subscription;
+
+export interface GuildEntitlementCreateOptions {
+  sku: SKUResolvable;
+  guild: GuildResolvable;
+}
+
+export interface UserEntitlementCreateOptions {
+  sku: SKUResolvable;
+  user: UserResolvable;
+}
+
+export interface FetchEntitlementOptions extends BaseFetchOptions {
+  entitlement: EntitlementResolvable;
+}
+
+export interface FetchEntitlementsOptions {
+  limit?: number;
+  guild?: GuildResolvable;
+  user?: UserResolvable;
+  skus?: readonly SKUResolvable[];
+  excludeEnded?: boolean;
+  excludeDeleted?: boolean;
+  cache?: boolean;
+  before?: Snowflake;
+  after?: Snowflake;
+}
+
+export class EntitlementManager extends CachedManager<Snowflake, Entitlement, EntitlementResolvable> {
+  private constructor(client: Client<true>, iterable: Iterable<APIEntitlement>);
+  public fetch(options: EntitlementResolvable | FetchEntitlementOptions): Promise<Entitlement>;
+  public fetch(options?: FetchEntitlementsOptions): Promise<Collection<Snowflake, Entitlement>>;
+  public createTest(options: GuildEntitlementCreateOptions | UserEntitlementCreateOptions): Promise<Entitlement>;
+  public deleteTest(entitlement: EntitlementResolvable): Promise<void>;
+  public consume(entitlementId: Snowflake): Promise<void>;
+}
+
+export interface FetchSubscriptionOptions extends BaseFetchOptions {
+  sku: SKUResolvable;
+  subscriptionId: Snowflake;
+}
+
+export interface FetchSubscriptionsOptions {
+  after?: Snowflake;
+  before?: Snowflake;
+  limit?: number;
+  sku: SKUResolvable;
+  user: UserResolvable;
+}
+
+export class SubscriptionManager extends CachedManager<Snowflake, Subscription, SubscriptionResolvable> {
+  private constructor(client: Client<true>, iterable?: Iterable<APISubscription>);
+  public fetch(options: FetchSubscriptionOptions): Promise<Subscription>;
+  public fetch(options: FetchSubscriptionsOptions): Promise<Collection<Snowflake, Subscription>>;
+}
+
+export interface FetchGuildApplicationCommandFetchOptions extends Omit<FetchApplicationCommandOptions, 'guildId'> {}
+
+export class GuildApplicationCommandManager extends ApplicationCommandManager<ApplicationCommand, {}, Guild> {
+  private constructor(guild: Guild, iterable?: Iterable<RawApplicationCommandData>);
+  public guild: Guild;
+  public create(command: ApplicationCommandDataResolvable): Promise<ApplicationCommand>;
+  public delete(command: ApplicationCommandResolvable): Promise<ApplicationCommand | null>;
+  public edit(
+    command: ApplicationCommandResolvable,
+    data: Partial<ApplicationCommandDataResolvable>,
+  ): Promise<ApplicationCommand>;
+  public fetch(id: Snowflake, options?: FetchGuildApplicationCommandFetchOptions): Promise<ApplicationCommand>;
+  public fetch(options: FetchGuildApplicationCommandFetchOptions): Promise<Collection<Snowflake, ApplicationCommand>>;
+  public fetch(
+    id?: undefined,
+    options?: FetchGuildApplicationCommandFetchOptions,
+  ): Promise<Collection<Snowflake, ApplicationCommand>>;
+  public set(commands: readonly ApplicationCommandDataResolvable[]): Promise<Collection<Snowflake, ApplicationCommand>>;
+}
+
+export type MappedGuildChannelTypes = {
+  [ChannelType.GuildCategory]: CategoryChannel;
+} & MappedChannelCategoryTypes;
+
+export type GuildChannelTypes = CategoryChannelType | ChannelType.GuildCategory;
+
+export class GuildChannelManager extends CachedManager<Snowflake, GuildBasedChannel, GuildChannelResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawGuildChannelData>);
+  public get channelCountWithoutThreads(): number;
+  public guild: Guild;
+
+  public addFollower(
+    channel: NewsChannelResolvable,
+    targetChannel: TextChannelResolvable,
+    reason?: string,
+  ): Promise<Snowflake>;
+  public create<Type extends GuildChannelTypes>(
+    options: GuildChannelCreateOptions & { type: Type },
+  ): Promise<MappedGuildChannelTypes[Type]>;
+  public create(options: GuildChannelCreateOptions): Promise<TextChannel>;
+  public createWebhook(options: WebhookCreateOptions): Promise<Webhook<WebhookType.Incoming>>;
+  public edit(channel: GuildChannelResolvable, data: GuildChannelEditOptions): Promise<GuildChannel>;
+  public fetch(id: Snowflake, options?: BaseFetchOptions): Promise<GuildBasedChannel | null>;
+  public fetch(
+    id?: undefined,
+    options?: BaseFetchOptions,
+  ): Promise<Collection<Snowflake, NonThreadGuildBasedChannel | null>>;
+  public fetchWebhooks(
+    channel: GuildChannelResolvable,
+  ): Promise<Collection<Snowflake, Webhook<WebhookType.ChannelFollower | WebhookType.Incoming>>>;
+  public setPosition(
+    channel: GuildChannelResolvable,
+    position: number,
+    options?: SetChannelPositionOptions,
+  ): Promise<GuildChannel>;
+  public setPositions(channelPositions: readonly ChannelPosition[]): Promise<Guild>;
+  public fetchActiveThreads(cache?: boolean): Promise<FetchedThreads>;
+  private rawFetchGuildActiveThreads(): Promise<RESTGetAPIGuildThreadsResult>;
+  public delete(channel: GuildChannelResolvable, reason?: string): Promise<void>;
+}
+
+export class GuildEmojiManager extends BaseGuildEmojiManager {
+  private constructor(guild: Guild, iterable?: Iterable<RawGuildEmojiData>);
+  public guild: Guild;
+  public create(options: GuildEmojiCreateOptions): Promise<GuildEmoji>;
+  public fetch(id: Snowflake, options?: BaseFetchOptions): Promise<GuildEmoji>;
+  public fetch(id?: undefined, options?: BaseFetchOptions): Promise<Collection<Snowflake, GuildEmoji>>;
+  public fetchAuthor(emoji: EmojiResolvable): Promise<User>;
+  public delete(emoji: EmojiResolvable, reason?: string): Promise<void>;
+  public edit(emoji: EmojiResolvable, options: GuildEmojiEditOptions): Promise<GuildEmoji>;
+}
+
+export class GuildEmojiRoleManager extends DataManager<Snowflake, Role, RoleResolvable> {
+  private constructor(emoji: GuildEmoji);
+  public emoji: GuildEmoji;
+  public guild: Guild;
+  public add(
+    roleOrRoles: RoleResolvable | readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>,
+  ): Promise<GuildEmoji>;
+  public set(roles: readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>): Promise<GuildEmoji>;
+  public remove(
+    roleOrRoles: RoleResolvable | readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>,
+  ): Promise<GuildEmoji>;
+}
+
+export interface FetchSoundboardSoundsOptions {
+  guildIds: readonly Snowflake[];
+  time?: number;
+}
+
+export class GuildManager extends CachedManager<Snowflake, Guild, GuildResolvable> {
+  private constructor(client: Client<true>, iterable?: Iterable<RawGuildData>);
+  public create(options: GuildCreateOptions): Promise<Guild>;
+  public fetch(options: Snowflake | FetchGuildOptions): Promise<Guild>;
+  public fetch(options?: FetchGuildsOptions): Promise<Collection<Snowflake, OAuth2Guild>>;
+  public fetchSoundboardSounds(
+    options: FetchSoundboardSoundsOptions,
+  ): Promise<Collection<Snowflake, Collection<Snowflake, GuildSoundboardSound>>>;
+  public setIncidentActions(
+    guild: GuildResolvable,
+    incidentActions: IncidentActionsEditOptions,
+  ): Promise<IncidentActions>;
+  public widgetImageURL(guild: GuildResolvable, style?: GuildWidgetStyle): string;
+}
+
+export interface AddOrRemoveGuildMemberRoleOptions {
+  user: GuildMemberResolvable;
+  role: RoleResolvable;
+  reason?: string;
+}
+
+export class GuildMemberManager extends CachedManager<Snowflake, GuildMember, GuildMemberResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawGuildMemberData>);
+  public guild: Guild;
+  public get me(): GuildMember | null;
+  public add(
+    user: UserResolvable,
+    options: AddGuildMemberOptions & { fetchWhenExisting: false },
+  ): Promise<GuildMember | null>;
+  public add(user: UserResolvable, options: AddGuildMemberOptions): Promise<GuildMember>;
+  public ban(user: UserResolvable, options?: BanOptions): Promise<GuildMember | User | Snowflake>;
+  public bulkBan(
+    users: ReadonlyCollection<Snowflake, UserResolvable> | readonly UserResolvable[],
+    options?: BulkBanOptions,
+  ): Promise<BulkBanResult>;
+  public edit(user: UserResolvable, options: GuildMemberEditOptions): Promise<GuildMember>;
+  public fetch(
+    options: UserResolvable | FetchMemberOptions | (FetchMembersOptions & { user: UserResolvable }),
+  ): Promise<GuildMember>;
+  public fetch(options?: FetchMembersOptions): Promise<Collection<Snowflake, GuildMember>>;
+  public fetchMe(options?: BaseFetchOptions): Promise<GuildMember>;
+  public kick(user: UserResolvable, reason?: string): Promise<GuildMember | User | Snowflake>;
+  public list(options?: GuildListMembersOptions): Promise<Collection<Snowflake, GuildMember>>;
+  public prune(options: GuildPruneMembersOptions & { dry?: false; count: false }): Promise<null>;
+  public prune(options?: GuildPruneMembersOptions): Promise<number>;
+  public search(options: GuildSearchMembersOptions): Promise<Collection<Snowflake, GuildMember>>;
+  public unban(user: UserResolvable, reason?: string): Promise<User | null>;
+  public addRole(options: AddOrRemoveGuildMemberRoleOptions): Promise<GuildMember | User | Snowflake>;
+  public removeRole(options: AddOrRemoveGuildMemberRoleOptions): Promise<GuildMember | User | Snowflake>;
+}
+
+export class GuildBanManager extends CachedManager<Snowflake, GuildBan, GuildBanResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawGuildBanData>);
+  public guild: Guild;
+  public create(user: UserResolvable, options?: BanOptions): Promise<GuildMember | User | Snowflake>;
+  public fetch(options: UserResolvable | FetchBanOptions): Promise<GuildBan>;
+  public fetch(options?: FetchBansOptions): Promise<Collection<Snowflake, GuildBan>>;
+  public remove(user: UserResolvable, reason?: string): Promise<User | null>;
+  public bulkCreate(
+    users: ReadonlyCollection<Snowflake, UserResolvable> | readonly UserResolvable[],
+    options?: BulkBanOptions,
+  ): Promise<BulkBanResult>;
+}
+
+export class GuildInviteManager extends DataManager<string, Invite, InviteResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawInviteData>);
+  public guild: Guild;
+  public create(channel: GuildInvitableChannelResolvable, options?: InviteCreateOptions): Promise<Invite>;
+  public fetch(options: InviteResolvable | FetchInviteOptions): Promise<Invite>;
+  public fetch(options?: FetchInvitesOptions): Promise<Collection<string, Invite>>;
+  public delete(invite: InviteResolvable, reason?: string): Promise<Invite>;
+}
+
+export class GuildScheduledEventManager extends CachedManager<
+  Snowflake,
+  GuildScheduledEvent,
+  GuildScheduledEventResolvable
+> {
+  private constructor(guild: Guild, iterable?: Iterable<RawGuildScheduledEventData>);
+  public guild: Guild;
+  public create(options: GuildScheduledEventCreateOptions): Promise<GuildScheduledEvent>;
+  public fetch(): Promise<Collection<Snowflake, GuildScheduledEvent>>;
+  public fetch<
+    Options extends GuildScheduledEventResolvable | FetchGuildScheduledEventOptions | FetchGuildScheduledEventsOptions,
+  >(options?: Options): Promise<GuildScheduledEventManagerFetchResult<Options>>;
+  public edit<
+    Status extends GuildScheduledEventStatus,
+    AcceptableStatus extends GuildScheduledEventSetStatusArg<Status>,
+  >(
+    guildScheduledEvent: GuildScheduledEventResolvable,
+    options: GuildScheduledEventEditOptions<Status, AcceptableStatus>,
+  ): Promise<GuildScheduledEvent<AcceptableStatus>>;
+  public delete(guildScheduledEvent: GuildScheduledEventResolvable): Promise<void>;
+  public fetchSubscribers<Options extends FetchGuildScheduledEventSubscribersOptions>(
+    guildScheduledEvent: GuildScheduledEventResolvable,
+    options?: Options,
+  ): Promise<GuildScheduledEventManagerFetchSubscribersResult<Options>>;
+}
+
+export interface GuildSoundboardSoundCreateOptions {
+  file: BufferResolvable | Stream;
+  name: string;
+  contentType?: string;
+  volume?: number;
+  emojiId?: Snowflake;
+  emojiName?: string;
+  reason?: string;
+}
+
+export interface GuildSoundboardSoundEditOptions {
+  name?: string;
+  volume?: number | null;
+  emojiId?: Snowflake | null;
+  emojiName?: string | null;
+  reason?: string;
+}
+
+export interface FetchGuildSoundboardSoundOptions extends BaseFetchOptions {
+  soundboardSound: SoundboardSoundResolvable;
+}
+
+export interface FetchGuildSoundboardSoundsOptions extends Pick<BaseFetchOptions, 'cache'> {}
+
+export class GuildSoundboardSoundManager extends CachedManager<Snowflake, SoundboardSound, SoundboardSoundResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<APISoundboardSound>);
+  public guild: Guild;
+  public create(options: GuildSoundboardSoundCreateOptions): Promise<GuildSoundboardSound>;
+  public edit(
+    soundboardSound: SoundboardSoundResolvable,
+    options: GuildSoundboardSoundEditOptions,
+  ): Promise<GuildSoundboardSound>;
+  public delete(soundboardSound: SoundboardSoundResolvable): Promise<void>;
+  public fetch(options: SoundboardSoundResolvable | FetchGuildSoundboardSoundOptions): Promise<GuildSoundboardSound>;
+  public fetch(options?: FetchGuildSoundboardSoundsOptions): Promise<Collection<Snowflake, GuildSoundboardSound>>;
+}
+
+export class GuildStickerManager extends CachedManager<Snowflake, Sticker, StickerResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawStickerData>);
+  public guild: Guild;
+  public create(options: GuildStickerCreateOptions): Promise<Sticker>;
+  public edit(sticker: StickerResolvable, data?: GuildStickerEditOptions): Promise<Sticker>;
+  public delete(sticker: StickerResolvable, reason?: string): Promise<void>;
+  public fetch(id: Snowflake, options?: BaseFetchOptions): Promise<Sticker>;
+  public fetch(id?: Snowflake, options?: BaseFetchOptions): Promise<Collection<Snowflake, Sticker>>;
+  public fetchUser(sticker: StickerResolvable): Promise<User | null>;
+}
+
+export class GuildMemberRoleManager extends DataManager<Snowflake, Role, RoleResolvable> {
+  private constructor(member: GuildMember);
+  public get hoist(): Role | null;
+  public get icon(): Role | null;
+  public get color(): Role | null;
+  public get highest(): Role;
+  public get premiumSubscriberRole(): Role | null;
+  public get botRole(): Role | null;
+  public member: GuildMember;
+  public guild: Guild;
+
+  public add(
+    roleOrRoles: RoleResolvable | readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>,
+    reason?: string,
+  ): Promise<GuildMember>;
+  public set(
+    roles: readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>,
+    reason?: string,
+  ): Promise<GuildMember>;
+  public remove(
+    roleOrRoles: RoleResolvable | readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>,
+    reason?: string,
+  ): Promise<GuildMember>;
+}
+
+export interface FetchPollAnswerVotersOptions extends BaseFetchPollAnswerVotersOptions {
+  messageId: Snowflake;
+  answerId: number;
+}
+
+export abstract class MessageManager<InGuild extends boolean = boolean> extends CachedManager<
+  Snowflake,
+  Message<InGuild>,
+  MessageResolvable
+> {
+  protected constructor(channel: TextBasedChannel, iterable?: Iterable<RawMessageData>);
+  public channel: TextBasedChannel;
+  public delete(message: MessageResolvable): Promise<void>;
+  public edit(
+    message: MessageResolvable,
+    options: string | MessagePayload | MessageEditOptions,
+  ): Promise<Message<InGuild>>;
+  public fetch(options: MessageResolvable | FetchMessageOptions): Promise<Message<InGuild>>;
+  public fetch(options?: FetchMessagesOptions): Promise<Collection<Snowflake, Message<InGuild>>>;
+  public fetchPinned(cache?: boolean): Promise<Collection<Snowflake, Message<InGuild>>>;
+  public react(message: MessageResolvable, emoji: EmojiIdentifierResolvable): Promise<void>;
+  public pin(message: MessageResolvable, reason?: string): Promise<void>;
+  public unpin(message: MessageResolvable, reason?: string): Promise<void>;
+  public endPoll(messageId: Snowflake): Promise<Message>;
+  public fetchPollAnswerVoters(options: FetchPollAnswerVotersOptions): Promise<Collection<Snowflake, User>>;
+}
+
+export class DMMessageManager extends MessageManager {
+  public channel: DMChannel;
+}
+
+export class PartialGroupDMMessageManager extends MessageManager {
+  public channel: PartialGroupDMChannel;
+}
+
+export class GuildMessageManager extends MessageManager<true> {
+  public channel: GuildTextBasedChannel;
+  public crosspost(message: MessageResolvable): Promise<Message<true>>;
+}
+
+export class PermissionOverwriteManager extends CachedManager<
+  Snowflake,
+  PermissionOverwrites,
+  PermissionOverwriteResolvable
+> {
+  private constructor(client: Client<true>, iterable?: Iterable<RawPermissionOverwriteData>);
+  public set(
+    overwrites: readonly OverwriteResolvable[] | ReadonlyCollection<Snowflake, OverwriteResolvable>,
+    reason?: string,
+  ): Promise<NonThreadGuildBasedChannel>;
+  private upsert(
+    userOrRole: RoleResolvable | UserResolvable,
+    options: PermissionOverwriteOptions,
+    overwriteOptions?: GuildChannelOverwriteOptions,
+    existing?: PermissionOverwrites,
+  ): Promise<NonThreadGuildBasedChannel>;
+  public create(
+    userOrRole: RoleResolvable | UserResolvable,
+    options: PermissionOverwriteOptions,
+    overwriteOptions?: GuildChannelOverwriteOptions,
+  ): Promise<NonThreadGuildBasedChannel>;
+  public edit(
+    userOrRole: RoleResolvable | UserResolvable,
+    options: PermissionOverwriteOptions,
+    overwriteOptions?: GuildChannelOverwriteOptions,
+  ): Promise<NonThreadGuildBasedChannel>;
+  public delete(userOrRole: RoleResolvable | UserResolvable, reason?: string): Promise<NonThreadGuildBasedChannel>;
+}
+
+export class PresenceManager extends CachedManager<Snowflake, Presence, PresenceResolvable> {
+  private constructor(client: Client<true>, iterable?: Iterable<RawPresenceData>);
+}
+
+export class ReactionManager extends CachedManager<Snowflake | string, MessageReaction, MessageReactionResolvable> {
+  private constructor(message: Message, iterable?: Iterable<RawMessageReactionData>);
+  public message: Message;
+  public removeAll(): Promise<Message>;
+}
+
+export class ReactionUserManager extends CachedManager<Snowflake, User, UserResolvable> {
+  private constructor(reaction: MessageReaction, iterable?: Iterable<RawUserData>);
+  public reaction: MessageReaction;
+  public fetch(options?: FetchReactionUsersOptions): Promise<Collection<Snowflake, User>>;
+  public remove(user?: UserResolvable): Promise<MessageReaction>;
+}
+
+export class RoleManager extends CachedManager<Snowflake, Role, RoleResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawRoleData>);
+  public get everyone(): Role;
+  public get highest(): Role;
+  public guild: Guild;
+  public get premiumSubscriberRole(): Role | null;
+  public botRoleFor(user: UserResolvable): Role | null;
+  public fetch(id: Snowflake, options?: BaseFetchOptions): Promise<Role | null>;
+  public fetch(id?: undefined, options?: BaseFetchOptions): Promise<Collection<Snowflake, Role>>;
+  public create(options?: RoleCreateOptions): Promise<Role>;
+  public edit(role: RoleResolvable, options: RoleEditOptions): Promise<Role>;
+  public delete(role: RoleResolvable, reason?: string): Promise<void>;
+  public setPosition(role: RoleResolvable, position: number, options?: SetRolePositionOptions): Promise<Role>;
+  public setPositions(rolePositions: readonly RolePosition[]): Promise<Guild>;
+  public comparePositions(role1: RoleResolvable, role2: RoleResolvable): number;
+}
+
+export class StageInstanceManager extends CachedManager<Snowflake, StageInstance, StageInstanceResolvable> {
+  private constructor(guild: Guild, iterable?: Iterable<RawStageInstanceData>);
+  public guild: Guild;
+  public create(channel: StageChannelResolvable, options: StageInstanceCreateOptions): Promise<StageInstance>;
+  public fetch(channel: StageChannelResolvable, options?: BaseFetchOptions): Promise<StageInstance>;
+  public edit(channel: StageChannelResolvable, options: StageInstanceEditOptions): Promise<StageInstance>;
+  public delete(channel: StageChannelResolvable): Promise<void>;
+}
+
+export class ThreadManager<ThreadOnly extends boolean = boolean> extends CachedManager<
+  Snowflake,
+  If<ThreadOnly, ForumThreadChannel, TextThreadChannel>,
+  ThreadChannelResolvable
+> {
+  protected constructor(
+    channel: TextChannel | NewsChannel | ForumChannel | MediaChannel,
+    iterable?: Iterable<RawThreadChannelData>,
+  );
+  public channel: If<ThreadOnly, ForumChannel | MediaChannel, TextChannel | NewsChannel>;
+  public fetch(
+    options: ThreadChannelResolvable,
+    cacheOptions?: BaseFetchOptions,
+  ): Promise<If<ThreadOnly, ForumThreadChannel, TextThreadChannel> | null>;
+  public fetch(
+    options: FetchThreadsOptions & { archived: FetchArchivedThreadOptions },
+    cacheOptions?: { cache?: boolean },
+  ): Promise<FetchedThreadsMore>;
+  public fetch(options?: FetchThreadsOptions, cacheOptions?: { cache?: boolean }): Promise<FetchedThreads>;
+  public fetchArchived(options?: FetchArchivedThreadOptions, cache?: boolean): Promise<FetchedThreadsMore>;
+  public fetchActive(cache?: boolean): Promise<FetchedThreads>;
+}
+
+export class GuildTextThreadManager<AllowedThreadType> extends ThreadManager<false> {
+  public create(
+    options: GuildTextThreadCreateOptions<AllowedThreadType>,
+  ): Promise<AllowedThreadType extends ChannelType.PrivateThread ? PrivateThreadChannel : PublicThreadChannel<false>>;
+}
+
+export class GuildForumThreadManager extends ThreadManager<true> {
+  public create(options: GuildForumThreadCreateOptions): Promise<ForumThreadChannel>;
+}
+
+export class ThreadMemberManager extends CachedManager<Snowflake, ThreadMember, ThreadMemberResolvable> {
+  private constructor(thread: ThreadChannel, iterable?: Iterable<RawThreadMemberData>);
+  public thread: AnyThreadChannel;
+  public get me(): ThreadMember | null;
+
+  /* tslint:disable:unified-signatures */
+  public add(member: UserResolvable | '@me'): Promise<Snowflake>;
+  /** @deprecated The `reason` parameter is deprecated as Discord does not parse them. */
+  public add(member: UserResolvable | '@me', reason?: string): Promise<Snowflake>;
+  /* tslint:enable:unified-signatures */
+
+  public fetch(
+    options: ThreadMember<true> | ((FetchThreadMemberOptions & { withMember: true }) | { member: ThreadMember<true> }),
+  ): Promise<ThreadMember<true>>;
+
+  public fetch(options: ThreadMemberResolvable | FetchThreadMemberOptions): Promise<ThreadMember>;
+
+  public fetch(
+    options: FetchThreadMembersWithGuildMemberDataOptions,
+  ): Promise<Collection<Snowflake, ThreadMember<true>>>;
+
+  public fetch(options?: FetchThreadMembersWithoutGuildMemberDataOptions): Promise<Collection<Snowflake, ThreadMember>>;
+  public fetchMe(options?: BaseFetchOptions): Promise<ThreadMember>;
+
+  /* tslint:disable:unified-signatures */
+  public remove(member: UserResolvable | '@me'): Promise<Snowflake>;
+  /** @deprecated The `reason` parameter is deprecated as Discord does not parse them. */
+  public remove(member: UserResolvable | '@me', reason?: string): Promise<Snowflake>;
+  /* tslint:enable:unified-signatures */
+}
+
+export class UserManager extends CachedManager<Snowflake, User, UserResolvable> {
+  private constructor(client: Client<true>, iterable?: Iterable<RawUserData>);
+  private dmChannel(userId: Snowflake): DMChannel | null;
+  public createDM(user: UserResolvable, options?: BaseFetchOptions): Promise<DMChannel>;
+  public deleteDM(user: UserResolvable): Promise<DMChannel>;
+  public fetch(user: UserResolvable, options?: BaseFetchOptions): Promise<User>;
+  /** @deprecated This method is deprecated and will be removed in the next major version. Flags may still be retrieved via {@link UserManager.fetch} */
+  public fetchFlags(user: UserResolvable, options?: BaseFetchOptions): Promise<UserFlagsBitField>;
+  public send(user: UserResolvable, options: string | MessagePayload | MessageCreateOptions): Promise<Message>;
+}
+
+export class VoiceStateManager extends CachedManager<Snowflake, VoiceState, typeof VoiceState> {
+  private constructor(guild: Guild, iterable?: Iterable<RawVoiceStateData>);
+  public guild: Guild;
+  public fetch(member: GuildMemberResolvable | '@me', options?: BaseFetchOptions): Promise<VoiceState>;
+}
+
+//#endregion
+
+//#region Mixins
+
+// Model the TextBasedChannel mixin system, allowing application of these fields
+// to the classes that use these methods without having to manually add them
+// to each of those classes
+
+export type Constructable<Entity> = abstract new (...args: any[]) => Entity;
+
+export interface PartialTextBasedChannelFields<InGuild extends boolean = boolean> {
+  send(options: string | MessagePayload | MessageCreateOptions): Promise<Message<InGuild>>;
+}
+
+export interface TextBasedChannelFields<InGuild extends boolean = boolean, InDM extends boolean = boolean>
+  extends PartialTextBasedChannelFields<InGuild> {
+  lastMessageId: Snowflake | null;
+  get lastMessage(): Message | null;
+  lastPinTimestamp: number | null;
+  get lastPinAt(): Date | null;
+  messages: If<InGuild, GuildMessageManager, If<InDM, DMMessageManager, PartialGroupDMMessageManager>>;
+  awaitMessageComponent<ComponentType extends MessageComponentType>(
+    options?: AwaitMessageCollectorOptionsParams<ComponentType, true>,
+  ): Promise<MappedInteractionTypes[ComponentType]>;
+  awaitMessages(options?: AwaitMessagesOptions): Promise<Collection<Snowflake, Message>>;
+  bulkDelete(
+    messages: Collection<Snowflake, Message> | readonly MessageResolvable[] | number,
+    filterOld?: boolean,
+  ): Promise<Collection<Snowflake, Message | PartialMessage | undefined>>;
+  createMessageComponentCollector<ComponentType extends MessageComponentType>(
+    options?: MessageChannelCollectorOptionsParams<ComponentType, true>,
+  ): InteractionCollector<MappedInteractionTypes[ComponentType]>;
+  createMessageCollector(options?: MessageCollectorOptions): MessageCollector;
+  createWebhook(options: ChannelWebhookCreateOptions): Promise<Webhook<WebhookType.Incoming>>;
+  fetchWebhooks(): Promise<Collection<Snowflake, Webhook<WebhookType.ChannelFollower | WebhookType.Incoming>>>;
+  sendTyping(): Promise<void>;
+  setRateLimitPerUser(rateLimitPerUser: number, reason?: string): Promise<this>;
+  setNSFW(nsfw?: boolean, reason?: string): Promise<this>;
+}
+
+/** @internal */
+export interface PartialWebhookFields {
+  id: Snowflake;
+  get url(): string;
+  deleteMessage(message: MessageResolvable | APIMessage | '@original', threadId?: Snowflake): Promise<void>;
+  editMessage(
+    message: MessageResolvable | '@original',
+    options: string | MessagePayload | WebhookMessageEditOptions,
+  ): Promise<APIMessage | Message>;
+  fetchMessage(message: Snowflake | '@original', options?: WebhookFetchMessageOptions): Promise<APIMessage | Message>;
+  send(
+    options: string | MessagePayload | InteractionReplyOptions | WebhookMessageCreateOptions,
+  ): Promise<APIMessage | Message>;
+}
+
+/** @internal */
+export interface WebhookFields extends PartialWebhookFields {
+  get createdAt(): Date;
+  get createdTimestamp(): number;
+  delete(reason?: string): Promise<void>;
+  edit(options: WebhookEditOptions): Promise<this>;
+  sendSlackMessage(body: unknown): Promise<boolean>;
+}
+
+//#endregion
+
+//#region Typedefs
+
+export interface ActivitiesOptions extends Omit<ActivityOptions, 'shardId'> {}
+
+export interface ActivityOptions {
+  name: string;
+  state?: string;
+  url?: string;
+  type?: ActivityType;
+  shardId?: number | readonly number[];
+}
+
+export interface AddGuildMemberOptions {
+  accessToken: string;
+  nick?: string;
+  roles?: ReadonlyCollection<Snowflake, Role> | readonly RoleResolvable[];
+  mute?: boolean;
+  deaf?: boolean;
+  force?: boolean;
+  fetchWhenExisting?: boolean;
+}
+
+export type AllowedPartial =
+  | User
+  | Channel
+  | GuildMember
+  | Message
+  | MessageReaction
+  | GuildScheduledEvent
+  | ThreadMember
+  | SoundboardSound;
+
+export type AllowedThreadTypeForNewsChannel = ChannelType.AnnouncementThread;
+
+export type AllowedThreadTypeForTextChannel = ChannelType.PublicThread | ChannelType.PrivateThread;
+
+export interface BaseApplicationCommandData {
+  name: string;
+  nameLocalizations?: LocalizationMap;
+  dmPermission?: boolean;
+  defaultMemberPermissions?: PermissionResolvable | null;
+  nsfw?: boolean;
+  contexts?: readonly InteractionContextType[];
+  integrationTypes?: readonly ApplicationIntegrationType[];
+}
+
+export interface AttachmentData {
+  name?: string;
+  description?: string;
+}
+
+export type CommandOptionDataTypeResolvable = ApplicationCommandOptionType;
+
+export type CommandOptionChannelResolvableType = ApplicationCommandOptionType.Channel;
+
+export type CommandOptionChoiceResolvableType =
+  | ApplicationCommandOptionType.String
+  | CommandOptionNumericResolvableType;
+
+export type CommandOptionNumericResolvableType =
+  | ApplicationCommandOptionType.Number
+  | ApplicationCommandOptionType.Integer;
+
+export type CommandOptionSubOptionResolvableType =
+  | ApplicationCommandOptionType.Subcommand
+  | ApplicationCommandOptionType.SubcommandGroup;
+
+export type CommandOptionNonChoiceResolvableType = Exclude<
+  CommandOptionDataTypeResolvable,
+  CommandOptionChoiceResolvableType | CommandOptionSubOptionResolvableType | CommandOptionChannelResolvableType
+>;
+
+export interface BaseApplicationCommandOptionsData {
+  name: string;
+  nameLocalizations?: LocalizationMap;
+  description: string;
+  descriptionLocalizations?: LocalizationMap;
+  required?: boolean;
+  autocomplete?: never;
+}
+
+export interface UserApplicationCommandData extends BaseApplicationCommandData {
+  type: ApplicationCommandType.User;
+}
+
+export interface MessageApplicationCommandData extends BaseApplicationCommandData {
+  type: ApplicationCommandType.Message;
+}
+
+export interface ChatInputApplicationCommandData extends BaseApplicationCommandData {
+  description: string;
+  descriptionLocalizations?: LocalizationMap;
+  type?: ApplicationCommandType.ChatInput;
+  options?: readonly ApplicationCommandOptionData[];
+}
+
+export interface PrimaryEntryPointCommandData extends BaseApplicationCommandData {
+  description?: string;
+  descriptionLocalizations?: LocalizationMap;
+  type: ApplicationCommandType.PrimaryEntryPoint;
+  handler?: EntryPointCommandHandlerType;
+}
+
+export type ApplicationCommandData =
+  | UserApplicationCommandData
+  | MessageApplicationCommandData
+  | ChatInputApplicationCommandData
+  | PrimaryEntryPointCommandData;
+
+export interface ApplicationCommandChannelOptionData extends BaseApplicationCommandOptionsData {
+  type: CommandOptionChannelResolvableType;
+  channelTypes?: readonly ApplicationCommandOptionAllowedChannelTypes[];
+  channel_types?: readonly ApplicationCommandOptionAllowedChannelTypes[];
+}
+
+export interface ApplicationCommandChannelOption extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Channel;
+  channelTypes?: readonly ApplicationCommandOptionAllowedChannelTypes[];
+}
+
+export interface ApplicationCommandRoleOptionData extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Role;
+}
+
+export interface ApplicationCommandRoleOption extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Role;
+}
+
+export interface ApplicationCommandUserOptionData extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.User;
+}
+
+export interface ApplicationCommandUserOption extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.User;
+}
+
+export interface ApplicationCommandMentionableOptionData extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Mentionable;
+}
+
+export interface ApplicationCommandMentionableOption extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Mentionable;
+}
+
+export interface ApplicationCommandAttachmentOption extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Attachment;
+}
+
+export interface ApplicationCommandAutocompleteNumericOption
+  extends Omit<BaseApplicationCommandOptionsData, 'autocomplete'> {
+  type: CommandOptionNumericResolvableType;
+  minValue?: number;
+  maxValue?: number;
+  autocomplete: true;
+}
+
+export interface ApplicationCommandAutocompleteStringOption
+  extends Omit<BaseApplicationCommandOptionsData, 'autocomplete'> {
+  type: ApplicationCommandOptionType.String;
+  minLength?: number;
+  maxLength?: number;
+  autocomplete: true;
+}
+
+export interface ApplicationCommandAutocompleteNumericOptionData
+  extends Omit<BaseApplicationCommandOptionsData, 'autocomplete'> {
+  type: CommandOptionNumericResolvableType;
+  minValue?: number;
+  min_value?: number;
+  maxValue?: number;
+  max_value?: number;
+  autocomplete: true;
+}
+
+export interface ApplicationCommandAutocompleteStringOptionData
+  extends Omit<BaseApplicationCommandOptionsData, 'autocomplete'> {
+  type: ApplicationCommandOptionType.String;
+  minLength?: number;
+  min_length?: number;
+  maxLength?: number;
+  max_length?: number;
+  autocomplete: true;
+}
+
+export interface ApplicationCommandChoicesData<Type extends string | number = string | number>
+  extends Omit<BaseApplicationCommandOptionsData, 'autocomplete'> {
+  type: CommandOptionChoiceResolvableType;
+  choices?: readonly ApplicationCommandOptionChoiceData<Type>[];
+  autocomplete?: false;
+}
+
+export interface ApplicationCommandChoicesOption<Type extends string | number = string | number>
+  extends Omit<BaseApplicationCommandOptionsData, 'autocomplete'> {
+  type: CommandOptionChoiceResolvableType;
+  choices?: readonly ApplicationCommandOptionChoiceData<Type>[];
+  autocomplete?: false;
+}
+
+export interface ApplicationCommandNumericOptionData extends ApplicationCommandChoicesData<number> {
+  type: CommandOptionNumericResolvableType;
+  minValue?: number;
+  min_value?: number;
+  maxValue?: number;
+  max_value?: number;
+}
+
+export interface ApplicationCommandStringOptionData extends ApplicationCommandChoicesData<string> {
+  type: ApplicationCommandOptionType.String;
+  minLength?: number;
+  min_length?: number;
+  maxLength?: number;
+  max_length?: number;
+}
+
+export interface ApplicationCommandBooleanOptionData extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Boolean;
+}
+
+export interface ApplicationCommandNumericOption extends ApplicationCommandChoicesOption<number> {
+  type: CommandOptionNumericResolvableType;
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface ApplicationCommandStringOption extends ApplicationCommandChoicesOption<string> {
+  type: ApplicationCommandOptionType.String;
+  minLength?: number;
+  maxLength?: number;
+}
+
+export interface ApplicationCommandBooleanOption extends BaseApplicationCommandOptionsData {
+  type: ApplicationCommandOptionType.Boolean;
+}
+
+export interface ApplicationCommandSubGroupData extends Omit<BaseApplicationCommandOptionsData, 'required'> {
+  type: ApplicationCommandOptionType.SubcommandGroup;
+  options: readonly ApplicationCommandSubCommandData[];
+}
+
+export interface ApplicationCommandSubGroup extends Omit<BaseApplicationCommandOptionsData, 'required'> {
+  type: ApplicationCommandOptionType.SubcommandGroup;
+  options?: readonly ApplicationCommandSubCommand[];
+}
+
+export interface ApplicationCommandSubCommandData extends Omit<BaseApplicationCommandOptionsData, 'required'> {
+  type: ApplicationCommandOptionType.Subcommand;
+  options?: readonly Exclude<
+    ApplicationCommandOptionData,
+    ApplicationCommandSubGroupData | ApplicationCommandSubCommandData
+  >[];
+}
+
+export interface ApplicationCommandSubCommand extends Omit<BaseApplicationCommandOptionsData, 'required'> {
+  type: ApplicationCommandOptionType.Subcommand;
+  options?: readonly Exclude<ApplicationCommandOption, ApplicationCommandSubGroup | ApplicationCommandSubCommand>[];
+}
+
+export interface ApplicationCommandNonOptionsData extends BaseApplicationCommandOptionsData {
+  type: CommandOptionNonChoiceResolvableType;
+}
+
+export interface ApplicationCommandNonOptions extends BaseApplicationCommandOptionsData {
+  type: Exclude<CommandOptionNonChoiceResolvableType, ApplicationCommandOptionType>;
+}
+
+export type ApplicationCommandOptionData =
+  | ApplicationCommandSubGroupData
+  | ApplicationCommandNonOptionsData
+  | ApplicationCommandChannelOptionData
+  | ApplicationCommandAutocompleteNumericOptionData
+  | ApplicationCommandAutocompleteStringOptionData
+  | ApplicationCommandNumericOptionData
+  | ApplicationCommandStringOptionData
+  | ApplicationCommandRoleOptionData
+  | ApplicationCommandUserOptionData
+  | ApplicationCommandMentionableOptionData
+  | ApplicationCommandBooleanOptionData
+  | ApplicationCommandSubCommandData;
+
+export type ApplicationCommandOption =
+  | ApplicationCommandSubGroup
+  | ApplicationCommandAutocompleteNumericOption
+  | ApplicationCommandAutocompleteStringOption
+  | ApplicationCommandNonOptions
+  | ApplicationCommandChannelOption
+  | ApplicationCommandNumericOption
+  | ApplicationCommandStringOption
+  | ApplicationCommandRoleOption
+  | ApplicationCommandUserOption
+  | ApplicationCommandMentionableOption
+  | ApplicationCommandBooleanOption
+  | ApplicationCommandAttachmentOption
+  | ApplicationCommandSubCommand;
+
+export interface ApplicationCommandOptionChoiceData<Value extends string | number = string | number> {
+  name: string;
+  nameLocalizations?: LocalizationMap;
+  value: Value;
+}
+
+export interface ApplicationCommandPermissions {
+  id: Snowflake;
+  type: ApplicationCommandPermissionType;
+  permission: boolean;
+}
+
+export interface ApplicationCommandPermissionsUpdateData {
+  id: Snowflake;
+  guildId: Snowflake;
+  applicationId: Snowflake;
+  permissions: readonly ApplicationCommandPermissions[];
+}
+
+export interface EditApplicationCommandPermissionsMixin {
+  permissions: readonly ApplicationCommandPermissions[];
+  token: string;
+}
+
+export type ChannelPermissionConstant = Snowflake;
+
+export type RolePermissionConstant = Snowflake;
+
+export type ApplicationCommandPermissionIdResolvable =
+  | GuildChannelResolvable
+  | RoleResolvable
+  | UserResolvable
+  | ChannelPermissionConstant
+  | RolePermissionConstant;
+
+export type ApplicationCommandResolvable = ApplicationCommand | Snowflake;
+
+export type ApplicationFlagsString = keyof typeof ApplicationFlags;
+
+export interface ApplicationRoleConnectionMetadataEditOptions {
+  name: string;
+  nameLocalizations?: LocalizationMap | null;
+  description: string;
+  descriptionLocalizations?: LocalizationMap | null;
+  key: string;
+  type: ApplicationRoleConnectionMetadataType;
+}
+
+export type AuditLogChange = {
+  [SourceElement in APIAuditLogChange as SourceElement['key']]: {
+    key: SourceElement['key'];
+    old?: SourceElement['old_value'];
+    new?: SourceElement['new_value'];
+  };
+}[APIAuditLogChange['key']];
+
+export interface AutoModerationAction {
+  type: AutoModerationActionType;
+  metadata: AutoModerationActionMetadata;
+}
+
+export interface AutoModerationActionMetadata {
+  channelId: Snowflake | null;
+  durationSeconds: number | null;
+  customMessage: string | null;
+}
+
+export interface AutoModerationTriggerMetadata {
+  keywordFilter: readonly string[];
+  regexPatterns: readonly string[];
+  presets: readonly AutoModerationRuleKeywordPresetType[];
+  allowList: readonly string[];
+  mentionTotalLimit: number | null;
+  mentionRaidProtectionEnabled: boolean;
+}
+
+export interface AwaitMessageComponentOptions<Interaction extends CollectedMessageInteraction>
+  extends Omit<MessageComponentCollectorOptions<Interaction>, 'max' | 'maxComponents' | 'maxUsers'> {}
+
+export interface ModalSubmitInteractionCollectorOptions<Interaction extends ModalSubmitInteraction>
+  extends Omit<InteractionCollectorOptions<Interaction>, 'channel' | 'message' | 'guild' | 'interactionType'> {}
+
+export interface AwaitModalSubmitOptions<Interaction extends ModalSubmitInteraction>
+  extends Omit<ModalSubmitInteractionCollectorOptions<Interaction>, 'max' | 'maxComponents' | 'maxUsers'> {
+  time: number;
+}
+
+export interface AwaitMessagesOptions extends MessageCollectorOptions {
+  errors?: readonly string[];
+}
+
+export interface AwaitReactionsOptions extends ReactionCollectorOptions {
+  errors?: readonly string[];
+}
+
+export interface BanOptions {
+  /** @deprecated Use {@link BanOptions.deleteMessageSeconds} instead. */
+  deleteMessageDays?: number;
+  deleteMessageSeconds?: number;
+  reason?: string;
+}
+
+export interface BulkBanOptions extends Omit<BanOptions, 'deleteMessageDays'> {}
+
+export interface BulkBanResult {
+  bannedUsers: readonly Snowflake[];
+  failedUsers: readonly Snowflake[];
+}
+
+export interface PollData {
+  question: PollQuestionMedia;
+  answers: readonly PollAnswerData[];
+  duration: number;
+  allowMultiselect: boolean;
+  layoutType?: PollLayoutType;
+}
+
+export interface PollAnswerData {
+  text: string;
+  emoji?: EmojiIdentifierResolvable;
+}
+
+export type Base64Resolvable = Buffer | Base64String;
+
+export type Base64String = string;
+
+export interface BaseFetchOptions {
+  cache?: boolean;
+  force?: boolean;
+}
+
+export type BitFieldResolvable<Flags extends string, Type extends number | bigint> =
+  | RecursiveReadonlyArray<Flags | Type | `${bigint}` | Readonly<BitField<Flags, Type>>>
+  | Flags
+  | Type
+  | `${bigint}`
+  | Readonly<BitField<Flags, Type>>;
+
+export type BufferResolvable = Buffer | string;
+
+export interface Caches {
+  ApplicationCommandManager: [manager: typeof ApplicationCommandManager, holds: typeof ApplicationCommand];
+  ApplicationEmojiManager: [manager: typeof ApplicationEmojiManager, holds: typeof ApplicationEmoji];
+  AutoModerationRuleManager: [manager: typeof AutoModerationRuleManager, holds: typeof AutoModerationRule];
+  BaseGuildEmojiManager: [manager: typeof BaseGuildEmojiManager, holds: typeof GuildEmoji];
+  // TODO: ChannelManager: [manager: typeof ChannelManager, holds: typeof Channel];
+  DMMessageManager: [manager: typeof MessageManager, holds: typeof Message<false>];
+  EntitlementManager: [manager: typeof EntitlementManager, holds: typeof Entitlement];
+  GuildBanManager: [manager: typeof GuildBanManager, holds: typeof GuildBan];
+  // TODO: GuildChannelManager: [manager: typeof GuildChannelManager, holds: typeof GuildChannel];
+  GuildEmojiManager: [manager: typeof GuildEmojiManager, holds: typeof GuildEmoji];
+  GuildForumThreadManager: [manager: typeof GuildForumThreadManager, holds: typeof ThreadChannel<true>];
+  GuildInviteManager: [manager: typeof GuildInviteManager, holds: typeof Invite];
+  // TODO: GuildManager: [manager: typeof GuildManager, holds: typeof Guild];
+  GuildMemberManager: [manager: typeof GuildMemberManager, holds: typeof GuildMember];
+  GuildMessageManager: [manager: typeof GuildMessageManager, holds: typeof Message<true>];
+  GuildScheduledEventManager: [manager: typeof GuildScheduledEventManager, holds: typeof GuildScheduledEvent];
+  GuildStickerManager: [manager: typeof GuildStickerManager, holds: typeof Sticker];
+  GuildTextThreadManager: [manager: typeof GuildTextThreadManager, holds: typeof ThreadChannel<false>];
+  MessageManager: [manager: typeof MessageManager, holds: typeof Message];
+  // TODO: PermissionOverwriteManager: [manager: typeof PermissionOverwriteManager, holds: typeof PermissionOverwrites];
+  PresenceManager: [manager: typeof PresenceManager, holds: typeof Presence];
+  ReactionManager: [manager: typeof ReactionManager, holds: typeof MessageReaction];
+  ReactionUserManager: [manager: typeof ReactionUserManager, holds: typeof User];
+  // TODO: RoleManager: [manager: typeof RoleManager, holds: typeof Role];
+  StageInstanceManager: [manager: typeof StageInstanceManager, holds: typeof StageInstance];
+  ThreadManager: [manager: typeof ThreadManager, holds: typeof ThreadChannel];
+  ThreadMemberManager: [manager: typeof ThreadMemberManager, holds: typeof ThreadMember];
+  UserManager: [manager: typeof UserManager, holds: typeof User];
+  VoiceStateManager: [manager: typeof VoiceStateManager, holds: typeof VoiceState];
+}
+
+export type CacheConstructors = {
+  [Cache in keyof Caches]: Caches[Cache][0] & { name: Cache };
+};
+
+type OverriddenCaches =
+  | 'DMMessageManager'
+  | 'GuildForumThreadManager'
+  | 'GuildMessageManager'
+  | 'GuildTextThreadManager';
+
+// This doesn't actually work the way it looks 😢.
+// Narrowing the type of `manager.name` doesn't propagate type information to `holds` and the return type.
+export type CacheFactory = (
+  managerType: CacheConstructors[Exclude<keyof Caches, OverriddenCaches>],
+  holds: Caches[(typeof manager)['name']][1],
+  manager: CacheConstructors[keyof Caches],
+) => (typeof manager)['prototype'] extends DataManager<infer Key, infer Value, any> ? Collection<Key, Value> : never;
+
+export type CacheWithLimitsOptions = {
+  [K in keyof Caches]?: Caches[K][0]['prototype'] extends DataManager<infer Key, infer Value, any>
+    ? LimitedCollectionOptions<Key, Value> | number
+    : never;
+};
+
+export interface CategoryCreateChannelOptions {
+  name: string;
+  permissionOverwrites?: readonly OverwriteResolvable[] | ReadonlyCollection<Snowflake, OverwriteResolvable>;
+  topic?: string;
+  type?: CategoryChannelType;
+  nsfw?: boolean;
+  bitrate?: number;
+  userLimit?: number;
+  rateLimitPerUser?: number;
+  position?: number;
+  rtcRegion?: string;
+  videoQualityMode?: VideoQualityMode;
+  defaultThreadRateLimitPerUser?: number;
+  availableTags?: readonly GuildForumTagData[];
+  defaultReactionEmoji?: DefaultReactionEmoji;
+  defaultAutoArchiveDuration?: ThreadAutoArchiveDuration;
+  defaultSortOrder?: SortOrderType;
+  defaultForumLayout?: ForumLayoutType;
+  reason?: string;
+}
+
+export interface ChannelCreationOverwrites {
+  allow?: PermissionResolvable;
+  deny?: PermissionResolvable;
+  id: RoleResolvable | UserResolvable;
+}
+
+export type ChannelMention = `<#${Snowflake}>`;
+
+export interface ChannelPosition {
+  channel: NonThreadGuildBasedChannel | Snowflake;
+  lockPermissions?: boolean;
+  parent?: CategoryChannelResolvable | null;
+  position?: number;
+}
+
+export type GuildTextChannelResolvable = TextChannel | NewsChannel | Snowflake;
+export type ChannelResolvable = Channel | Snowflake;
+
+export interface ChannelWebhookCreateOptions {
+  name: string;
+  avatar?: BufferResolvable | Base64Resolvable | null;
+  reason?: string;
+}
+
+export interface WebhookCreateOptions extends ChannelWebhookCreateOptions {
+  channel: TextChannel | NewsChannel | VoiceChannel | StageChannel | ForumChannel | MediaChannel | Snowflake;
+}
+
+export interface GuildMembersChunk {
+  index: number;
+  count: number;
+  notFound: readonly unknown[];
+  nonce: string | undefined;
+}
+
+export type OmitPartialGroupDMChannel<Structure extends { channel: Channel }> = Structure & {
+  channel: Exclude<Structure['channel'], PartialGroupDMChannel>;
+};
+
+export interface ClientEvents {
+  applicationCommandPermissionsUpdate: [data: ApplicationCommandPermissionsUpdateData];
+  autoModerationActionExecution: [autoModerationActionExecution: AutoModerationActionExecution];
+  autoModerationRuleCreate: [autoModerationRule: AutoModerationRule];
+  autoModerationRuleDelete: [autoModerationRule: AutoModerationRule];
+  autoModerationRuleUpdate: [
+    oldAutoModerationRule: AutoModerationRule | null,
+    newAutoModerationRule: AutoModerationRule,
+  ];
+  cacheSweep: [message: string];
+  channelCreate: [channel: NonThreadGuildBasedChannel];
+  channelDelete: [channel: DMChannel | NonThreadGuildBasedChannel];
+  channelPinsUpdate: [channel: TextBasedChannel, date: Date];
+  channelUpdate: [
+    oldChannel: DMChannel | NonThreadGuildBasedChannel,
+    newChannel: DMChannel | NonThreadGuildBasedChannel,
+  ];
+  debug: [message: string];
+  warn: [message: string];
+  emojiCreate: [emoji: GuildEmoji];
+  emojiDelete: [emoji: GuildEmoji];
+  emojiUpdate: [oldEmoji: GuildEmoji, newEmoji: GuildEmoji];
+  entitlementCreate: [entitlement: Entitlement];
+  entitlementDelete: [entitlement: Entitlement];
+  entitlementUpdate: [oldEntitlement: Entitlement | null, newEntitlement: Entitlement];
+  error: [error: Error];
+  guildAuditLogEntryCreate: [auditLogEntry: GuildAuditLogsEntry, guild: Guild];
+  guildAvailable: [guild: Guild];
+  guildBanAdd: [ban: GuildBan];
+  guildBanRemove: [ban: GuildBan];
+  guildCreate: [guild: Guild];
+  guildDelete: [guild: Guild];
+  guildUnavailable: [guild: Guild];
+  guildIntegrationsUpdate: [guild: Guild];
+  guildMemberAdd: [member: GuildMember];
+  guildMemberAvailable: [member: GuildMember | PartialGuildMember];
+  guildMemberRemove: [member: GuildMember | PartialGuildMember];
+  guildMembersChunk: [members: ReadonlyCollection<Snowflake, GuildMember>, guild: Guild, data: GuildMembersChunk];
+  guildMemberUpdate: [oldMember: GuildMember | PartialGuildMember, newMember: GuildMember];
+  guildUpdate: [oldGuild: Guild, newGuild: Guild];
+  guildSoundboardSoundCreate: [soundboardSound: GuildSoundboardSound];
+  guildSoundboardSoundDelete: [soundboardSound: GuildSoundboardSound | PartialSoundboardSound];
+  guildSoundboardSoundUpdate: [
+    oldSoundboardSound: GuildSoundboardSound | null,
+    newSoundboardSound: GuildSoundboardSound,
+  ];
+  guildSoundboardSoundsUpdate: [soundboardSounds: ReadonlyCollection<Snowflake, GuildSoundboardSound>, guild: Guild];
+  inviteCreate: [invite: Invite];
+  inviteDelete: [invite: Invite];
+  messageCreate: [message: OmitPartialGroupDMChannel<Message>];
+  messageDelete: [message: OmitPartialGroupDMChannel<Message | PartialMessage>];
+  messagePollVoteAdd: [pollAnswer: PollAnswer, userId: Snowflake];
+  messagePollVoteRemove: [pollAnswer: PollAnswer, userId: Snowflake];
+  messageReactionRemoveAll: [
+    message: OmitPartialGroupDMChannel<Message | PartialMessage>,
+    reactions: ReadonlyCollection<string | Snowflake, MessageReaction>,
+  ];
+  messageReactionRemoveEmoji: [reaction: MessageReaction | PartialMessageReaction];
+  messageDeleteBulk: [
+    messages: ReadonlyCollection<Snowflake, OmitPartialGroupDMChannel<Message | PartialMessage>>,
+    channel: GuildTextBasedChannel,
+  ];
+  messageReactionAdd: [
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
+    details: MessageReactionEventDetails,
+  ];
+  messageReactionRemove: [
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser,
+    details: MessageReactionEventDetails,
+  ];
+  messageUpdate: [
+    oldMessage: OmitPartialGroupDMChannel<Message | PartialMessage>,
+    newMessage: OmitPartialGroupDMChannel<Message>,
+  ];
+  presenceUpdate: [oldPresence: Presence | null, newPresence: Presence];
+  ready: [client: Client<true>];
+  invalidated: [];
+  roleCreate: [role: Role];
+  roleDelete: [role: Role];
+  roleUpdate: [oldRole: Role, newRole: Role];
+  threadCreate: [thread: AnyThreadChannel, newlyCreated: boolean];
+  threadDelete: [thread: AnyThreadChannel];
+  threadListSync: [threads: ReadonlyCollection<Snowflake, AnyThreadChannel>, guild: Guild];
+  threadMemberUpdate: [oldMember: ThreadMember, newMember: ThreadMember];
+  threadMembersUpdate: [
+    addedMembers: ReadonlyCollection<Snowflake, ThreadMember>,
+    removedMembers: ReadonlyCollection<Snowflake, ThreadMember | PartialThreadMember>,
+    thread: AnyThreadChannel,
+  ];
+  threadUpdate: [oldThread: AnyThreadChannel, newThread: AnyThreadChannel];
+  typingStart: [typing: Typing];
+  userUpdate: [oldUser: User | PartialUser, newUser: User];
+  voiceChannelEffectSend: [voiceChannelEffect: VoiceChannelEffect];
+  voiceStateUpdate: [oldState: VoiceState, newState: VoiceState];
+  /** @deprecated Use {@link ClientEvents.webhooksUpdate} instead. */
+  webhookUpdate: ClientEvents['webhooksUpdate'];
+  webhooksUpdate: [channel: TextChannel | NewsChannel | VoiceChannel | ForumChannel | MediaChannel];
+  interactionCreate: [interaction: Interaction];
+  shardDisconnect: [closeEvent: CloseEvent, shardId: number];
+  shardError: [error: Error, shardId: number];
+  shardReady: [shardId: number, unavailableGuilds: Set<Snowflake> | undefined];
+  shardReconnecting: [shardId: number];
+  shardResume: [shardId: number, replayedEvents: number];
+  stageInstanceCreate: [stageInstance: StageInstance];
+  stageInstanceUpdate: [oldStageInstance: StageInstance | null, newStageInstance: StageInstance];
+  stageInstanceDelete: [stageInstance: StageInstance];
+  stickerCreate: [sticker: Sticker];
+  stickerDelete: [sticker: Sticker];
+  stickerUpdate: [oldSticker: Sticker, newSticker: Sticker];
+  subscriptionCreate: [subscription: Subscription];
+  subscriptionDelete: [subscription: Subscription];
+  subscriptionUpdate: [oldSubscription: Subscription | null, newSubscription: Subscription];
+  guildScheduledEventCreate: [guildScheduledEvent: GuildScheduledEvent];
+  guildScheduledEventUpdate: [
+    oldGuildScheduledEvent: GuildScheduledEvent | PartialGuildScheduledEvent | null,
+    newGuildScheduledEvent: GuildScheduledEvent,
+  ];
+  guildScheduledEventDelete: [guildScheduledEvent: GuildScheduledEvent | PartialGuildScheduledEvent];
+  guildScheduledEventUserAdd: [guildScheduledEvent: GuildScheduledEvent | PartialGuildScheduledEvent, user: User];
+  guildScheduledEventUserRemove: [guildScheduledEvent: GuildScheduledEvent | PartialGuildScheduledEvent, user: User];
+  soundboardSounds: [soundboardSounds: ReadonlyCollection<Snowflake, GuildSoundboardSound>, guild: Guild];
+}
+
+export interface ClientFetchInviteOptions {
+  guildScheduledEventId?: Snowflake;
+}
+
+export interface ClientOptions {
+  shards?: number | readonly number[] | 'auto';
+  shardCount?: number;
+  closeTimeout?: number;
+  makeCache?: CacheFactory;
+  allowedMentions?: MessageMentionOptions;
+  partials?: readonly Partials[];
+  failIfNotExists?: boolean;
+  presence?: PresenceData;
+  intents: BitFieldResolvable<GatewayIntentsString, number>;
+  waitGuildTimeout?: number;
+  sweepers?: SweeperOptions;
+  ws?: WebSocketOptions;
+  rest?: Partial<RESTOptions>;
+  jsonTransformer?: (obj: unknown) => unknown;
+  enforceNonce?: boolean;
+}
+
+export type ClientPresenceStatus = 'online' | 'idle' | 'dnd';
+
+export interface ClientPresenceStatusData {
+  web?: ClientPresenceStatus;
+  mobile?: ClientPresenceStatus;
+  desktop?: ClientPresenceStatus;
+}
+
+export interface ClientUserEditOptions {
+  username?: string;
+  avatar?: BufferResolvable | Base64Resolvable | null;
+  banner?: BufferResolvable | Base64Resolvable | null;
+}
+
+export interface CloseEvent {
+  /** @deprecated Not used anymore since using {@link @discordjs/ws#(WebSocketManager:class)} internally */
+  wasClean: boolean;
+  code: number;
+  /** @deprecated Not used anymore since using {@link @discordjs/ws#(WebSocketManager:class)} internally */
+  reason: string;
+}
+
+export type CollectorFilter<Arguments extends unknown[]> = (...args: Arguments) => Awaitable<boolean>;
+
+export interface CollectorOptions<FilterArguments extends unknown[]> {
+  filter?: CollectorFilter<FilterArguments>;
+  time?: number;
+  idle?: number;
+  dispose?: boolean;
+}
+
+export interface CollectorResetTimerOptions {
+  time?: number;
+  idle?: number;
+}
+
+export type ColorResolvable =
+  | keyof typeof Colors
+  | 'Random'
+  | readonly [red: number, green: number, blue: number]
+  | number
+  | HexColorString;
+
+export interface CommandInteractionOption<Cached extends CacheType = CacheType> {
+  name: string;
+  type: ApplicationCommandOptionType;
+  value?: string | number | boolean;
+  focused?: boolean;
+  autocomplete?: boolean;
+  options?: readonly CommandInteractionOption[];
+  user?: User;
+  member?: CacheTypeReducer<Cached, GuildMember, APIInteractionDataResolvedGuildMember>;
+  channel?: CacheTypeReducer<Cached, GuildBasedChannel, APIInteractionDataResolvedChannel>;
+  role?: CacheTypeReducer<Cached, Role, APIRole>;
+  attachment?: Attachment;
+  message?: Message<BooleanCache<Cached>>;
+}
+
+export interface CommandInteractionResolvedData<Cached extends CacheType = CacheType> {
+  users?: ReadonlyCollection<Snowflake, User>;
+  members?: ReadonlyCollection<Snowflake, CacheTypeReducer<Cached, GuildMember, APIInteractionDataResolvedGuildMember>>;
+  roles?: ReadonlyCollection<Snowflake, CacheTypeReducer<Cached, Role, APIRole>>;
+  channels?: ReadonlyCollection<Snowflake, CacheTypeReducer<Cached, Channel, APIInteractionDataResolvedChannel>>;
+  messages?: ReadonlyCollection<Snowflake, CacheTypeReducer<Cached, Message, APIMessage>>;
+  attachments?: ReadonlyCollection<Snowflake, Attachment>;
+}
+
+export interface AutocompleteFocusedOption extends Pick<CommandInteractionOption, 'name'> {
+  focused: true;
+  type:
+    | ApplicationCommandOptionType.String
+    | ApplicationCommandOptionType.Integer
+    | ApplicationCommandOptionType.Number;
+  value: string;
+}
+
+export declare const Colors: {
+  Default: 0x000000;
+  White: 0xffffff;
+  Aqua: 0x1abc9c;
+  Green: 0x57f287;
+  Blue: 0x3498db;
+  Yellow: 0xfee75c;
+  Purple: 0x9b59b6;
+  LuminousVividPink: 0xe91e63;
+  Fuchsia: 0xeb459e;
+  Gold: 0xf1c40f;
+  Orange: 0xe67e22;
+  Red: 0xed4245;
+  Grey: 0x95a5a6;
+  Navy: 0x34495e;
+  DarkAqua: 0x11806a;
+  DarkGreen: 0x1f8b4c;
+  DarkBlue: 0x206694;
+  DarkPurple: 0x71368a;
+  DarkVividPink: 0xad1457;
+  DarkGold: 0xc27c0e;
+  DarkOrange: 0xa84300;
+  DarkRed: 0x992d22;
+  DarkGrey: 0x979c9f;
+  DarkerGrey: 0x7f8c8d;
+  LightGrey: 0xbcc0c0;
+  DarkNavy: 0x2c3e50;
+  Blurple: 0x5865f2;
+  Greyple: 0x99aab5;
+  DarkButNotBlack: 0x2c2f33;
+  NotQuiteBlack: 0x23272a;
+};
+
+export enum Events {
+  ApplicationCommandPermissionsUpdate = 'applicationCommandPermissionsUpdate',
+  AutoModerationActionExecution = 'autoModerationActionExecution',
+  AutoModerationRuleCreate = 'autoModerationRuleCreate',
+  AutoModerationRuleDelete = 'autoModerationRuleDelete',
+  AutoModerationRuleUpdate = 'autoModerationRuleUpdate',
+  ClientReady = 'ready',
+  EntitlementCreate = 'entitlementCreate',
+  EntitlementDelete = 'entitlementDelete',
+  EntitlementUpdate = 'entitlementUpdate',
+  GuildAuditLogEntryCreate = 'guildAuditLogEntryCreate',
+  GuildAvailable = 'guildAvailable',
+  GuildCreate = 'guildCreate',
+  GuildDelete = 'guildDelete',
+  GuildUpdate = 'guildUpdate',
+  GuildUnavailable = 'guildUnavailable',
+  GuildMemberAdd = 'guildMemberAdd',
+  GuildMemberRemove = 'guildMemberRemove',
+  GuildMemberUpdate = 'guildMemberUpdate',
+  GuildMemberAvailable = 'guildMemberAvailable',
+  GuildMembersChunk = 'guildMembersChunk',
+  GuildIntegrationsUpdate = 'guildIntegrationsUpdate',
+  GuildRoleCreate = 'roleCreate',
+  GuildRoleDelete = 'roleDelete',
+  InviteCreate = 'inviteCreate',
+  InviteDelete = 'inviteDelete',
+  GuildRoleUpdate = 'roleUpdate',
+  GuildEmojiCreate = 'emojiCreate',
+  GuildEmojiDelete = 'emojiDelete',
+  GuildEmojiUpdate = 'emojiUpdate',
+  GuildBanAdd = 'guildBanAdd',
+  GuildBanRemove = 'guildBanRemove',
+  ChannelCreate = 'channelCreate',
+  ChannelDelete = 'channelDelete',
+  ChannelUpdate = 'channelUpdate',
+  ChannelPinsUpdate = 'channelPinsUpdate',
+  MessageCreate = 'messageCreate',
+  MessageDelete = 'messageDelete',
+  MessageUpdate = 'messageUpdate',
+  MessageBulkDelete = 'messageDeleteBulk',
+  MessagePollVoteAdd = 'messagePollVoteAdd',
+  MessagePollVoteRemove = 'messagePollVoteRemove',
+  MessageReactionAdd = 'messageReactionAdd',
+  MessageReactionRemove = 'messageReactionRemove',
+  MessageReactionRemoveAll = 'messageReactionRemoveAll',
+  MessageReactionRemoveEmoji = 'messageReactionRemoveEmoji',
+  ThreadCreate = 'threadCreate',
+  ThreadDelete = 'threadDelete',
+  ThreadUpdate = 'threadUpdate',
+  ThreadListSync = 'threadListSync',
+  ThreadMemberUpdate = 'threadMemberUpdate',
+  ThreadMembersUpdate = 'threadMembersUpdate',
+  UserUpdate = 'userUpdate',
+  PresenceUpdate = 'presenceUpdate',
+  VoiceChannelEffectSend = 'voiceChannelEffectSend',
+  VoiceServerUpdate = 'voiceServerUpdate',
+  VoiceStateUpdate = 'voiceStateUpdate',
+  TypingStart = 'typingStart',
+  WebhooksUpdate = 'webhookUpdate',
+  InteractionCreate = 'interactionCreate',
+  Error = 'error',
+  Warn = 'warn',
+  Debug = 'debug',
+  CacheSweep = 'cacheSweep',
+  ShardDisconnect = 'shardDisconnect',
+  ShardError = 'shardError',
+  ShardReconnecting = 'shardReconnecting',
+  ShardReady = 'shardReady',
+  ShardResume = 'shardResume',
+  Invalidated = 'invalidated',
+  Raw = 'raw',
+  StageInstanceCreate = 'stageInstanceCreate',
+  StageInstanceUpdate = 'stageInstanceUpdate',
+  StageInstanceDelete = 'stageInstanceDelete',
+  SubscriptionCreate = 'subscriptionCreate',
+  SubscriptionUpdate = 'subscriptionUpdate',
+  SubscriptionDelete = 'subscriptionDelete',
+  GuildStickerCreate = 'stickerCreate',
+  GuildStickerDelete = 'stickerDelete',
+  GuildStickerUpdate = 'stickerUpdate',
+  GuildScheduledEventCreate = 'guildScheduledEventCreate',
+  GuildScheduledEventUpdate = 'guildScheduledEventUpdate',
+  GuildScheduledEventDelete = 'guildScheduledEventDelete',
+  GuildScheduledEventUserAdd = 'guildScheduledEventUserAdd',
+  GuildScheduledEventUserRemove = 'guildScheduledEventUserRemove',
+  GuildSoundboardSoundCreate = 'guildSoundboardSoundCreate',
+  GuildSoundboardSoundDelete = 'guildSoundboardSoundDelete',
+  GuildSoundboardSoundUpdate = 'guildSoundboardSoundUpdate',
+  GuildSoundboardSoundsUpdate = 'guildSoundboardSoundsUpdate',
+  SoundboardSounds = 'soundboardSounds',
+}
+
+export enum ShardEvents {
+  Death = 'death',
+  Disconnect = 'disconnect',
+  Error = 'error',
+  Message = 'message',
+  Ready = 'ready',
+  Reconnecting = 'reconnecting',
+  Resume = 'resume',
+  Spawn = 'spawn',
+}
+
+export enum WebSocketShardEvents {
+  Close = 'close',
+  Destroyed = 'destroyed',
+  InvalidSession = 'invalidSession',
+  Ready = 'ready',
+  Resumed = 'resumed',
+  AllReady = 'allReady',
+}
+
+export enum Status {
+  Ready = 0,
+  Connecting = 1,
+  Reconnecting = 2,
+  Idle = 3,
+  Nearly = 4,
+  Disconnected = 5,
+  WaitingForGuilds = 6,
+  Identifying = 7,
+  Resuming = 8,
+}
+
+export interface GuildScheduledEventInviteURLCreateOptions extends InviteCreateOptions {
+  channel?: GuildInvitableChannelResolvable;
+}
+
+export interface RoleCreateOptions extends RoleData {
+  reason?: string;
+}
+
+export interface RoleEditOptions extends RoleData {
+  reason?: string;
+}
+
+export interface StageInstanceCreateOptions {
+  topic: string;
+  privacyLevel?: StageInstancePrivacyLevel;
+  sendStartNotification?: boolean;
+  guildScheduledEvent?: GuildScheduledEventResolvable;
+}
+
+export interface CrosspostedChannel {
+  channelId: Snowflake;
+  guildId: Snowflake;
+  type: ChannelType;
+  name: string;
+}
+
+export type DateResolvable = Date | number | string;
+
+export interface GuildTemplateEditOptions {
+  name?: string;
+  description?: string;
+}
+
+export interface EmbedField {
+  name: string;
+  value: string;
+  inline: boolean;
+}
+
+export type EmojiIdentifierResolvable =
+  | EmojiResolvable
+  | `${'' | 'a:'}${string}:${Snowflake}`
+  | `<${'' | 'a'}:${string}:${Snowflake}>`
+  | string;
+
+export type EmojiResolvable = Snowflake | GuildEmoji | ReactionEmoji | ApplicationEmoji;
+
+export interface FetchApplicationCommandOptions extends BaseFetchOptions {
+  guildId?: Snowflake;
+  locale?: Locale;
+  withLocalizations?: boolean;
+}
+
+export interface FetchArchivedThreadOptions {
+  type?: 'public' | 'private';
+  fetchAll?: boolean;
+  before?: ThreadChannelResolvable | DateResolvable;
+  limit?: number;
+}
+
+export interface FetchAutoModerationRuleOptions extends BaseFetchOptions {
+  autoModerationRule: AutoModerationRuleResolvable;
+}
+
+export interface FetchAutoModerationRulesOptions {
+  cache?: boolean;
+}
+
+export interface FetchBanOptions extends BaseFetchOptions {
+  user: UserResolvable;
+}
+
+export interface FetchBansOptions {
+  limit?: number;
+  before?: Snowflake;
+  after?: Snowflake;
+  cache?: boolean;
+}
+
+export interface FetchChannelOptions extends BaseFetchOptions {
+  allowUnknownGuild?: boolean;
+}
+
+export interface FetchedThreads {
+  threads: ReadonlyCollection<Snowflake, AnyThreadChannel>;
+  members: ReadonlyCollection<Snowflake, ThreadMember>;
+}
+
+export interface FetchedThreadsMore extends FetchedThreads {
+  hasMore: boolean;
+}
+
+export interface FetchGuildOptions extends BaseFetchOptions {
+  guild: GuildResolvable;
+  withCounts?: boolean;
+}
+
+export interface FetchGuildsOptions {
+  before?: Snowflake;
+  after?: Snowflake;
+  limit?: number;
+}
+
+export interface FetchGuildScheduledEventOptions extends BaseFetchOptions {
+  guildScheduledEvent: GuildScheduledEventResolvable;
+  withUserCount?: boolean;
+}
+
+export interface FetchGuildScheduledEventsOptions {
+  cache?: boolean;
+  withUserCount?: boolean;
+}
+
+export interface FetchGuildScheduledEventSubscribersOptions {
+  limit?: number;
+  withMember?: boolean;
+}
+
+export interface FetchInviteOptions extends BaseFetchOptions {
+  code: string;
+}
+
+export interface FetchInvitesOptions {
+  channelId?: GuildInvitableChannelResolvable;
+  cache?: boolean;
+}
+
+export interface FetchMemberOptions extends BaseFetchOptions {
+  user: UserResolvable;
+}
+
+export interface FetchMembersOptions {
+  user?: UserResolvable | readonly UserResolvable[];
+  query?: string;
+  limit?: number;
+  withPresences?: boolean;
+  time?: number;
+  nonce?: string;
+}
+
+export interface FetchMessageOptions extends BaseFetchOptions {
+  message: MessageResolvable;
+}
+
+export interface FetchMessagesOptions {
+  limit?: number;
+  before?: Snowflake;
+  after?: Snowflake;
+  around?: Snowflake;
+  cache?: boolean;
+}
+
+export interface FetchReactionUsersOptions {
+  type?: ReactionType;
+  limit?: number;
+  after?: Snowflake;
+}
+
+export interface FetchThreadMemberOptions extends BaseFetchOptions {
+  member: ThreadMemberResolvable;
+  withMember?: boolean;
+}
+
+export interface FetchThreadOwnerOptions extends BaseFetchOptions {
+  withMember?: boolean;
+}
+
+export interface FetchThreadMembersWithGuildMemberDataOptions {
+  withMember: true;
+  after?: Snowflake;
+  limit?: number;
+  cache?: boolean;
+}
+
+export interface FetchThreadMembersWithoutGuildMemberDataOptions {
+  withMember?: false;
+  cache?: boolean;
+}
+
+export type FetchThreadMembersOptions =
+  | FetchThreadMembersWithGuildMemberDataOptions
+  | FetchThreadMembersWithoutGuildMemberDataOptions;
+
+export interface FetchThreadsOptions {
+  archived?: FetchArchivedThreadOptions;
+}
+
+export interface AttachmentPayload {
+  attachment: BufferResolvable | Stream;
+  name?: string;
+  description?: string;
+}
+
+export type GlobalSweepFilter<Key, Value> = () =>
+  | ((value: Value, key: Key, collection: Collection<Key, Value>) => boolean)
+  | null;
+
+interface GuildAuditLogsTypes {
+  [AuditLogEvent.GuildUpdate]: ['Guild', 'Update'];
+  [AuditLogEvent.ChannelCreate]: ['Channel', 'Create'];
+  [AuditLogEvent.ChannelUpdate]: ['Channel', 'Update'];
+  [AuditLogEvent.ChannelDelete]: ['Channel', 'Delete'];
+  [AuditLogEvent.ChannelOverwriteCreate]: ['Channel', 'Create'];
+  [AuditLogEvent.ChannelOverwriteUpdate]: ['Channel', 'Update'];
+  [AuditLogEvent.ChannelOverwriteDelete]: ['Channel', 'Delete'];
+  [AuditLogEvent.MemberKick]: ['User', 'Delete'];
+  [AuditLogEvent.MemberPrune]: ['User', 'Delete'];
+  [AuditLogEvent.MemberBanAdd]: ['User', 'Delete'];
+  [AuditLogEvent.MemberBanRemove]: ['User', 'Create'];
+  [AuditLogEvent.MemberUpdate]: ['User', 'Update'];
+  [AuditLogEvent.MemberRoleUpdate]: ['User', 'Update'];
+  [AuditLogEvent.MemberMove]: ['User', 'Update'];
+  [AuditLogEvent.MemberDisconnect]: ['User', 'Delete'];
+  [AuditLogEvent.BotAdd]: ['User', 'Create'];
+  [AuditLogEvent.RoleCreate]: ['Role', 'Create'];
+  [AuditLogEvent.RoleUpdate]: ['Role', 'Update'];
+  [AuditLogEvent.RoleDelete]: ['Role', 'Delete'];
+  [AuditLogEvent.InviteCreate]: ['Invite', 'Create'];
+  [AuditLogEvent.InviteUpdate]: ['Invite', 'Update'];
+  [AuditLogEvent.InviteDelete]: ['Invite', 'Delete'];
+  [AuditLogEvent.WebhookCreate]: ['Webhook', 'Create'];
+  [AuditLogEvent.WebhookUpdate]: ['Webhook', 'Update'];
+  [AuditLogEvent.WebhookDelete]: ['Webhook', 'Delete'];
+  [AuditLogEvent.EmojiCreate]: ['Emoji', 'Create'];
+  [AuditLogEvent.EmojiUpdate]: ['Emoji', 'Update'];
+  [AuditLogEvent.EmojiDelete]: ['Emoji', 'Delete'];
+  [AuditLogEvent.MessageDelete]: ['Message', 'Delete'];
+  [AuditLogEvent.MessageBulkDelete]: ['Message', 'Delete'];
+  [AuditLogEvent.MessagePin]: ['Message', 'Create'];
+  [AuditLogEvent.MessageUnpin]: ['Message', 'Delete'];
+  [AuditLogEvent.IntegrationCreate]: ['Integration', 'Create'];
+  [AuditLogEvent.IntegrationUpdate]: ['Integration', 'Update'];
+  [AuditLogEvent.IntegrationDelete]: ['Integration', 'Delete'];
+  [AuditLogEvent.StageInstanceCreate]: ['StageInstance', 'Create'];
+  [AuditLogEvent.StageInstanceUpdate]: ['StageInstance', 'Update'];
+  [AuditLogEvent.StageInstanceDelete]: ['StageInstance', 'Delete'];
+  [AuditLogEvent.StickerCreate]: ['Sticker', 'Create'];
+  [AuditLogEvent.StickerUpdate]: ['Sticker', 'Update'];
+  [AuditLogEvent.StickerDelete]: ['Sticker', 'Delete'];
+  [AuditLogEvent.GuildScheduledEventCreate]: ['GuildScheduledEvent', 'Create'];
+  [AuditLogEvent.GuildScheduledEventUpdate]: ['GuildScheduledEvent', 'Update'];
+  [AuditLogEvent.GuildScheduledEventDelete]: ['GuildScheduledEvent', 'Delete'];
+  [AuditLogEvent.ThreadCreate]: ['Thread', 'Create'];
+  [AuditLogEvent.ThreadUpdate]: ['Thread', 'Update'];
+  [AuditLogEvent.ThreadDelete]: ['Thread', 'Delete'];
+  [AuditLogEvent.ApplicationCommandPermissionUpdate]: ['ApplicationCommand', 'Update'];
+  [AuditLogEvent.SoundboardSoundCreate]: ['SoundboardSound', 'Create'];
+  [AuditLogEvent.SoundboardSoundUpdate]: ['SoundboardSound', 'Update'];
+  [AuditLogEvent.SoundboardSoundDelete]: ['SoundboardSound', 'Delete'];
+  [AuditLogEvent.AutoModerationRuleCreate]: ['AutoModeration', 'Create'];
+  [AuditLogEvent.AutoModerationRuleUpdate]: ['AutoModeration', 'Update'];
+  [AuditLogEvent.AutoModerationRuleDelete]: ['AutoModeration', 'Delete'];
+  [AuditLogEvent.AutoModerationBlockMessage]: ['User', 'Update'];
+  [AuditLogEvent.AutoModerationFlagToChannel]: ['User', 'Update'];
+  [AuditLogEvent.AutoModerationUserCommunicationDisabled]: ['User', 'Update'];
+  [AuditLogEvent.OnboardingPromptCreate]: ['GuildOnboardingPrompt', 'Create'];
+  [AuditLogEvent.OnboardingPromptUpdate]: ['GuildOnboardingPrompt', 'Update'];
+  [AuditLogEvent.OnboardingPromptDelete]: ['GuildOnboardingPrompt', 'Delete'];
+  [AuditLogEvent.OnboardingCreate]: ['GuildOnboarding', 'Create'];
+  [AuditLogEvent.OnboardingUpdate]: ['GuildOnboarding', 'Update'];
+}
+
+export type GuildAuditLogsActionType = GuildAuditLogsTypes[keyof GuildAuditLogsTypes][1] | 'All';
+
+export interface GuildAuditLogsEntryExtraField {
+  [AuditLogEvent.MemberKick]: { integrationType: string } | null;
+  [AuditLogEvent.MemberRoleUpdate]: { integrationType: string } | null;
+  [AuditLogEvent.MemberPrune]: { removed: number; days: number };
+  [AuditLogEvent.MemberMove]: { channel: VoiceBasedChannel | { id: Snowflake }; count: number };
+  [AuditLogEvent.MessageDelete]: { channel: GuildTextBasedChannel | { id: Snowflake }; count: number };
+  [AuditLogEvent.MessageBulkDelete]: { count: number };
+  [AuditLogEvent.MessagePin]: { channel: GuildTextBasedChannel | { id: Snowflake }; messageId: Snowflake };
+  [AuditLogEvent.MessageUnpin]: { channel: GuildTextBasedChannel | { id: Snowflake }; messageId: Snowflake };
+  [AuditLogEvent.MemberDisconnect]: { count: number };
+  [AuditLogEvent.ChannelOverwriteCreate]:
+    | Role
+    | GuildMember
+    | { id: Snowflake; name: string; type: AuditLogOptionsType.Role }
+    | { id: Snowflake; type: AuditLogOptionsType.Member };
+  [AuditLogEvent.ChannelOverwriteUpdate]:
+    | Role
+    | GuildMember
+    | { id: Snowflake; name: string; type: AuditLogOptionsType.Role }
+    | { id: Snowflake; type: AuditLogOptionsType.Member };
+  [AuditLogEvent.ChannelOverwriteDelete]:
+    | Role
+    | GuildMember
+    | { id: Snowflake; name: string; type: AuditLogOptionsType.Role }
+    | { id: Snowflake; type: AuditLogOptionsType.Member };
+  [AuditLogEvent.StageInstanceCreate]: StageChannel | { id: Snowflake };
+  [AuditLogEvent.StageInstanceDelete]: StageChannel | { id: Snowflake };
+  [AuditLogEvent.StageInstanceUpdate]: StageChannel | { id: Snowflake };
+  [AuditLogEvent.ApplicationCommandPermissionUpdate]: { applicationId: Snowflake };
+  [AuditLogEvent.AutoModerationBlockMessage]: {
+    autoModerationRuleName: string;
+    autoModerationRuleTriggerType: AuditLogRuleTriggerType;
+    channel: GuildTextBasedChannel | { id: Snowflake };
+  };
+  [AuditLogEvent.AutoModerationFlagToChannel]: {
+    autoModerationRuleName: string;
+    autoModerationRuleTriggerType: AuditLogRuleTriggerType;
+    channel: GuildTextBasedChannel | { id: Snowflake };
+  };
+  [AuditLogEvent.AutoModerationUserCommunicationDisabled]: {
+    autoModerationRuleName: string;
+    autoModerationRuleTriggerType: AuditLogRuleTriggerType;
+    channel: GuildTextBasedChannel | { id: Snowflake };
+  };
+}
+
+export interface GuildAuditLogsEntryTargetField<TAction extends AuditLogEvent> {
+  User: User | PartialUser | null;
+  Guild: Guild;
+  Webhook: Webhook<WebhookType.ChannelFollower | WebhookType.Incoming>;
+  Invite: Invite;
+  Emoji: GuildEmoji | { id: Snowflake };
+  Role: Role | { id: Snowflake };
+  Message: TAction extends AuditLogEvent.MessageBulkDelete ? GuildTextBasedChannel | { id: Snowflake } : User | null;
+  Integration: Integration;
+  Channel: NonThreadGuildBasedChannel | { id: Snowflake; [x: string]: unknown };
+  Thread: AnyThreadChannel | { id: Snowflake; [x: string]: unknown };
+  StageInstance: StageInstance;
+  Sticker: Sticker;
+  GuildScheduledEvent: GuildScheduledEvent;
+  ApplicationCommand: ApplicationCommand | { id: Snowflake };
+  AutoModerationRule: AutoModerationRule;
+  GuildOnboardingPrompt: GuildOnboardingPrompt | { id: Snowflake; [x: string]: unknown };
+  SoundboardSound: SoundboardSound | { id: Snowflake };
+}
+
+export interface GuildAuditLogsFetchOptions<Event extends GuildAuditLogsResolvable> {
+  before?: Snowflake | GuildAuditLogsEntry;
+  after?: Snowflake | GuildAuditLogsEntry;
+  limit?: number;
+  user?: UserResolvable;
+  type?: Event;
+}
+
+export type GuildAuditLogsResolvable = AuditLogEvent | null;
+
+export type GuildAuditLogsTargetType = GuildAuditLogsTypes[keyof GuildAuditLogsTypes][0] | 'Unknown';
+
+export type GuildAuditLogsTargets = {
+  [Key in GuildAuditLogsTargetType]: Key;
+};
+
+export type GuildBanResolvable = GuildBan | UserResolvable;
+
+export type GuildChannelResolvable = Snowflake | GuildBasedChannel;
+
+export interface AutoModerationRuleCreateOptions {
+  name: string;
+  eventType: AutoModerationRuleEventType;
+  triggerType: AutoModerationRuleTriggerType;
+  triggerMetadata?: AutoModerationTriggerMetadataOptions;
+  actions: readonly AutoModerationActionOptions[];
+  enabled?: boolean;
+  exemptRoles?: ReadonlyCollection<Snowflake, Role> | readonly RoleResolvable[];
+  exemptChannels?: ReadonlyCollection<Snowflake, GuildBasedChannel> | readonly GuildChannelResolvable[];
+  reason?: string;
+}
+
+export interface AutoModerationRuleEditOptions extends Partial<Omit<AutoModerationRuleCreateOptions, 'triggerType'>> {}
+
+export interface AutoModerationTriggerMetadataOptions extends Partial<AutoModerationTriggerMetadata> {}
+
+export interface AutoModerationActionOptions {
+  type: AutoModerationActionType;
+  metadata?: AutoModerationActionMetadataOptions;
+}
+
+export interface AutoModerationActionMetadataOptions extends Partial<Omit<AutoModerationActionMetadata, 'channelId'>> {
+  channel?: GuildTextChannelResolvable | ThreadChannel;
+}
+
+export interface GuildChannelCreateOptions extends Omit<CategoryCreateChannelOptions, 'type'> {
+  parent?: CategoryChannelResolvable | null;
+  type?: Exclude<
+    ChannelType,
+    | ChannelType.DM
+    | ChannelType.GroupDM
+    | ChannelType.PublicThread
+    | ChannelType.AnnouncementThread
+    | ChannelType.PrivateThread
+  >;
+}
+
+export interface GuildChannelCloneOptions extends Omit<GuildChannelCreateOptions, 'name'> {
+  name?: string;
+}
+
+export interface GuildChannelEditOptions {
+  name?: string;
+  type?: ChannelType.GuildText | ChannelType.GuildAnnouncement;
+  position?: number;
+  topic?: string | null;
+  nsfw?: boolean;
+  bitrate?: number;
+  userLimit?: number;
+  parent?: CategoryChannelResolvable | null;
+  rateLimitPerUser?: number;
+  lockPermissions?: boolean;
+  permissionOverwrites?: readonly OverwriteResolvable[] | ReadonlyCollection<Snowflake, OverwriteResolvable>;
+  defaultAutoArchiveDuration?: ThreadAutoArchiveDuration;
+  rtcRegion?: string | null;
+  videoQualityMode?: VideoQualityMode | null;
+  availableTags?: readonly GuildForumTagData[];
+  defaultReactionEmoji?: DefaultReactionEmoji | null;
+  defaultThreadRateLimitPerUser?: number;
+  flags?: ChannelFlagsResolvable;
+  defaultSortOrder?: SortOrderType | null;
+  defaultForumLayout?: ForumLayoutType;
+  reason?: string;
+}
+
+export interface GuildChannelOverwriteOptions {
+  reason?: string;
+  type?: OverwriteType;
+}
+
+export interface GuildCreateOptions {
+  name: string;
+  icon?: BufferResolvable | Base64Resolvable | null;
+  verificationLevel?: GuildVerificationLevel;
+  defaultMessageNotifications?: GuildDefaultMessageNotifications;
+  explicitContentFilter?: GuildExplicitContentFilter;
+  roles?: readonly PartialRoleData[];
+  channels?: readonly PartialChannelData[];
+  afkChannelId?: Snowflake | number;
+  afkTimeout?: number;
+  systemChannelId?: Snowflake | number;
+  systemChannelFlags?: SystemChannelFlagsResolvable;
+}
+
+export interface GuildWidgetSettings {
+  enabled: boolean;
+  channel: TextChannel | NewsChannel | VoiceBasedChannel | ForumChannel | MediaChannel | null;
+}
+
+export interface GuildEditOptions {
+  name?: string;
+  verificationLevel?: GuildVerificationLevel | null;
+  defaultMessageNotifications?: GuildDefaultMessageNotifications | null;
+  explicitContentFilter?: GuildExplicitContentFilter | null;
+  afkTimeout?: number;
+  afkChannel?: VoiceChannelResolvable | null;
+  icon?: BufferResolvable | Base64Resolvable | null;
+  owner?: GuildMemberResolvable;
+  splash?: BufferResolvable | Base64Resolvable | null;
+  discoverySplash?: BufferResolvable | Base64Resolvable | null;
+  banner?: BufferResolvable | Base64Resolvable | null;
+  systemChannel?: TextChannelResolvable | null;
+  systemChannelFlags?: SystemChannelFlagsResolvable;
+  rulesChannel?: TextChannelResolvable | null;
+  publicUpdatesChannel?: TextChannelResolvable | null;
+  safetyAlertsChannel?: TextChannelResolvable | null;
+  preferredLocale?: Locale | null;
+  features?: readonly `${GuildFeature}`[];
+  description?: string | null;
+  premiumProgressBarEnabled?: boolean;
+  reason?: string;
+}
+
+export interface GuildEmojiCreateOptions {
+  attachment: BufferResolvable | Base64Resolvable;
+  name: string;
+  roles?: ReadonlyCollection<Snowflake, Role> | readonly RoleResolvable[];
+  reason?: string;
+}
+
+export interface GuildEmojiEditOptions {
+  name?: string;
+  roles?: ReadonlyCollection<Snowflake, Role> | readonly RoleResolvable[];
+  reason?: string;
+}
+
+export interface GuildStickerCreateOptions {
+  file: BufferResolvable | Stream | AttachmentPayload | JSONEncodable<AttachmentBuilder>;
+  name: string;
+  tags: string;
+  description?: string | null;
+  reason?: string;
+}
+
+export interface GuildStickerEditOptions {
+  name?: string;
+  description?: string | null;
+  tags?: string;
+  reason?: string;
+}
+
+export interface GuildMemberEditOptions {
+  nick?: string | null;
+  roles?: ReadonlyCollection<Snowflake, Role> | readonly RoleResolvable[];
+  mute?: boolean;
+  deaf?: boolean;
+  channel?: GuildVoiceChannelResolvable | null;
+  communicationDisabledUntil?: DateResolvable | null;
+  flags?: GuildMemberFlagsResolvable;
+  reason?: string;
+}
+
+export type GuildMemberResolvable = GuildMember | UserResolvable;
+
+export type GuildResolvable = Guild | NonThreadGuildBasedChannel | GuildMember | GuildEmoji | Invite | Role | Snowflake;
+
+export interface GuildPruneMembersOptions {
+  count?: boolean;
+  days?: number;
+  dry?: boolean;
+  reason?: string;
+  roles?: readonly RoleResolvable[];
+}
+
+export interface GuildWidgetSettingsData {
+  enabled: boolean;
+  channel: TextChannel | NewsChannel | VoiceBasedChannel | ForumChannel | MediaChannel | Snowflake | null;
+}
+
+export interface GuildSearchMembersOptions {
+  query: string;
+  limit?: number;
+  cache?: boolean;
+}
+
+export interface GuildListMembersOptions {
+  after?: Snowflake;
+  limit?: number;
+  cache?: boolean;
+}
+
+// TODO: use conditional types for better TS support
+export interface GuildScheduledEventCreateOptions {
+  name: string;
+  scheduledStartTime: DateResolvable;
+  scheduledEndTime?: DateResolvable;
+  privacyLevel: GuildScheduledEventPrivacyLevel;
+  entityType: GuildScheduledEventEntityType;
+  description?: string;
+  channel?: GuildVoiceChannelResolvable;
+  entityMetadata?: GuildScheduledEventEntityMetadataOptions;
+  image?: BufferResolvable | Base64Resolvable | null;
+  reason?: string;
+  recurrenceRule?: GuildScheduledEventRecurrenceRuleOptions;
+}
+
+export type GuildScheduledEventRecurrenceRuleOptions =
+  | BaseGuildScheduledEventRecurrenceRuleOptions<
+      GuildScheduledEventRecurrenceRuleFrequency.Yearly,
+      {
+        byMonth: readonly GuildScheduledEventRecurrenceRuleMonth[];
+        byMonthDay: readonly number[];
+      }
+    >
+  | BaseGuildScheduledEventRecurrenceRuleOptions<
+      GuildScheduledEventRecurrenceRuleFrequency.Monthly,
+      {
+        byNWeekday: readonly GuildScheduledEventRecurrenceRuleNWeekday[];
+      }
+    >
+  | BaseGuildScheduledEventRecurrenceRuleOptions<
+      GuildScheduledEventRecurrenceRuleFrequency.Weekly | GuildScheduledEventRecurrenceRuleFrequency.Daily,
+      {
+        byWeekday: readonly GuildScheduledEventRecurrenceRuleWeekday[];
+      }
+    >;
+
+type BaseGuildScheduledEventRecurrenceRuleOptions<
+  Frequency extends GuildScheduledEventRecurrenceRuleFrequency,
+  Extra extends {},
+> = {
+  startAt: DateResolvable;
+  interval: number;
+  frequency: Frequency;
+} & Extra;
+
+export interface GuildScheduledEventEditOptions<
+  Status extends GuildScheduledEventStatus,
+  AcceptableStatus extends GuildScheduledEventSetStatusArg<Status>,
+> extends Omit<Partial<GuildScheduledEventCreateOptions>, 'channel' | 'recurrenceRule'> {
+  channel?: GuildVoiceChannelResolvable | null;
+  status?: AcceptableStatus;
+  recurrenceRule?: GuildScheduledEventRecurrenceRuleOptions | null;
+}
+
+export interface GuildScheduledEventEntityMetadata {
+  location: string | null;
+}
+
+export interface GuildScheduledEventEntityMetadataOptions {
+  location?: string;
+}
+
+export type GuildScheduledEventManagerFetchResult<
+  Options extends GuildScheduledEventResolvable | FetchGuildScheduledEventOptions | FetchGuildScheduledEventsOptions,
+> = Options extends GuildScheduledEventResolvable | FetchGuildScheduledEventOptions
+  ? GuildScheduledEvent
+  : Collection<Snowflake, GuildScheduledEvent>;
+
+export type GuildScheduledEventManagerFetchSubscribersResult<
+  Options extends FetchGuildScheduledEventSubscribersOptions,
+> = Options extends { withMember: true }
+  ? Collection<Snowflake, GuildScheduledEventUser<true>>
+  : Collection<Snowflake, GuildScheduledEventUser<false>>;
+
+export type GuildScheduledEventResolvable = Snowflake | GuildScheduledEvent;
+
+export type GuildScheduledEventSetStatusArg<Status extends GuildScheduledEventStatus> =
+  Status extends GuildScheduledEventStatus.Scheduled
+    ? GuildScheduledEventStatus.Active | GuildScheduledEventStatus.Canceled
+    : Status extends GuildScheduledEventStatus.Active
+      ? GuildScheduledEventStatus.Completed
+      : never;
+
+export interface GuildScheduledEventUser<WithMember> {
+  guildScheduledEventId: Snowflake;
+  user: User;
+  member: WithMember extends true ? GuildMember : null;
+}
+
+export type GuildTemplateResolvable = string;
+
+export type GuildVoiceChannelResolvable = VoiceBasedChannel | Snowflake;
+
+export interface GuildOnboardingEditOptions {
+  prompts?: readonly GuildOnboardingPromptData[] | ReadonlyCollection<Snowflake, GuildOnboardingPrompt>;
+  defaultChannels?: readonly ChannelResolvable[] | ReadonlyCollection<Snowflake, GuildChannel>;
+  enabled?: boolean;
+  mode?: GuildOnboardingMode;
+  reason?: string;
+}
+
+export interface GuildOnboardingPromptData {
+  id?: Snowflake;
+  title: string;
+  singleSelect?: boolean;
+  required?: boolean;
+  inOnboarding?: boolean;
+  type?: GuildOnboardingPromptType;
+  options: readonly GuildOnboardingPromptOptionData[] | ReadonlyCollection<Snowflake, GuildOnboardingPromptOption>;
+}
+
+export interface GuildOnboardingPromptOptionData {
+  id?: Snowflake | null;
+  channels?: readonly ChannelResolvable[] | ReadonlyCollection<Snowflake, GuildChannel>;
+  roles?: readonly RoleResolvable[] | ReadonlyCollection<Snowflake, Role>;
+  title: string;
+  description?: string | null;
+  emoji?: EmojiIdentifierResolvable | Emoji | null;
+}
+
+export type HexColorString = `#${string}`;
+
+export interface IncidentActions {
+  invitesDisabledUntil: Date | null;
+  dmsDisabledUntil: Date | null;
+  dmSpamDetectedAt: Date | null;
+  raidDetectedAt: Date | null;
+}
+
+export interface IncidentActionsEditOptions {
+  invitesDisabledUntil?: DateResolvable | null | undefined;
+  dmsDisabledUntil?: DateResolvable | null | undefined;
+}
+
+export interface IntegrationAccount {
+  id: string | Snowflake;
+  name: string;
+}
+
+export type IntegrationType = 'twitch' | 'youtube' | 'discord' | 'guild_subscription';
+
+export type IntegrationTypesConfigurationParameters = ClientApplicationInstallParams;
+
+export interface IntegrationTypesConfigurationContext {
+  oauth2InstallParams: IntegrationTypesConfigurationParameters | null;
+}
+
+export type IntegrationTypesConfiguration = Partial<
+  Record<ApplicationIntegrationType, IntegrationTypesConfigurationContext>
+>;
+
+export type CollectedInteraction<Cached extends CacheType = CacheType> =
+  | StringSelectMenuInteraction<Cached>
+  | UserSelectMenuInteraction<Cached>
+  | RoleSelectMenuInteraction<Cached>
+  | MentionableSelectMenuInteraction<Cached>
+  | ChannelSelectMenuInteraction<Cached>
+  | ButtonInteraction<Cached>
+  | ModalSubmitInteraction<Cached>;
+
+export interface InteractionCollectorOptions<
+  Interaction extends CollectedInteraction,
+  Cached extends CacheType = CacheType,
+> extends CollectorOptions<[Interaction, Collection<Snowflake, Interaction>]> {
+  channel?: TextBasedChannelResolvable;
+  componentType?: ComponentType;
+  guild?: GuildResolvable;
+  interactionType?: InteractionType;
+  max?: number;
+  maxComponents?: number;
+  maxUsers?: number;
+  message?: CacheTypeReducer<Cached, Message, APIMessage>;
+  interactionResponse?: InteractionResponse<BooleanCache<Cached>>;
+}
+
+export interface InteractionDeferReplyOptions {
+  /** @deprecated Use {@link InteractionDeferReplyOptions.flags} instead. */
+  ephemeral?: boolean;
+  flags?: BitFieldResolvable<Extract<MessageFlagsString, 'Ephemeral'>, MessageFlags.Ephemeral> | undefined;
+  withResponse?: boolean;
+  /** @deprecated Use {@link InteractionDeferReplyOptions.withResponse} instead. */
+  fetchReply?: boolean;
+}
+
+export interface InteractionDeferUpdateOptions {
+  withResponse?: boolean;
+  /** @deprecated Use {@link InteractionDeferUpdateOptions.withResponse} instead. */
+  fetchReply?: boolean;
+}
+
+export interface InteractionReplyOptions extends BaseMessageOptionsWithPoll {
+  /** @deprecated Use {@link InteractionReplyOptions.flags} instead. */
+  ephemeral?: boolean;
+  tts?: boolean;
+  withResponse?: boolean;
+  /** @deprecated Use {@link InteractionReplyOptions.withResponse} instead. */
+  fetchReply?: boolean;
+  flags?:
+    | BitFieldResolvable<
+        Extract<MessageFlagsString, 'Ephemeral' | 'SuppressEmbeds' | 'SuppressNotifications' | 'IsComponentsV2'>,
+        | MessageFlags.Ephemeral
+        | MessageFlags.SuppressEmbeds
+        | MessageFlags.SuppressNotifications
+        | MessageFlags.IsComponentsV2
+      >
+    | undefined;
+}
+
+export interface InteractionUpdateOptions extends MessageEditOptions {
+  withResponse?: boolean;
+  /** @deprecated Use {@link InteractionUpdateOptions.withResponse} instead. */
+  fetchReply?: boolean;
+}
+
+export interface InviteGenerationOptions {
+  permissions?: PermissionResolvable;
+  guild?: GuildResolvable;
+  disableGuildSelect?: boolean;
+  scopes: readonly OAuth2Scopes[];
+}
+
+export type GuildInvitableChannelResolvable =
+  | TextChannel
+  | VoiceChannel
+  | NewsChannel
+  | StageChannel
+  | ForumChannel
+  | MediaChannel
+  | Snowflake;
+
+export interface InviteCreateOptions {
+  temporary?: boolean;
+  maxAge?: number;
+  maxUses?: number;
+  unique?: boolean;
+  reason?: string;
+  targetApplication?: ApplicationResolvable;
+  targetUser?: UserResolvable;
+  targetType?: InviteTargetType;
+}
+
+export type InviteResolvable = string;
+
+export interface LifetimeFilterOptions<Key, Value> {
+  excludeFromSweep?: (value: Value, key: Key, collection: LimitedCollection<Key, Value>) => boolean;
+  getComparisonTimestamp?: (value: Value, key: Key, collection: LimitedCollection<Key, Value>) => number;
+  lifetime?: number;
+}
+
+/** @internal */
+export interface MakeErrorOptions {
+  name: string;
+  message: string;
+  stack: string;
+}
+
+export type ActionRowComponentOptions =
+  | ButtonComponentData
+  | StringSelectMenuComponentData
+  | UserSelectMenuComponentData
+  | RoleSelectMenuComponentData
+  | MentionableSelectMenuComponentData
+  | ChannelSelectMenuComponentData;
+
+export type MessageActionRowComponentResolvable = MessageActionRowComponent | ActionRowComponentOptions;
+
+export interface MessageActivity {
+  partyId?: string;
+  type: MessageActivityType;
+}
+
+export interface BaseButtonComponentData extends BaseComponentData {
+  type: ComponentType.Button;
+  style: ButtonStyle;
+  disabled?: boolean;
+  emoji?: ComponentEmojiResolvable;
+  label?: string;
+}
+
+export interface LinkButtonComponentData extends BaseButtonComponentData {
+  style: ButtonStyle.Link;
+  url: string;
+}
+
+export interface InteractionButtonComponentData extends BaseButtonComponentData {
+  style: Exclude<ButtonStyle, ButtonStyle.Link>;
+  customId: string;
+}
+
+export type ButtonComponentData = InteractionButtonComponentData | LinkButtonComponentData;
+
+export interface MessageCollectorOptions extends CollectorOptions<[Message, Collection<Snowflake, Message>]> {
+  max?: number;
+  maxProcessed?: number;
+}
+
+export type MessageComponent =
+  | Component
+  | ActionRowBuilder<MessageActionRowComponentBuilder | ModalActionRowComponentBuilder>
+  | ButtonComponent
+  | StringSelectMenuComponent
+  | UserSelectMenuComponent
+  | RoleSelectMenuComponent
+  | MentionableSelectMenuComponent
+  | ChannelSelectMenuComponent;
+
+export type CollectedMessageInteraction<Cached extends CacheType = CacheType> = Exclude<
+  CollectedInteraction<Cached>,
+  ModalSubmitInteraction
+>;
+
+export interface MessageComponentCollectorOptions<Interaction extends CollectedMessageInteraction>
+  extends Omit<InteractionCollectorOptions<Interaction>, 'channel' | 'message' | 'guild' | 'interactionType'> {}
+
+export interface MessageChannelComponentCollectorOptions<Interaction extends CollectedMessageInteraction>
+  extends Omit<InteractionCollectorOptions<Interaction>, 'channel' | 'guild' | 'interactionType'> {}
+
+export interface MessageInteractionMetadata {
+  id: Snowflake;
+  type: InteractionType;
+  user: User;
+  authorizingIntegrationOwners: APIAuthorizingIntegrationOwnersMap;
+  originalResponseMessageId: Snowflake | null;
+  interactedMessageId: Snowflake | null;
+  triggeringInteractionMetadata: MessageInteractionMetadata | null;
+}
+
+/** @deprecated Use {@link MessageInteractionMetadata} instead. */
+export interface MessageInteraction {
+  id: Snowflake;
+  type: InteractionType;
+  commandName: string;
+  user: User;
+}
+
+export interface MessageMentionsHasOptions {
+  ignoreDirect?: boolean;
+  ignoreRoles?: boolean;
+  ignoreRepliedUser?: boolean;
+  ignoreEveryone?: boolean;
+}
+
+export interface MessageMentionOptions {
+  parse?: readonly MessageMentionTypes[];
+  roles?: readonly Snowflake[];
+  users?: readonly Snowflake[];
+  repliedUser?: boolean;
+}
+
+export type MessageMentionTypes = 'roles' | 'users' | 'everyone';
+
+export interface MessageSnapshot
+  extends Partialize<
+    Message,
+    null,
+    Exclude<
+      keyof Message,
+      | 'attachments'
+      | 'client'
+      | 'components'
+      | 'content'
+      | 'createdTimestamp'
+      | 'editedTimestamp'
+      | 'embeds'
+      | 'flags'
+      | 'mentions'
+      | 'stickers'
+      | 'type'
+    >
+  > {}
+
+export interface BaseMessageOptions {
+  content?: string;
+  embeds?: readonly (JSONEncodable<APIEmbed> | APIEmbed)[];
+  allowedMentions?: MessageMentionOptions;
+  files?: readonly (
+    | BufferResolvable
+    | Stream
+    | JSONEncodable<APIAttachment>
+    | Attachment
+    | AttachmentBuilder
+    | AttachmentPayload
+  )[];
+  components?: readonly (
+    | JSONEncodable<APIMessageTopLevelComponent>
+    | TopLevelComponentData
+    | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
+    | APIMessageTopLevelComponent
+  )[];
+}
+
+export interface BaseMessageOptionsWithPoll extends BaseMessageOptions {
+  poll?: PollData;
+}
+
+export interface MessageCreateOptions extends BaseMessageOptionsWithPoll {
+  tts?: boolean;
+  nonce?: string | number;
+  enforceNonce?: boolean;
+  reply?: ReplyOptions;
+  forward?: ForwardOptions;
+  stickers?: readonly StickerResolvable[];
+  flags?:
+    | BitFieldResolvable<
+        Extract<MessageFlagsString, 'SuppressEmbeds' | 'SuppressNotifications' | 'IsComponentsV2'>,
+        MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications | MessageFlags.IsComponentsV2
+      >
+    | undefined;
+}
+
+export interface GuildForumThreadMessageCreateOptions
+  extends BaseMessageOptions,
+    Pick<MessageCreateOptions, 'flags' | 'stickers'> {}
+
+export interface MessageEditAttachmentData {
+  id: Snowflake;
+}
+
+export interface MessageEditOptions extends Omit<BaseMessageOptions, 'content'> {
+  content?: string | null;
+  attachments?: readonly (Attachment | MessageEditAttachmentData)[];
+  flags?:
+    | BitFieldResolvable<
+        Extract<MessageFlagsString, 'SuppressEmbeds' | 'IsComponentsV2'>,
+        MessageFlags.SuppressEmbeds | MessageFlags.IsComponentsV2
+      >
+    | undefined;
+}
+
+export type MessageReactionResolvable = MessageReaction | Snowflake | string;
+
+export interface MessageReference {
+  channelId: Snowflake;
+  guildId: Snowflake | undefined;
+  messageId: Snowflake | undefined;
+  type: MessageReferenceType;
+}
+
+export type MessageResolvable = Message | Snowflake;
+
+export interface BaseSelectMenuComponentData extends BaseComponentData {
+  customId: string;
+  disabled?: boolean;
+  maxValues?: number;
+  minValues?: number;
+  placeholder?: string;
+}
+
+export interface StringSelectMenuComponentData extends BaseSelectMenuComponentData {
+  type: ComponentType.StringSelect;
+  options: readonly SelectMenuComponentOptionData[];
+}
+
+export interface UserSelectMenuComponentData extends BaseSelectMenuComponentData {
+  type: ComponentType.UserSelect;
+  defaultValues?: readonly APISelectMenuDefaultValue<SelectMenuDefaultValueType.User>[];
+}
+
+export interface RoleSelectMenuComponentData extends BaseSelectMenuComponentData {
+  type: ComponentType.RoleSelect;
+  defaultValues?: readonly APISelectMenuDefaultValue<SelectMenuDefaultValueType.Role>[];
+}
+
+export interface MentionableSelectMenuComponentData extends BaseSelectMenuComponentData {
+  type: ComponentType.MentionableSelect;
+  defaultValues?: readonly APISelectMenuDefaultValue<
+    SelectMenuDefaultValueType.Role | SelectMenuDefaultValueType.User
+  >[];
+}
+
+export interface ChannelSelectMenuComponentData extends BaseSelectMenuComponentData {
+  type: ComponentType.ChannelSelect;
+  channelTypes?: readonly ChannelType[];
+  defaultValues?: readonly APISelectMenuDefaultValue<SelectMenuDefaultValueType.Channel>[];
+}
+
+export interface MessageSelectOption {
+  default: boolean;
+  description: string | null;
+  emoji: APIPartialEmoji | null;
+  label: string;
+  value: string;
+}
+
+export interface ReactionCountDetailsData {
+  burst: number;
+  normal: number;
+}
+
+export interface SelectMenuComponentOptionData {
+  default?: boolean;
+  description?: string;
+  emoji?: ComponentEmojiResolvable;
+  label: string;
+  value: string;
+}
+
+export interface TextInputComponentData extends BaseComponentData {
+  type: ComponentType.TextInput;
+  customId: string;
+  style: TextInputStyle;
+  label: string;
+  minLength?: number;
+  maxLength?: number;
+  required?: boolean;
+  value?: string;
+  placeholder?: string;
+}
+
+export type MessageTarget =
+  | Interaction
+  | InteractionWebhook
+  | TextBasedChannel
+  | User
+  | GuildMember
+  | Webhook<WebhookType.Incoming>
+  | WebhookClient
+  | Message
+  | MessageManager;
+
+export interface MultipleShardRespawnOptions {
+  shardDelay?: number;
+  respawnDelay?: number;
+  timeout?: number;
+}
+
+export interface MultipleShardSpawnOptions {
+  amount?: number | 'auto';
+  delay?: number;
+  timeout?: number;
+}
+
+export interface OverwriteData {
+  allow?: PermissionResolvable;
+  deny?: PermissionResolvable;
+  id: GuildMemberResolvable | RoleResolvable;
+  type?: OverwriteType;
+}
+
+export type OverwriteResolvable = PermissionOverwrites | OverwriteData;
+
+export type PermissionFlags = Record<keyof typeof PermissionFlagsBits, bigint>;
+
+export type PermissionOverwriteOptions = Partial<Record<keyof typeof PermissionFlagsBits, boolean | null>>;
+
+export type PermissionResolvable = BitFieldResolvable<keyof typeof PermissionFlagsBits, bigint>;
+
+export type PermissionOverwriteResolvable = UserResolvable | RoleResolvable | PermissionOverwrites;
+
+export interface RecursiveReadonlyArray<ItemType> extends ReadonlyArray<ItemType | RecursiveReadonlyArray<ItemType>> {}
+
+export interface PartialRecipient {
+  username: string;
+}
+
+export interface PresenceData {
+  status?: PresenceStatusData;
+  afk?: boolean;
+  activities?: readonly ActivitiesOptions[];
+  shardId?: number | readonly number[];
+}
+
+export type PresenceResolvable = Presence | UserResolvable | Snowflake;
+
+export interface PartialChannelData {
+  id?: Snowflake | number;
+  parentId?: Snowflake | number;
+  type?: ChannelType.GuildText | ChannelType.GuildVoice | ChannelType.GuildCategory;
+  name: string;
+  topic?: string | null;
+  nsfw?: boolean;
+  bitrate?: number;
+  userLimit?: number;
+  rtcRegion?: string | null;
+  videoQualityMode?: VideoQualityMode;
+  permissionOverwrites?: readonly PartialOverwriteData[];
+  rateLimitPerUser?: number;
+}
+
+export interface PartialEmoji {
+  animated: boolean;
+  id: Snowflake | undefined;
+  name: string;
+}
+
+export interface PartialEmojiOnlyId {
+  id: Snowflake;
+}
+
+export type Partialize<
+  PartialType extends AllowedPartial,
+  NulledKeys extends keyof PartialType | null = null,
+  NullableKeys extends keyof PartialType | null = null,
+  OverridableKeys extends keyof PartialType | '' = '',
+> = {
+  [K in keyof Omit<PartialType, OverridableKeys>]: K extends 'partial'
+    ? true
+    : K extends NulledKeys
+      ? null
+      : K extends NullableKeys
+        ? PartialType[K] | null
+        : PartialType[K];
+};
+
+export interface PartialDMChannel extends Partialize<DMChannel, null, null, 'lastMessageId'> {
+  lastMessageId: undefined;
+}
+
+export interface PartialGuildMember extends Partialize<GuildMember, 'joinedAt' | 'joinedTimestamp' | 'pending'> {}
+
+export interface PartialMessage
+  extends Partialize<Message, 'type' | 'system' | 'pinned' | 'tts', 'content' | 'cleanContent' | 'author'> {}
+
+export interface PartialMessageReaction extends Partialize<MessageReaction, 'count'> {}
+
+export interface PartialGuildScheduledEvent
+  extends Partialize<GuildScheduledEvent, 'userCount', 'status' | 'privacyLevel' | 'name' | 'entityType'> {}
+
+export interface PartialThreadMember extends Partialize<ThreadMember, 'flags' | 'joinedAt' | 'joinedTimestamp'> {}
+
+export interface PartialSoundboardSound extends Partialize<SoundboardSound, 'available' | 'name' | 'volume'> {}
+
+export interface PartialOverwriteData {
+  id: Snowflake | number;
+  type?: OverwriteType;
+  allow?: PermissionResolvable;
+  deny?: PermissionResolvable;
+}
+
+export interface PartialRoleData extends RoleData {
+  id?: Snowflake | number;
+}
+
+export enum Partials {
+  User,
+  Channel,
+  GuildMember,
+  Message,
+  Reaction,
+  GuildScheduledEvent,
+  ThreadMember,
+  SoundboardSound,
+}
+
+export interface PartialUser extends Partialize<User, 'username' | 'tag' | 'discriminator'> {}
+
+export type PresenceStatusData = ClientPresenceStatus | 'invisible';
+
+export type PresenceStatus = PresenceStatusData | 'offline';
+
+export interface ReactionCollectorOptions extends CollectorOptions<[MessageReaction, User]> {
+  max?: number;
+  maxEmojis?: number;
+  maxUsers?: number;
+}
+
+export interface ReplyOptions {
+  messageReference: MessageResolvable;
+  failIfNotExists?: boolean;
+}
+
+export interface BaseForwardOptions {
+  message: MessageResolvable;
+  channel?: Exclude<TextBasedChannelResolvable, PartialGroupDMChannel>;
+  guild?: GuildResolvable;
+}
+
+export type ForwardOptionsWithMandatoryChannel = BaseForwardOptions & Required<Pick<BaseForwardOptions, 'channel'>>;
+
+export interface ForwardOptionsWithOptionalChannel extends BaseForwardOptions {
+  message: Exclude<MessageResolvable, Snowflake>;
+}
+
+export type ForwardOptions = ForwardOptionsWithMandatoryChannel | ForwardOptionsWithOptionalChannel;
+
+export interface MessageReplyOptions extends Omit<MessageCreateOptions, 'reply' | 'forward'> {
+  failIfNotExists?: boolean;
+}
+
+export interface ResolvedOverwriteOptions {
+  allow: PermissionsBitField;
+  deny: PermissionsBitField;
+}
+
+export interface RoleData {
+  name?: string;
+  color?: ColorResolvable;
+  hoist?: boolean;
+  position?: number;
+  permissions?: PermissionResolvable;
+  mentionable?: boolean;
+  icon?: BufferResolvable | Base64Resolvable | EmojiResolvable | null;
+  unicodeEmoji?: string | null;
+}
+
+export type RoleMention = '@everyone' | `<@&${Snowflake}>`;
+
+export interface RolePosition {
+  role: RoleResolvable;
+  position: number;
+}
+
+export type RoleResolvable = Role | Snowflake;
+
+export interface RoleSubscriptionData {
+  roleSubscriptionListingId: Snowflake;
+  tierName: string;
+  totalMonthsSubscribed: number;
+  isRenewal: boolean;
+}
+
+export interface RoleTagData {
+  botId?: Snowflake;
+  integrationId?: Snowflake;
+  premiumSubscriberRole?: true;
+  subscriptionListingId?: Snowflake;
+  availableForPurchase?: true;
+  guildConnections?: true;
+}
+
+export interface SetChannelPositionOptions {
+  relative?: boolean;
+  reason?: string;
+}
+
+export interface SetParentOptions {
+  lockPermissions?: boolean;
+  reason?: string;
+}
+
+export interface SetRolePositionOptions {
+  relative?: boolean;
+  reason?: string;
+}
+
+export type ShardingManagerMode = 'process' | 'worker';
+
+export interface ShardingManagerOptions {
+  totalShards?: number | 'auto';
+  shardList?: readonly number[] | 'auto';
+  mode?: ShardingManagerMode;
+  respawn?: boolean;
+  silent?: boolean;
+  shardArgs?: readonly string[];
+  token?: string;
+  execArgv?: readonly string[];
+}
+
+export interface ShowModalOptions {
+  withResponse?: boolean;
+}
+
+export interface LaunchActivityOptions {
+  withResponse?: boolean;
+}
+
+export { Snowflake };
+
+export type StageInstanceResolvable = StageInstance | Snowflake;
+
+export interface StartThreadOptions {
+  name: string;
+  autoArchiveDuration?: ThreadAutoArchiveDuration;
+  reason?: string;
+  rateLimitPerUser?: number;
+}
+
+export type ClientStatus = number;
+
+export type StickerResolvable = Sticker | Snowflake;
+
+export type SystemChannelFlagsResolvable = BitFieldResolvable<SystemChannelFlagsString, number>;
+
+export type StageChannelResolvable = StageChannel | Snowflake;
+
+export interface StageInstanceEditOptions {
+  topic?: string;
+  privacyLevel?: StageInstancePrivacyLevel;
+}
+
+/** @internal */
+export interface SupportingInteractionResolvedData {
+  client: Client;
+  guild?: Guild;
+  channel?: GuildTextBasedChannel;
+}
+
+export type SweeperKey = keyof SweeperDefinitions;
+
+export type CollectionSweepFilter<Key, Value> = (value: Value, key: Key, collection: Collection<Key, Value>) => boolean;
+
+export interface SweepOptions<Key, Value> {
+  interval: number;
+  filter: GlobalSweepFilter<Key, Value>;
+}
+
+export interface LifetimeSweepOptions {
+  interval: number;
+  lifetime: number;
+  filter?: never;
+}
+
+export interface SweeperDefinitions {
+  applicationCommands: [Snowflake, ApplicationCommand];
+  autoModerationRules: [Snowflake, AutoModerationRule];
+  bans: [Snowflake, GuildBan];
+  emojis: [Snowflake, GuildEmoji];
+  entitlements: [Snowflake, Entitlement];
+  invites: [string, Invite, true];
+  guildMembers: [Snowflake, GuildMember];
+  messages: [Snowflake, Message, true];
+  presences: [Snowflake, Presence];
+  reactions: [string | Snowflake, MessageReaction];
+  stageInstances: [Snowflake, StageInstance];
+  stickers: [Snowflake, Sticker];
+  threadMembers: [Snowflake, ThreadMember];
+  threads: [Snowflake, AnyThreadChannel, true];
+  users: [Snowflake, User];
+  voiceStates: [Snowflake, VoiceState];
+}
+
+export type SweeperOptions = {
+  [Key in keyof SweeperDefinitions]?: SweeperDefinitions[Key][2] extends true
+    ? SweepOptions<SweeperDefinitions[Key][0], SweeperDefinitions[Key][1]> | LifetimeSweepOptions
+    : SweepOptions<SweeperDefinitions[Key][0], SweeperDefinitions[Key][1]>;
+};
+
+export interface LimitedCollectionOptions<Key, Value> {
+  maxSize?: number;
+  keepOverLimit?: (value: Value, key: Key, collection: LimitedCollection<Key, Value>) => boolean;
+}
+
+export type Channel =
+  | CategoryChannel
+  | DMChannel
+  | PartialDMChannel
+  | PartialGroupDMChannel
+  | NewsChannel
+  | StageChannel
+  | TextChannel
+  | PublicThreadChannel
+  | PrivateThreadChannel
+  | VoiceChannel
+  | ForumChannel
+  | MediaChannel;
+
+export type TextBasedChannel = Exclude<Extract<Channel, { type: TextChannelType }>, ForumChannel | MediaChannel>;
+
+export type SendableChannels = Extract<Channel, { send: (...args: any[]) => any }>;
+
+export type TextBasedChannels = TextBasedChannel;
+
+export type TextBasedChannelTypes = TextBasedChannel['type'];
+
+export type GuildTextBasedChannelTypes = Exclude<TextBasedChannelTypes, ChannelType.DM | ChannelType.GroupDM>;
+
+export type SendableChannelTypes = SendableChannels['type'];
+
+export type VoiceBasedChannel = Extract<Channel, { bitrate: number }>;
+
+export type GuildBasedChannel = Extract<Channel, { guild: Guild }>;
+
+export type CategoryChildChannel = Exclude<Extract<Channel, { parent: CategoryChannel | null }>, CategoryChannel>;
+
+export type NonThreadGuildBasedChannel = Exclude<GuildBasedChannel, AnyThreadChannel>;
+
+export type GuildTextBasedChannel = Extract<GuildBasedChannel, TextBasedChannel>;
+
+export type TextChannelResolvable = Snowflake | TextChannel;
+
+export type TextBasedChannelResolvable = Snowflake | TextBasedChannel;
+
+export type ThreadChannelResolvable = Snowflake | ThreadChannel;
+
+export type ThreadChannelType = ChannelType.AnnouncementThread | ChannelType.PublicThread | ChannelType.PrivateThread;
+
+export interface GuildTextThreadCreateOptions<AllowedThreadType> extends StartThreadOptions {
+  startMessage?: MessageResolvable;
+  type?: AllowedThreadType;
+  invitable?: AllowedThreadType extends ChannelType.PrivateThread ? boolean : never;
+}
+
+export interface GuildForumThreadCreateOptions extends StartThreadOptions {
+  message: GuildForumThreadMessageCreateOptions | MessagePayload;
+  appliedTags?: readonly Snowflake[];
+}
+
+export interface ThreadEditOptions {
+  name?: string;
+  archived?: boolean;
+  autoArchiveDuration?: ThreadAutoArchiveDuration;
+  rateLimitPerUser?: number;
+  locked?: boolean;
+  invitable?: boolean;
+  appliedTags?: readonly Snowflake[];
+  flags?: ChannelFlagsResolvable;
+  reason?: string;
+}
+
+export type ThreadMemberResolvable = ThreadMember | UserResolvable;
+
+export type UserMention = `<@${Snowflake}>`;
+
+export type UserResolvable = User | Snowflake | Message | GuildMember | ThreadMember;
+
+export interface Vanity {
+  code: string | null;
+  uses: number;
+}
+
+export type VoiceBasedChannelTypes = VoiceBasedChannel['type'];
+
+export type VoiceChannelResolvable = Snowflake | VoiceChannel;
+
+export interface VoiceStateEditOptions {
+  requestToSpeak?: boolean;
+  suppressed?: boolean;
+}
+
+export type WebhookClientData = WebhookClientDataIdWithToken | WebhookClientDataURL;
+
+export interface WebhookClientDataIdWithToken {
+  id: Snowflake;
+  token: string;
+}
+
+export interface WebhookClientDataURL {
+  url: string;
+}
+
+export interface WebhookClientOptions extends Pick<ClientOptions, 'allowedMentions' | 'rest'> {}
+
+export interface WebhookDeleteOptions {
+  token?: string;
+  reason?: string;
+}
+
+export interface WebhookEditOptions {
+  name?: string;
+  avatar?: BufferResolvable | null;
+  channel?: GuildTextChannelResolvable | VoiceChannel | StageChannel | ForumChannel | MediaChannel;
+  reason?: string;
+}
+
+export interface WebhookMessageEditOptions extends MessageEditOptions {
+  threadId?: Snowflake;
+  withComponents?: boolean;
+}
+
+export interface InteractionEditReplyOptions
+  extends WebhookMessageEditOptions,
+    Pick<BaseMessageOptionsWithPoll, 'poll'> {
+  message?: MessageResolvable | '@original';
+}
+
+export interface WebhookFetchMessageOptions {
+  threadId?: Snowflake;
+}
+
+export interface WebhookMessageCreateOptions
+  extends Omit<MessageCreateOptions, 'nonce' | 'reply' | 'stickers' | 'forward'> {
+  username?: string;
+  avatarURL?: string;
+  threadId?: Snowflake;
+  threadName?: string;
+  appliedTags?: readonly Snowflake[];
+  withComponents?: boolean;
+}
+
+export interface WebSocketOptions {
+  large_threshold?: number;
+  version?: number;
+  buildStrategy?(manager: WSWebSocketManager): IShardingStrategy;
+  buildIdentifyThrottler?(manager: WSWebSocketManager): Awaitable<IIdentifyThrottler>;
+}
+
+export interface WidgetActivity {
+  name: string;
+}
+
+export interface WidgetChannel {
+  id: Snowflake;
+  name: string;
+  position: number;
+}
+
+export interface WelcomeChannelData {
+  description: string;
+  channel: TextChannel | NewsChannel | ForumChannel | MediaChannel | Snowflake;
+  emoji?: EmojiIdentifierResolvable;
+}
+
+export interface WelcomeScreenEditOptions {
+  enabled?: boolean;
+  description?: string;
+  welcomeChannels?: readonly WelcomeChannelData[];
+}
+
+export interface ClientApplicationEditOptions {
+  customInstallURL?: string;
+  description?: string;
+  roleConnectionsVerificationURL?: string;
+  installParams?: ClientApplicationInstallParams;
+  flags?: ApplicationFlagsResolvable;
+  icon?: BufferResolvable | Base64Resolvable | null;
+  coverImage?: BufferResolvable | Base64Resolvable | null;
+  interactionsEndpointURL?: string;
+  eventWebhooksURL?: string;
+  eventWebhooksStatus?: ApplicationWebhookEventStatus.Enabled | ApplicationWebhookEventStatus.Disabled;
+  eventWebhooksTypes?: readonly ApplicationWebhookEventType[];
+  tags?: readonly string[];
+}
+
+export interface ClientApplicationInstallParams {
+  scopes: readonly OAuth2Scopes[];
+  permissions: Readonly<PermissionsBitField>;
+}
+
+export type Serialized<Value> = Value extends symbol | bigint | (() => any)
+  ? never
+  : Value extends number | string | boolean | undefined
+    ? Value
+    : Value extends JSONEncodable<infer JSONResult>
+      ? JSONResult
+      : Value extends ReadonlyArray<infer ItemType>
+        ? Serialized<ItemType>[]
+        : Value extends ReadonlyMap<unknown, unknown> | ReadonlySet<unknown>
+          ? {}
+          : { [K in keyof Value]: Serialized<Value[K]> };
+
+//#endregion
+
+//#region Voice
+
+/**
+ * @internal Use `DiscordGatewayAdapterLibraryMethods` from `@discordjs/voice` instead.
+ */
+export interface InternalDiscordGatewayAdapterLibraryMethods {
+  onVoiceServerUpdate(data: GatewayVoiceServerUpdateDispatchData): void;
+  onVoiceStateUpdate(data: GatewayVoiceStateUpdateDispatchData): void;
+  destroy(): void;
+}
+
+/**
+ * @internal Use `DiscordGatewayAdapterImplementerMethods` from `@discordjs/voice` instead.
+ */
+export interface InternalDiscordGatewayAdapterImplementerMethods {
+  sendPayload(payload: unknown): boolean;
+  destroy(): void;
+}
+
+/**
+ * @internal Use `DiscordGatewayAdapterCreator` from `@discordjs/voice` instead.
+ */
+export type InternalDiscordGatewayAdapterCreator = (
+  methods: InternalDiscordGatewayAdapterLibraryMethods,
+) => InternalDiscordGatewayAdapterImplementerMethods;
+
+//#endregion
+
+// External
+export * from 'discord-api-types/v10';
+export * from '@discordjs/builders';
+export * from '@discordjs/formatters';
+export * from '@discordjs/rest';
+export * from '@discordjs/util';
+export * from '@discordjs/ws';
