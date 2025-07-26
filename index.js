@@ -906,6 +906,19 @@ client.login(config.DISCORD_TOKEN).catch(error => {
   process.exit(1);
 });
 
+// إضافة منفذ للويب (مطلوب لـ Render Web Service)
+const port = process.env.PORT || 3000;
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('MDT Discord Bot is running!');
+});
+
+server.listen(port, () => {
+  console.log(`🌐 Server listening on port ${port}`);
+});
+
 // معالجة الأخطاء غير المتوقعة
 process.on('unhandledRejection', (error) => {
   console.error('خطأ غير معالج:', error);
