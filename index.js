@@ -23,10 +23,10 @@ const dataPath = './data.json';
 function loadData() {
   try {
     if (fs.existsSync(dataPath)) {
-      const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-      botStatus = data.botStatus || {};
-      originalBotNames = data.originalBotNames || {};
-      return data;
+      const fileData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+      botStatus = fileData.botStatus || {};
+      originalBotNames = fileData.originalBotNames || {};
+      return fileData;
     }
   } catch (error) {
     console.error('خطأ في تحميل البيانات:', error);
